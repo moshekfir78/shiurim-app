@@ -28,7 +28,7 @@ function item(s) {
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
     <div class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
-    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}
+    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${s.tr ? '<div class="sub">📝 יש תמלול</div>' : ''}
     <div class="meta">${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
 }
@@ -108,7 +108,9 @@ const views = {
     q = (q || '').trim(); $('#q').value = q;
     if (!q) return `<div class="empty">הקלידו מילה לחיפוש בכותרות ובתגיות השיעורים</div>`;
     const words = q.split(/\s+/);
-    const res = byRav(DB.shiurim).filter(s => { const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
+    if (!TRSEARCH) { fetch('data/transcripts-search.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { TRSEARCH = j; render() }).catch(() => TRSEARCH = {}); TRSEARCH = {} }
+    const inTr = s => s.tr && TRSEARCH[s.c] && words.every(w => TRSEARCH[s.c].includes(w));
+    const res = byRav(DB.shiurim).filter(s => inTr(s) || { const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
     return ravChips() + `<h2 class="sec">${res.length} תוצאות עבור "${esc(q)}"</h2>` + (res.length ? pagedList(res, 'q' + q) : '<div class="empty">לא נמצאו שיעורים</div>');
   },
   fav() {
@@ -132,6 +134,7 @@ const views = {
         <select class="btn speed" id="spd">${[0.75, 1, 1.25, 1.5, 1.75, 2].map(v => `<option value="${v}" ${v == (LS.get('speed', 1)) ? 'selected' : ''}>×${v}</option>`).join('')}</select></div>
         <div class="muted" id="resume" style="margin-top:6px"></div></div>` :
         `<div class="prow" style="margin:12px 0"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
+      <div id="trbox"></div>
       <h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
       <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
       ${(s.alsoAt || []).map(u => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">גם ב${u.includes('youtube') ? 'יוטיוב' : 'מקור נוסף'} ↗</a>`).join('')}</p>`;
@@ -161,6 +164,7 @@ async function setupShiur(s) {
     $('#spd').onchange = e => { au.playbackRate = +e.target.value; LS.set('speed', +e.target.value) };
     if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: srcName(s.source), artwork: [{ src: 'icons/icon-512.png', sizes: '512x512' }] });
   }
+  renderTr(s);
   const t = $('#txt');
   try {
     const c = await (await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' })).json();
@@ -169,6 +173,28 @@ async function setupShiur(s) {
     else t.innerHTML = '<span class="muted">אין טקסט לשיעור זה</span>';
   } catch { t.innerHTML = '<span class="muted">לא ניתן לטעון את המקורות</span>' }
 }
+const REPO = 'orikfir10/shiurim-app';
+let TRST = null;
+const trStatus = async () => TRST || (TRST = await fetch('data/transcripts-status.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({})));
+const canTr = s => s.audio.length || s.youtube;
+async function renderTr(s) {
+  const box = $('#trbox'); if (!box) return;
+  const st = (await trStatus())[s.uid], asked = LS.get('trReq', {})[s.uid];
+  const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
+  if (c.transcript) {
+    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span></h2><div class="text tr">${c.transcript.map(g => `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${esc(g.t)}</p>`).join('')}</div>`;
+    box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
+    return;
+  }
+  if (!canTr(s)) { box.innerHTML = `<p class="muted">תמלול לא זמין: השיעור זמין רק בספוטיפיי ואין גישה ציבורית לקובץ השמע.</p>`; return }
+  if (st && st.status === 'working') { box.innerHTML = `<p class="trst">⏳ בתמלול… התמלול יופיע כאן כשיסתיים.</p>`; return }
+  if (st && st.status === 'failed') { box.innerHTML = `<p class="muted">התמלול נכשל: ${esc(st.reason || '')}</p>`; return }
+  const url = `https://github.com/${REPO}/issues/new?title=${encodeURIComponent('[תמלול] ' + s.uid)}&body=${encodeURIComponent('בקשת תמלול לשיעור:\n' + s.title + '\n' + location.origin + location.pathname + '#/s/' + s.uid + '\n\n(אין צורך לשנות דבר, רק ללחוץ Submit)')}`;
+  box.innerHTML = `<p class="prow"><a class="btn" id="trreq" href="${url}" target="_blank" rel="noopener">📝 בקש תמלול</a>
+    ${asked ? '<span class="muted">הבקשה נשלחה – התמלול יתחיל תוך כ־10 דקות ויופיע כאן.</span>' : '<span class="muted">נפתח טופס קצר ב־GitHub (נדרש חשבון)</span>'}</p>`;
+  $('#trreq').onclick = () => { const r = LS.get('trReq', {}); r[s.uid] = Date.now(); LS.set('trReq', r); setTimeout(() => renderTr(s), 300) };
+}
+let TRSEARCH = null;
 function render() {
   if (!DB) return;
   const parts = location.hash.replace(/^#\/?/, '').split('/');
