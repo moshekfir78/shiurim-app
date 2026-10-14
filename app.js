@@ -16,7 +16,7 @@ const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
 let Q = new URLSearchParams();
 const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
 const byRav = arr => { const r = curRav(); return r ? arr.filter(s => s.rav === r) : arr };
-const PAL = ['#ff6b6b', '#4d96ff', '#20c997', '#ffa94d', '#9775fa', '#f06595', '#15aabf', '#82c91e', '#fab005', '#7950f2'];
+const PAL = ['#2f4a6d', '#4f6d7a', '#5a5f7d', '#3f6b63', '#6b5e4e', '#56657f', '#41575f', '#6a6f7a', '#4a5d73', '#5e6b5a'];
 const ravColor = id => PAL[Math.max(0, DB.ravs.findIndex(r => r.id === id)) % PAL.length];
 const initials = n => (n || '').replace(/^הרב\s+/, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('');
 const av = id => `<i class="av" style="--c:${ravColor(id)}" aria-hidden="true">${esc(initials(ravName(id)))}</i>`;
@@ -147,7 +147,7 @@ function list(base, key, grouped) {
   return filterUI(base) + `<div class="muted">${arr.length} שיעורים</div>` + body;
 }
 function topicTiles(ids, base) {
-  return `<div class="grid">${ids.map(id => { const n = base.filter(s => (s.tp || []).includes(id)).length; return n ? `<a class="tile tt" style="--c:${tColor(id)}" href="#/topics/${encodeURIComponent(id)}${location.hash.includes('?') ? '?' + Q : ''}"><span class="ic" aria-hidden="true">${TICON[id] || TICON[id.split(':')[0]] || '🏷️'}</span><div class="t">${esc(topicName(id))}</div><div class="n">${n} שיעורים</div></a>` : '' }).join('')}</div>`;
+  return `<div class="grid">${ids.map(id => { const n = base.filter(s => (s.tp || []).includes(id)).length; return n ? `<a class="tile tt" style="--c:${tColor(id)}" href="#/topics/${encodeURIComponent(id)}${location.hash.includes('?') ? '?' + Q : ''}"><div class="t">${esc(topicName(id))}</div><div class="n">${n} שיעורים</div></a>` : '' }).join('')}</div>`;
 }
 const views = {
   topics(id) {
