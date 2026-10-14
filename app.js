@@ -132,7 +132,7 @@ async function setupShiur(s) {
   }
   const t = $('#txt');
   try {
-    const c = await (await fetch('data/content/' + s.c + '.json')).json();
+    const c = await (await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' })).json();
     if (c.html) t.innerHTML = c.html; // sanitized by importer whitelist
     else if (c.excerpt) { t.classList.add('plain'); t.textContent = c.excerpt.trim() }
     else t.innerHTML = '<span class="muted">אין טקסט לשיעור זה</span>';
@@ -150,6 +150,10 @@ window.render = render;
 window.addEventListener('hashchange', () => { render(); scrollTo(0, 0) });
 $('#searchForm').onsubmit = e => { e.preventDefault(); location.hash = '#/search/' + encodeURIComponent($('#q').value.trim()) };
 let deb; $('#q').oninput = e => { clearTimeout(deb); deb = setTimeout(() => { const v = e.target.value.trim(); if (v.length > 1) history.replaceState(null, '', '#/search/' + encodeURIComponent(v)), render() }, 300) };
-fetch('data/index.json').then(r => r.json()).then(d => { DB = d; d.shiurim.forEach(s => byUid[s.uid] = s); render() })
+fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; d.shiurim.forEach(s => byUid[s.uid] = s); render() })
   .catch(() => app.innerHTML = '<div class="empty">שגיאה בטעינת הנתונים</div>');
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update());
+  let reloaded = false; // when a new version takes over, reload once so fresh code + data are used
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded && navigator.serviceWorker.controller) { reloaded = true; location.reload() } });
+}
