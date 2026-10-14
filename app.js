@@ -16,11 +16,19 @@ const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
 let Q = new URLSearchParams();
 const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
 const byRav = arr => { const r = curRav(); return r ? arr.filter(s => s.rav === r) : arr };
+const PAL = ['#ff6b6b', '#4d96ff', '#20c997', '#ffa94d', '#9775fa', '#f06595', '#15aabf', '#82c91e', '#fab005', '#7950f2'];
+const ravColor = id => PAL[Math.max(0, DB.ravs.findIndex(r => r.id === id)) % PAL.length];
+const initials = n => (n || '').replace(/^הרב\s+/, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('');
+const av = id => `<i class="av" style="--c:${ravColor(id)}" aria-hidden="true">${esc(initials(ravName(id)))}</i>`;
+const TICON = { parasha: '📜', chag: '🎉', tanach: '📖', gemara: '🕯️', mishna: '📚', halacha: '⚖️', emuna: '💡', chasidut: '🔥', kabbala: '✨', kook: '🌅', musar: '🌱', tefila: '🙏', eretz: '🇮🇱', chinuch: '👨‍👩‍👧', current: '📰',
+  'chag:rosh-hashana': '🍎', 'chag:kippur': '🤍', 'chag:sukkot': '🌿', 'chag:chanuka': '🕎', 'chag:tuBshvat': '🌳', 'chag:purim': '🎭', 'chag:pesach': '🍷', 'chag:omer': '🔥', 'chag:atzmaut': '🇮🇱', 'chag:shavuot': '🌾', 'chag:tisha': '🕊️', 'chag:shabbat': '🕯️', 'chasidut:tanya': '📘' };
+const TCOL = ['#ff6b6b', '#ffa94d', '#fab005', '#82c91e', '#20c997', '#15aabf', '#4d96ff', '#7950f2', '#be4bdb', '#f06595'];
+const tColor = id => TCOL[[...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % TCOL.length];
 window.setRav = r => { LS.set('rav', r); setF('r', r) };
 function ravChips() {
   const r = curRav();
   return `<div class="chips ravs"><a class="chip ${!r ? 'sel' : ''}" onclick="setRav('')">כל הרבנים<b>${DB.shiurim.length}</b></a>` +
-    DB.ravs.filter(x => x.count).map(x => `<a class="chip ${r === x.id ? 'sel' : ''}" onclick="setRav('${x.id}')">${esc(x.name)}<b>${x.count}</b></a>`).join('') + '</div>';
+    DB.ravs.filter(x => x.count).map(x => `<a class="chip rc ${r === x.id ? 'sel' : ''}" style="--c:${ravColor(x.id)}" onclick="setRav('${x.id}')">${av(x.id)}${esc(x.name)}<b>${x.count}</b></a>`).join('') + '</div>';
 }
 
 function item(s) {
@@ -28,7 +36,7 @@ function item(s) {
   const pct = p && p.d ? Math.min(100, p.t / p.d * 100) : 0;
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
-    <div class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
+    <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
     <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${s.tr ? '<div class="sub">📝 יש תמלול</div>' : ''}
     <div class="meta">${s.duration ? fmtTime(s.duration).replace(/:\d\d$/, '') + (s.duration >= 3600 ? ' שע׳' : ' דק׳') + ' · ' : ''}${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
@@ -44,7 +52,7 @@ function descendantsShiurim(catId) {
 }
 function tiles(ids) {
   return `<div class="grid">${ids.map(id => DB.categories[id]).map(c =>
-    `<a class="tile" href="#/cat/${encodeURIComponent(c.id)}"><div class="t">${esc(c.title)}</div><div class="n">${c.count} שיעורים</div></a>`).join('')}</div>`;
+    `<a class="tile ${c.rav ? 'ravt' : ''}" style="--c:${c.rav ? ravColor(c.rav) : tColor(c.id)}" href="#/cat/${encodeURIComponent(c.id)}">${c.rav ? av(c.rav) : ''}<div class="t">${esc(c.title)}</div><div class="n">${c.count} שיעורים</div></a>`).join('')}</div>`;
 }
 
 function currentParasha() {
@@ -139,7 +147,7 @@ function list(base, key, grouped) {
   return filterUI(base) + `<div class="muted">${arr.length} שיעורים</div>` + body;
 }
 function topicTiles(ids, base) {
-  return `<div class="grid">${ids.map(id => { const n = base.filter(s => (s.tp || []).includes(id)).length; return n ? `<a class="tile" href="#/topics/${encodeURIComponent(id)}${location.hash.includes('?') ? '?' + Q : ''}"><div class="t">${esc(topicName(id))}</div><div class="n">${n} שיעורים</div></a>` : '' }).join('')}</div>`;
+  return `<div class="grid">${ids.map(id => { const n = base.filter(s => (s.tp || []).includes(id)).length; return n ? `<a class="tile tt" style="--c:${tColor(id)}" href="#/topics/${encodeURIComponent(id)}${location.hash.includes('?') ? '?' + Q : ''}"><span class="ic" aria-hidden="true">${TICON[id] || TICON[id.split(':')[0]] || '🏷️'}</span><div class="t">${esc(topicName(id))}</div><div class="n">${n} שיעורים</div></a>` : '' }).join('')}</div>`;
 }
 const views = {
   topics(id) {
