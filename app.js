@@ -12,13 +12,22 @@ const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('he-IL', { day: 'n
 const fmtTime = t => { t = Math.floor(t || 0); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0') };
 const catPath = id => { const out = []; while (id) { const c = DB.categories[id]; if (!c) break; out.unshift(c); id = c.parent } return out };
 const srcName = id => (DB.sources.find(s => s.id === id) || {}).name || id;
+const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
+const curRav = () => LS.get('rav', '');
+const byRav = arr => { const r = curRav(); return r ? arr.filter(s => s.rav === r) : arr };
+window.setRav = r => { LS.set('rav', r); render() };
+function ravChips() {
+  const r = curRav();
+  return `<div class="chips ravs"><a class="chip ${!r ? 'sel' : ''}" onclick="setRav('')">כל הרבנים<b>${DB.shiurim.length}</b></a>` +
+    DB.ravs.filter(x => x.count).map(x => `<a class="chip ${r === x.id ? 'sel' : ''}" onclick="setRav('${x.id}')">${esc(x.name)}<b>${x.count}</b></a>`).join('') + '</div>';
+}
 
 function item(s) {
-  const p = positions()[s.uid], c = catPath(s.cat).slice(1).map(x => x.title).join(' › ');
+  const p = positions()[s.uid], c = catPath(s.cat).slice(curRav() ? 1 : 0).map(x => x.title).join(' › ');
   const pct = p && p.d ? Math.min(100, p.t / p.d * 100) : 0;
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
-    <div class="play">${s.audio.length ? '▶' : '📄'}</div>
+    <div class="play ${s.youtube && !s.audio.length ? 'yt' : ''}">${s.audio.length ? '▶' : s.youtube ? '▶' : '📄'}</div>
     <div class="body"><div class="title">${esc(s.title)}</div>
     <div class="meta">${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
@@ -40,21 +49,20 @@ function tiles(ids) {
 const views = {
   home() {
     const pos = positions();
-    const cont = Object.entries(pos).filter(([u, p]) => byUid[u] && p.d && p.t > 15 && p.t < p.d - 20)
+    const cont = Object.entries(pos).filter(([u]) => !curRav() || (byUid[u] || {}).rav === curRav()).filter(([u, p]) => byUid[u] && p.d && p.t > 15 && p.t < p.d - 20)
       .sort((a, b) => b[1].at - a[1].at).slice(0, 5).map(([u]) => byUid[u]);
-    const roots = Object.values(DB.categories).filter(c => !c.parent);
-    let h = '';
+    const r = curRav();
+    let h = ravChips();
     if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
-    h += `<h2 class="sec">נושאים <a href="#/cat">הכול</a></h2>`;
-    roots.forEach(r => { h += (roots.length > 1 ? `<div class="muted">${esc(r.title)}</div>` : '') + tiles(r.children.slice().sort((a, b) => DB.categories[b].count - DB.categories[a].count)) });
-    h += `<h2 class="sec">שיעורים אחרונים</h2>` + pagedList(DB.shiurim, 'home', 15);
+    if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
+    else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id));
+    h += `<h2 class="sec">שיעורים אחרונים</h2>` + pagedList(byRav(DB.shiurim), 'home' + r, 15);
     return h;
   },
   cat(id) {
     if (!id) {
-      const roots = Object.values(DB.categories).filter(c => !c.parent);
-      if (roots.length === 1) id = roots[0].id;
-      else return `<h1 class="page">מקורות</h1>` + tiles(roots.map(r => r.id));
+      if (curRav()) id = 'rav:' + curRav();
+      else return ravChips() + `<h1 class="page">רבנים</h1>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id));
     }
     const c = DB.categories[id]; if (!c) return `<div class="empty">הנושא לא נמצא</div>`;
     const path = catPath(id);
@@ -69,8 +77,8 @@ const views = {
     q = (q || '').trim(); $('#q').value = q;
     if (!q) return `<div class="empty">הקלידו מילה לחיפוש בכותרות ובתגיות השיעורים</div>`;
     const words = q.split(/\s+/);
-    const res = DB.shiurim.filter(s => { const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
-    return `<h2 class="sec">${res.length} תוצאות עבור "${esc(q)}"</h2>` + (res.length ? pagedList(res, 'q' + q) : '<div class="empty">לא נמצאו שיעורים</div>');
+    const res = byRav(DB.shiurim).filter(s => { const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
+    return ravChips() + `<h2 class="sec">${res.length} תוצאות עבור "${esc(q)}"</h2>` + (res.length ? pagedList(res, 'q' + q) : '<div class="empty">לא נמצאו שיעורים</div>');
   },
   fav() {
     const f = favs().map(u => byUid[u]).filter(Boolean);
@@ -82,16 +90,18 @@ const views = {
     setTimeout(() => setupShiur(s), 0);
     return crumbs(catPath(s.cat)) +
       `<h1 class="page">${esc(s.title)}</h1>
-      <div class="muted">${esc(fmtDate(s.date))} · ${esc(srcName(s.source))}</div>
+      <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''} · ${esc(srcName(s.source))}</div>
+      ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
       ${s.tags.length ? `<div class="tags">${s.tags.map(t => `<a class="tag" href="#/search/${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>` : ''}
       ${s.audio.length ? `<div class="player"><audio id="au" controls preload="metadata"></audio>
         <div class="prow"><button class="btn" id="b15">↻ 15 שנ׳</button><button class="btn" id="f15">30 שנ׳ ↺</button>
         <button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button>
         <select class="btn speed" id="spd">${[0.75, 1, 1.25, 1.5, 1.75, 2].map(v => `<option value="${v}" ${v == (LS.get('speed', 1)) ? 'selected' : ''}>×${v}</option>`).join('')}</select></div>
         <div class="muted" id="resume" style="margin-top:6px"></div></div>` :
-        `<div class="prow"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
-      <h2 class="sec">מקורות השיעור</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
-      <p><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">לעמוד המקורי באתר ↗</a></p>`;
+        `<div class="prow" style="margin:12px 0"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
+      <h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
+      <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : 'לעמוד המקורי ↗'}</a>
+      ${(s.alsoAt || []).map(u => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">גם ב${u.includes('youtube') ? 'יוטיוב' : 'מקור נוסף'} ↗</a>`).join('')}</p>`;
   }
 };
 function crumbs(path) {
@@ -123,7 +133,7 @@ async function setupShiur(s) {
     const c = await (await fetch('data/content/' + s.c + '.json')).json();
     if (c.html) t.innerHTML = c.html; // sanitized by importer whitelist
     else if (c.excerpt) { t.classList.add('plain'); t.textContent = c.excerpt.trim() }
-    else t.innerHTML = '<span class="muted">אין מקורות כתובים לשיעור זה</span>';
+    else t.innerHTML = '<span class="muted">אין טקסט לשיעור זה</span>';
   } catch { t.innerHTML = '<span class="muted">לא ניתן לטעון את המקורות</span>' }
 }
 function render() {
