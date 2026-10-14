@@ -267,3 +267,17 @@ h2.sec a,.crumbs a{color:var(--pri)}
 .lnk{color:var(--pri);cursor:pointer;text-decoration:underline}
 .sub-h{font-size:.95rem;font-weight:600;color:var(--ink);margin:14px 2px 8px}
 .study [data-pane="tr"] #trbox h2.sec{margin-top:4px}
+
+/* v13: wide layout + rav chips fully visible */
+main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
+.top>*{max-width:min(1400px,94vw);margin-inline:auto}
+.chips.ravs{flex-wrap:wrap;overflow:visible;row-gap:8px}
+.chips.ravs .chip{flex:0 0 auto}
+.sheet-in{max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+@media(max-width:699px){.sheet{z-index:60}}
+@media(min-width:900px){
+ .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+ .list,.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:10px}
+ .pgrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+ .sheet-in{max-width:720px}
+}
