@@ -14,6 +14,7 @@ const catPath = id => { const out = []; while (id) { const c = DB.categories[id]
 const srcName = id => (DB.sources.find(s => s.id === id) || {}).name || id;
 const isSk = id => { const p = catPath(id)[0]; return !!(p && DB.extras && DB.extras.some(r => 'rav:' + r.id === p.id)) };
 const extrasSec = () => (DB.extras || []).length ? `<h2 class="sec">פנאי</h2>` + tiles(DB.extras.map(x => 'rav:' + x.id)) : '';
+const skCard = () => (DB.extras || []).map(x => `<a class="skcard" href="#/cat/rav:${x.id}"><span class="ic">🎭</span><span><b>${esc(x.name)}</b><small>${DB.categories['rav:' + x.id].children.map(c => esc(DB.categories[c].title)).join(' · ')}</small></span><span class="n">${x.count} ›</span></a>`).join('');
 const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
 let Q = new URLSearchParams();
 const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
@@ -189,7 +190,7 @@ const views = {
     const cont = Object.entries(pos).filter(([u]) => !curRav() || (byUid[u] || {}).rav === curRav()).filter(([u, p]) => byUid[u] && p.d && p.t > 15 && p.t < p.d - 20)
       .sort((a, b) => b[1].at - a[1].at).slice(0, 5).map(([u]) => byUid[u]);
     const r = curRav();
-    let h = ravChips() + parCard();
+    let h = ravChips() + skCard() + parCard();
     if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
     if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
     else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id)) + extrasSec();
@@ -205,6 +206,7 @@ const views = {
     const path = catPath(id);
     let h = crumbs(path.slice(0, -1)) + `<h1 class="page">${esc(c.title)}</h1><div class="muted">${c.count} ${isSk(id) ? 'סרטונים' : 'שיעורים'}</div>`;
     if (c.children.length) h += `<h2 class="sec">תתי־נושאים</h2>` + tiles(c.children);
+    if (isSk(id) && c.children.length) return h;
     const own = DB.all.filter(s => s.cat === id);
     const lst = own.length ? own : descendantsShiurim(id);
     h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + list(lst, 'c' + id, true);
