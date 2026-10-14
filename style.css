@@ -251,3 +251,17 @@ h2.sec a,.crumbs a{color:var(--pri)}
 .tabs a span{filter:grayscale(1);opacity:.75}.tabs a.act span{opacity:1}
 .tile,.tile:nth-child(3n+2),.tile:nth-child(3n),.tile.ravt{border-inline-start:1px solid var(--line)}
 .parcard{border-inline-start:1px solid #e6dcc6;background:linear-gradient(180deg,#fffdf8,#fbf6ea)}
+/* study area (calm) */
+.card.study{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;box-shadow:var(--sh)}
+.st-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px;scrollbar-width:none}
+.st-tabs .btn{flex:0 0 auto}.st-tabs .btn.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.study .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.etb{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}.etb .btn{padding:5px 10px;font-size:.82rem}
+.editor{min-height:140px;outline:none;font-family:"Rubik","Heebo",sans-serif;font-size:1rem}
+.editor:focus{border-color:#b7c0cf}.editor:empty::before{content:attr(data-ph);color:var(--muted)}
+.study textarea,.study .inp{width:100%;flex:1;min-width:160px;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:#fff;color:inherit}
+.note{display:flex;gap:10px;align-items:baseline;padding:8px 2px;border-bottom:1px solid #f0eee9}.note span{flex:1;white-space:pre-wrap}
+.note .x{padding:2px 8px;font-size:.75rem}
+.srcl{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.card.study .title{font-weight:600;white-space:pre-wrap;display:block;margin-bottom:4px}
+.lnk{color:var(--pri);cursor:pointer;text-decoration:underline}

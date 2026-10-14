@@ -213,7 +213,7 @@ const views = {
     if (!q) return `<div class="empty">הקלידו מילה לחיפוש בכותרות ובתגיות השיעורים</div>`;
     const words = q.split(/\s+/);
     if (!TRSEARCH) { fetch('data/transcripts-search.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { TRSEARCH = j; render() }).catch(() => TRSEARCH = {}); TRSEARCH = {} }
-    const inTr = s => s.tr && TRSEARCH[s.c] && words.every(w => TRSEARCH[s.c].includes(w));
+    const inTr = s => (s.tr && TRSEARCH[s.c] && words.every(w => TRSEARCH[s.c].includes(w))) || (window.Study && Study.has(s.uid, words));
     const res = DB.shiurim.filter(s => { if (inTr(s)) return true; const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
     return ravChips() + `<h2 class="sec">תוצאות עבור "${esc(q)}"</h2>` + (res.length ? list(res, 'q' + q, false) : '<div class="empty">לא נמצאו שיעורים</div>');
   },
@@ -238,7 +238,7 @@ const views = {
         <select class="btn speed" id="spd">${[0.75, 1, 1.25, 1.5, 1.75, 2].map(v => `<option value="${v}" ${v == (LS.get('speed', 1)) ? 'selected' : ''}>×${v}</option>`).join('')}</select></div>
         <div class="muted" id="resume" style="margin-top:6px"></div></div>` :
         `<div class="prow" style="margin:12px 0"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
-      <div id="trbox"></div>
+      <div id="trbox"></div><div id="study"></div>
       <h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
       <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
       ${(s.alsoAt || []).map(u => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">גם ב${u.includes('youtube') ? 'יוטיוב' : 'מקור נוסף'} ↗</a>`).join('')}</p>`;
@@ -268,7 +268,7 @@ async function setupShiur(s) {
     $('#spd').onchange = e => { au.playbackRate = +e.target.value; LS.set('speed', +e.target.value) };
     if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: srcName(s.source), artwork: [{ src: 'icons/icon-512.png', sizes: '512x512' }] });
   }
-  renderTr(s);
+  Promise.resolve(renderTr(s)).then(() => window.Study && Study.mount(s));
   const t = $('#txt');
   try {
     const c = await (await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' })).json();
@@ -309,10 +309,11 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('act', a.dataset.tab === (view === 's' ? '' : view)));
 }
 window.render = render;
+views.notes = () => { setTimeout(() => Study.notesView(app), 0); return '<div class="loading">טוען…</div>' };
 window.addEventListener('hashchange', () => { render(); scrollTo(0, 0) });
 $('#searchForm').onsubmit = e => { e.preventDefault(); location.hash = '#/search/' + encodeURIComponent($('#q').value.trim()) + (location.hash.includes('?') ? '?' + Q : '') };
 let deb; $('#q').oninput = e => { clearTimeout(deb); deb = setTimeout(() => { const v = e.target.value.trim(); if (v.length > 1) history.replaceState(null, '', '#/search/' + encodeURIComponent(v)), render() }, 300) };
-fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; d.shiurim.forEach(s => byUid[s.uid] = s); render() })
+fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; window.byUidRef = byUid; window.DBravName = ravName; d.shiurim.forEach(s => byUid[s.uid] = s); render() })
   .catch(() => app.innerHTML = '<div class="empty">שגיאה בטעינת הנתונים</div>');
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update());
