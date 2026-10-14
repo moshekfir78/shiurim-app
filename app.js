@@ -46,13 +46,44 @@ function tiles(ids) {
     `<a class="tile" href="#/cat/${encodeURIComponent(c.id)}"><div class="t">${esc(c.title)}</div><div class="n">${c.count} שיעורים</div></a>`).join('')}</div>`;
 }
 
+function currentParasha() {
+  // upcoming Shabbat (Israel) reading; today counts if it is Shabbat
+  const t = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+  return (DB.schedule || []).find(w => w.date >= t);
+}
+const parShiurim = i => byRav(DB.shiurim).filter(s => (s.par || []).includes(i));
+function parCard() {
+  const w = currentParasha(); if (!w || !w.par.length) return '';
+  const n = w.par.reduce((k, i) => k + parShiurim(i).length, 0);
+  return `<a class="parcard" href="#/par/${w.par[0]}"><div class="lbl">פרשת השבוע · שבת ${esc(new Date(w.date + 'T12:00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'long' }))}</div>
+    <div class="nm">${esc(w.name)}</div><div class="lbl">${n} שיעורים ›</div></a>`;
+}
 const views = {
+  par(i) {
+    const cur = (currentParasha() || { par: [] }).par;
+    if (i === '' || i === undefined) {
+      let h = ravChips() + parCard() + `<h1 class="page">פרשת השבוע</h1>`;
+      ['בראשית', 'שמות', 'ויקרא', 'במדבר', 'דברים'].forEach(book => {
+        h += `<h2 class="sec">ספר ${book}</h2><div class="pgrid">` + DB.parashot.map((p, k) => [p, k]).filter(([p]) => p.book === book).map(([p, k]) => {
+          const n = parShiurim(k).length;
+          return `<a class="ptile ${cur.includes(k) ? 'cur' : ''} ${n ? '' : 'none'}" href="#/par/${k}"><span>${esc(p.name)}</span><b>${n}</b></a>`;
+        }).join('') + '</div>';
+      });
+      return h;
+    }
+    i = +i; const p = DB.parashot[i]; if (!p) return '<div class="empty">פרשה לא נמצאה</div>';
+    const list = parShiurim(i);
+    const nav = `<div class="prow">${i > 0 ? `<a class="btn" href="#/par/${i - 1}">› פרשת ${esc(DB.parashot[i - 1].name)}</a>` : ''}<span style="flex:1"></span>${i < 53 ? `<a class="btn" href="#/par/${i + 1}">פרשת ${esc(DB.parashot[i + 1].name)} ‹</a>` : ''}</div>`;
+    return `<nav class="crumbs"><a href="#/">בית</a><span class="sep">›</span><a href="#/par">פרשת השבוע</a><span class="sep">›</span><span>ספר ${esc(p.book)}</span></nav>` + ravChips() +
+      `<h1 class="page">פרשת ${esc(p.name)}${cur.includes(i) ? ' <span class="badge">השבוע</span>' : ''}</h1><div class="muted">${list.length} שיעורים</div>` + nav +
+      (list.length ? pagedList(list, 'par' + i + curRav()) : '<div class="empty">אין עדיין שיעורים לפרשה זו</div>') + nav;
+  },
   home() {
     const pos = positions();
     const cont = Object.entries(pos).filter(([u]) => !curRav() || (byUid[u] || {}).rav === curRav()).filter(([u, p]) => byUid[u] && p.d && p.t > 15 && p.t < p.d - 20)
       .sort((a, b) => b[1].at - a[1].at).slice(0, 5).map(([u]) => byUid[u]);
     const r = curRav();
-    let h = ravChips();
+    let h = ravChips() + parCard();
     if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
     if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
     else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id));
