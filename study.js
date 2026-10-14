@@ -115,11 +115,13 @@ async function mount(s) {
   const hasT = nowT() !== null;
   const notes = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
   const srcs = sources([strip(cur.summary), strip(cur.trEdit || autoTr), ...notes.map(n => n.text), s.title, strip(c.html)].join(' \n '));
+  // keep references to page parts that live inside tabs (auto transcript box, site's own source text)
+  const trbEl = $('#trbox'), txtEl = $('#txt'), txtHead = txtEl && txtEl.previousElementSibling && txtEl.previousElementSibling.tagName === 'H2' ? txtEl.previousElementSibling : (box.querySelector('#stSiteHead') || null);
+  const siteLabel = txtHead ? txtHead.textContent : 'מקורות השיעור';
   box.innerHTML = `<h2 class="sec">אזור לימוד <span class="muted">נשמר רק במכשיר הזה</span></h2>
   <div class="card study">
     <div class="st-tabs" role="tablist">
-      <button class="btn on" data-p="sum">הסיכום שלי</button><button class="btn" data-p="notes">הערות (${notes.length})</button>
-      ${autoTr ? '<button class="btn" data-p="tr">תיקון התמלול</button>' : ''}<button class="btn" data-p="src">מקורות (${srcs.length})</button><button class="btn" data-p="exp">ייצוא ושיתוף</button>
+      <button class="btn on" data-p="sum">הסיכום שלי</button><button class="btn" data-p="src">מקורות</button><button class="btn" data-p="tr">תמלול</button><button class="btn" data-p="notes">הערות (${notes.length})</button><button class="btn" data-p="exp">ייצוא ושיתוף</button>
     </div>
     <section data-pane="sum">
       <div class="row"><label class="btn">📄 העלאת קובץ<input type="file" id="stFile" accept=".txt,.docx,.pdf,.srt,.vtt,text/plain" hidden></label>
@@ -135,11 +137,15 @@ async function mount(s) {
       <div class="row"><input id="stNote" class="inp" placeholder="${hasT ? 'הערה בזמן הנוכחי…' : 'הערה…'}"><button class="btn pri" id="stAdd">הוסף הערה${hasT ? ' ⏱' : ''}</button></div>
       <div class="list">${notes.map(n => `<div class="note">${n.t != null ? `<a class="ts" data-t="${n.t}">${fmt(n.t)}</a>` : ''}<span>${esc(n.text)}</span><button class="btn x" data-del="${n.id}" aria-label="מחק">✕</button></div>`).join('') || '<div class="muted">אין עדיין הערות.</div>'}</div>
     </section>
-    ${autoTr ? `<section data-pane="tr" hidden><p class="muted">עורכים עותק מקומי; התמלול המקורי נשמר.${cur.trEdit ? ' <button class="btn" id="stTrReset">חזרה למקור</button>' : ''}</p>
-      ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></section>` : ''}
-    <section data-pane="src" hidden>${srcs.length ? `<div class="list">${srcs.map(x => `<a class="srcl" href="${x.url}" target="_blank" rel="noopener">${esc(x.label)} <span class="muted">ספריא ↗</span></a>`).join('')}</div>` : '<p class="muted">לא זוהו מראי מקומות. מזוהים פסוקים (למשל "בראשית א, ב") ודפי גמרא (למשל "ברכות ב." או "ברכות דף ב עמוד א") בסיכום, בתמלול ובהערות.</p>'}</section>
+    <section data-pane="tr" hidden><div id="stTrHost"></div>
+      ${autoTr ? `<details class="grp"><summary>תיקון התמלול <b>עותק מקומי</b></summary><p class="muted">עורכים עותק מקומי; התמלול המקורי נשמר.${cur.trEdit ? ' <button class="btn" id="stTrReset">חזרה למקור</button>' : ''}</p>
+      ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></details>` : ''}</section>
+    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות שזוהו (ספריא)</h3>${srcs.length ? `<div class="list">${srcs.map(x => `<a class="srcl" href="${x.url}" target="_blank" rel="noopener">${esc(x.label)} <span class="muted">ספריא ↗</span></a>`).join('')}</div>` : '<p class="muted">לא זוהו מראי מקומות. מזוהים פסוקים (למשל "בראשית א, ב") ודפי גמרא (למשל "ברכות ב." או "ברכות דף ב עמוד א") בסיכום, בתמלול, בהערות ובמקורות האתר.</p>'}<h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
     <section data-pane="exp" hidden><div class="row"><button class="btn" id="stDocx">Word (.docx)</button><button class="btn" id="stPdf">PDF</button><button class="btn" id="stShare">שיתוף…</button><a class="btn" id="stWa" target="_blank" rel="noopener">וואטסאפ</a></div></section>
   </div>`;
+  // move the auto transcript box and the site's source text into their tabs (no copying into the user's summary)
+  if (trbEl) $('#stTrHost').appendChild(trbEl);
+  if (txtEl) { $('#stSiteSrc').appendChild(txtEl); if (txtHead && txtHead.id !== 'stSiteHead') txtHead.remove() } else $('#stSiteHead').remove();
   // tabs
   box.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { box.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); box.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== b.dataset.p) });
   // summary autosave
