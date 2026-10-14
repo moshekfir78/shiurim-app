@@ -114,7 +114,6 @@ async function mount(s) {
   const autoTr = c.transcript ? c.transcript.map(g => `<p>[${fmt(g.s)}] ${esc(g.t)}</p>`).join('') : '';
   const hasT = nowT() !== null;
   const notes = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
-  const srcs = sources([strip(cur.summary), strip(cur.trEdit || autoTr), ...notes.map(n => n.text), s.title, strip(c.html)].join(' \n '));
   // keep references to page parts that live inside tabs (auto transcript box, site's own source text)
   const trbEl = $('#trbox'), txtEl = $('#txt'), txtHead = txtEl && txtEl.previousElementSibling && txtEl.previousElementSibling.tagName === 'H2' ? txtEl.previousElementSibling : (box.querySelector('#stSiteHead') || null);
   const siteLabel = txtHead ? txtHead.textContent : 'מקורות השיעור';
@@ -140,14 +139,16 @@ async function mount(s) {
     <section data-pane="tr" hidden><div id="stTrHost"></div>
       ${autoTr ? `<details class="grp"><summary>תיקון התמלול <b>עותק מקומי</b></summary><p class="muted">עורכים עותק מקומי; התמלול המקורי נשמר.${cur.trEdit ? ' <button class="btn" id="stTrReset">חזרה למקור</button>' : ''}</p>
       ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></details>` : ''}</section>
-    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות שזוהו (ספריא)</h3>${srcs.length ? `<div class="list">${srcs.map(x => `<a class="srcl" href="${x.url}" target="_blank" rel="noopener">${esc(x.label)} <span class="muted">ספריא ↗</span></a>`).join('')}</div>` : '<p class="muted">לא זוהו מראי מקומות. מזוהים פסוקים (למשל "בראשית א, ב") ודפי גמרא (למשל "ברכות ב." או "ברכות דף ב עמוד א") בסיכום, בתמלול, בהערות ובמקורות האתר.</p>'}<h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
+    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות (ספריא)</h3><div id="stRefs"><p class="muted">טוען…</p></div><h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
     <section data-pane="exp" hidden><div class="row"><button class="btn" id="stDocx">Word (.docx)</button><button class="btn" id="stPdf">PDF</button><button class="btn" id="stShare">שיתוף…</button><a class="btn" id="stWa" target="_blank" rel="noopener">וואטסאפ</a></div></section>
   </div>`;
   // move the auto transcript box and the site's source text into their tabs (no copying into the user's summary)
   if (trbEl) $('#stTrHost').appendChild(trbEl);
   if (txtEl) { $('#stSiteSrc').appendChild(txtEl); if (txtHead && txtHead.id !== 'stSiteHead') txtHead.remove() } else $('#stSiteHead').remove();
   // tabs
-  box.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { box.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); box.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== b.dataset.p) });
+  box.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { box.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); box.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== b.dataset.p);
+    if (b.dataset.p === 'src' && !box._refsDone) { box._refsDone = 1; const ed = $('#stEd'), tr = $('#stTr');
+      SrcLink.render($('#stRefs'), [s.title, c.excerpt || '', strip(c.html || ''), strip(ed ? ed.innerHTML : cur.summary || ''), strip(tr ? tr.innerHTML : autoTr), ...(cur.notes || []).map(n => n.text)].join(' \n ')) } });
   // summary autosave
   const ed = $('#stEd'); let deb;
   const save = async () => { cur.summary = clean(ed.innerHTML); cur.versions = cur.versions || []; pushVersion(cur.versions, cur.summary); await putRec(cur); $('#stSaved').textContent = 'נשמר ' + new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) };
