@@ -281,3 +281,9 @@ main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-ins
  .pgrid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
  .sheet-in{max-width:720px}
 }
+/* v14 back button */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.top>.brand{flex:1}.top>.search{flex-basis:100%}
+.backb{order:-1;flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--pri);font:inherit;font-weight:600;font-size:.9rem;border-radius:10px;padding:6px 12px;cursor:pointer}
+.backb[hidden]{display:none}
+.backb:hover{background:#f3f5f8}

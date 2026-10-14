@@ -310,10 +310,25 @@ function render() {
 }
 window.render = render;
 views.notes = () => { setTimeout(() => Study.notesView(app), 0); return '<div class="loading">טוען…</div>' };
-window.addEventListener('hashchange', () => { render(); scrollTo(0, 0) });
+// ---------- back navigation ----------
+const navD = () => (history.state && history.state.d) || 0;
+let lastD = navD();
+if (!history.state) history.replaceState({ d: 0 }, '');
+function parentRoute() {
+  const h = location.hash.replace(/^#\/?/, '').split('?')[0], p = h.split('/');
+  if (p[0] === 's') { const s = byUid[decodeURIComponent(p.slice(1).join('/'))]; return s && s.cat ? '#/cat/' + encodeURIComponent(s.cat) : '#/' }
+  if (p[0] === 'cat' && p[1]) { const c = DB.categories[decodeURIComponent(p.slice(1).join('/'))]; return c && c.parent ? '#/cat/' + encodeURIComponent(c.parent) : '#/cat' }
+  if ((p[0] === 'topics' || p[0] === 'par') && p[1]) return '#/' + p[0];
+  return '#/';
+}
+window.goBack = () => { const sh = document.querySelector('.sheet.open'); if (sh) { sh.classList.remove('open'); return } navD() > 0 ? history.back() : (location.hash = parentRoute()) };
+function updBack() { const h = location.hash.replace(/^#\/?/, '').split('?')[0]; $('#backBtn').hidden = !h; }
+window.addEventListener('popstate', () => { const sh = document.querySelector('.sheet.open'); if (sh) sh.classList.remove('open') });
+document.addEventListener('click', e => { if (e.target.closest('.fbar .btn')) setTimeout(() => { if (document.querySelector('.sheet.open')) history.pushState({ d: navD() + 1, sheet: 1 }, '') }, 0) });
+window.addEventListener('hashchange', () => { if (!history.state) history.replaceState({ d: lastD + 1 }, ''); lastD = navD(); render(); updBack(); scrollTo(0, 0) });
 $('#searchForm').onsubmit = e => { e.preventDefault(); location.hash = '#/search/' + encodeURIComponent($('#q').value.trim()) + (location.hash.includes('?') ? '?' + Q : '') };
-let deb; $('#q').oninput = e => { clearTimeout(deb); deb = setTimeout(() => { const v = e.target.value.trim(); if (v.length > 1) history.replaceState(null, '', '#/search/' + encodeURIComponent(v)), render() }, 300) };
-fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; window.byUidRef = byUid; window.DBravName = ravName; d.shiurim.forEach(s => byUid[s.uid] = s); render() })
+let deb; $('#q').oninput = e => { clearTimeout(deb); deb = setTimeout(() => { const v = e.target.value.trim(); if (v.length > 1) (location.hash.startsWith('#/search/') ? history.replaceState(history.state, '', '#/search/' + encodeURIComponent(v)) : history.pushState({ d: navD() + 1 }, '', '#/search/' + encodeURIComponent(v))), render() }, 300) };
+fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; window.byUidRef = byUid; window.DBravName = ravName; d.shiurim.forEach(s => byUid[s.uid] = s); render(); updBack() })
   .catch(() => app.innerHTML = '<div class="empty">שגיאה בטעינת הנתונים</div>');
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update());
