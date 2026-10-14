@@ -13,9 +13,10 @@ const fmtTime = t => { t = Math.floor(t || 0); const h = Math.floor(t / 3600), m
 const catPath = id => { const out = []; while (id) { const c = DB.categories[id]; if (!c) break; out.unshift(c); id = c.parent } return out };
 const srcName = id => (DB.sources.find(s => s.id === id) || {}).name || id;
 const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
-const curRav = () => LS.get('rav', '');
+let Q = new URLSearchParams();
+const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
 const byRav = arr => { const r = curRav(); return r ? arr.filter(s => s.rav === r) : arr };
-window.setRav = r => { LS.set('rav', r); render() };
+window.setRav = r => { LS.set('rav', r); setF('r', r) };
 function ravChips() {
   const r = curRav();
   return `<div class="chips ravs"><a class="chip ${!r ? 'sel' : ''}" onclick="setRav('')">כל הרבנים<b>${DB.shiurim.length}</b></a>` +
@@ -29,7 +30,7 @@ function item(s) {
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
     <div class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
     <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${s.tr ? '<div class="sub">📝 יש תמלול</div>' : ''}
-    <div class="meta">${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
+    <div class="meta">${s.duration ? fmtTime(s.duration).replace(/:\d\d$/, '') + (s.duration >= 3600 ? ' שע׳' : ' דק׳') + ' · ' : ''}${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
 }
 function pagedList(arr, key, step = 30) {
@@ -58,7 +59,102 @@ function parCard() {
   return `<a class="parcard" href="#/par/${w.par[0]}"><div class="lbl">פרשת השבוע · שבת ${esc(new Date(w.date + 'T12:00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'long' }))}</div>
     <div class="nm">${esc(w.name)}</div><div class="lbl">${n} שיעורים ›</div></a>`;
 }
+// ---------- filters (persisted in URL query: #/view/arg?r=&t=&m=&len=&from=&to=&src=&sort=) ----------
+const LEN = [['0', 'עד 15 דק׳', 0, 900], ['1', '15–30 דק׳', 900, 1800], ['2', '30–60 דק׳', 1800, 3600], ['3', 'מעל שעה', 3600, 1e9]];
+const topicName = id => (DB.topics.find(t => t.id === id) || {}).name || id;
+const isVideo = s => !!(s.youtube || s.spotifyVideo), isAudio = s => !!(s.audio.length || (s.spotify && !s.spotifyVideo));
+const year = s => (s.date || '').slice(0, 4);
+function setF(k, v) {
+  if (v === '' || v == null) Q.delete(k); else Q.set(k, v);
+  const base = location.hash.split('?')[0] || '#/'; const qs = Q.toString();
+  location.hash = base + (qs ? '?' + qs : '');
+}
+window.setF = setF;
+window.clearF = () => { ['t', 'm', 'len', 'from', 'to', 'src', 'sort'].forEach(k => Q.delete(k)); setF('x', '') };
+function applyF(arr) {
+  const t = Q.get('t'), m = Q.get('m'), len = LEN.find(l => l[0] === Q.get('len')), from = Q.get('from'), to = Q.get('to'), src = Q.get('src');
+  let out = byRav(arr).filter(s => (!t || (s.tp || []).includes(t)) && (!m || (m === 'v' ? isVideo(s) : isAudio(s))) &&
+    (!len || (s.duration && s.duration >= len[2] && s.duration < len[3])) && (!from || year(s) >= from) && (!to || (year(s) && year(s) <= to)) && (!src || s.source === src));
+  if (Q.get('sort') === 'old') out = out.slice().sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
+  return out;
+}
+const fKey = () => ['r', 't', 'm', 'len', 'from', 'to', 'src', 'sort'].map(k => Q.get(k) || '').join('|');
+function filterUI(base) {
+  base = byRav(base);
+  const cnt = {}; base.forEach(s => (s.tp || []).forEach(t => cnt[t] = (cnt[t] || 0) + 1));
+  const srcs = {}; base.forEach(s => srcs[s.source] = (srcs[s.source] || 0) + 1);
+  const years = [...new Set(base.map(year).filter(Boolean))].sort();
+  const opt = (k, v, label, n) => `<option value="${esc(v)}" ${(Q.get(k) || '') === v ? 'selected' : ''}>${esc(label)}${n != null ? ' (' + n + ')' : ''}</option>`;
+  const sel = (k, label, opts) => `<label class="fl"><span>${label}</span><select onchange="setF('${k}',this.value)">${opts}</select></label>`;
+  const tops = DB.topics.filter(t => cnt[t.id]).map(t => opt('t', t.id, (t.parent ? '— ' : '') + t.name, cnt[t.id])).join('');
+  const active = [['r', v => ravName(v)], ['t', topicName], ['m', v => v === 'v' ? 'וידאו' : 'שמע'], ['len', v => (LEN.find(l => l[0] === v) || [])[1]],
+    ['from', v => 'משנת ' + v], ['to', v => 'עד ' + v], ['src', srcName], ['sort', v => v === 'old' ? 'מהישן לחדש' : '']].filter(([k]) => Q.get(k));
+  const n = active.filter(([k]) => k !== 'r').length;
+  return `<div class="fbar"><button class="btn ${n ? 'on' : ''}" onclick="document.getElementById('fsheet').classList.add('open')">⚙ סינון${n ? ' (' + n + ')' : ''}</button>
+    <div class="chips act">${active.map(([k, f]) => `<a class="chip sel" onclick="setF('${k}','')">${esc(f(Q.get(k)))} ✕</a>`).join('')}</div></div>
+  <div id="fsheet" class="sheet" onclick="if(event.target===this)this.classList.remove('open')"><div class="sheet-in">
+    <div class="sheet-h"><b>סינון ומיון</b><button class="btn" onclick="document.getElementById('fsheet').classList.remove('open')">סגור</button></div>
+    ${sel('r', 'רב', opt('r', '', 'כל הרבנים') + DB.ravs.filter(x => x.count).map(x => opt('r', x.id, x.name)).join(''))}
+    ${sel('t', 'נושא', opt('t', '', 'כל הנושאים') + tops)}
+    ${sel('m', 'סוג מדיה', opt('m', '', 'הכול') + opt('m', 'a', 'שמע') + opt('m', 'v', 'וידאו'))}
+    ${sel('len', 'אורך', opt('len', '', 'כל אורך') + LEN.map(l => opt('len', l[0], l[1])).join(''))}
+    <div class="frow">${sel('from', 'משנה', opt('from', '', '—') + years.map(y => opt('from', y, y)).join(''))}${sel('to', 'עד שנה', opt('to', '', '—') + years.map(y => opt('to', y, y)).join(''))}</div>
+    ${sel('sort', 'מיון', opt('sort', '', 'מהחדש לישן') + opt('sort', 'old', 'מהישן לחדש'))}
+    ${sel('src', 'מקור', opt('src', '', 'כל המקורות') + Object.entries(srcs).sort((a, b) => b[1] - a[1]).map(([id, k]) => opt('src', id, srcName(id), k)).join(''))}
+    <button class="btn" onclick="clearF()">נקה הכול</button></div></div>`;
+}
+// group a big flat list by its most specific topic (parasha / masechet / book / holiday / Tanya …)
+function groupsOf(arr) {
+  const fine = groupsOf1(arr, false);
+  return fine.length > 20 ? groupsOf1(arr, true) : fine;
+}
+const seriesOf = s => { const segs = s.title.split(/\s[|｜]\s|\s-\s/).map(x => x.trim().replace(/\s*#?\d+#?\s*$/, '').replace(/^#|#$/g, '').trim()).filter(x => x && !/^הרב /.test(x) && x.length < 40); return segs.length > 1 ? segs[0] : '' };
+function groupsOf1(arr, coarse) {
+  const ser = {}; arr.forEach(s => { const x = seriesOf(s); if (x) ser[x] = (ser[x] || 0) + 1 });
+  const freq = {}; arr.forEach(s => (s.tp || []).forEach(t => freq[t] = (freq[t] || 0) + 1));
+  const g = {};
+  arr.forEach(s => {
+    let k, label, ord = 1e6;
+    if (s.par && s.par.length) { if (coarse) { k = 'parasha'; label = 'פרשת השבוע'; ord = 1000 } else { k = 'p' + s.par[0]; label = 'פרשת ' + DB.parashot[s.par[0]].name; ord = s.par[0] } }
+    else {
+      const tp = (s.tp || []).filter(t => t !== 'parasha'), leaf = coarse ? [] : tp.filter(t => t.includes(':'));
+      const pick = (leaf.length ? leaf : coarse ? tp.filter(t => !t.includes(':')) : tp).sort((a, b) => freq[b] - freq[a])[0];
+      const sr = seriesOf(s);
+      if (pick) { k = pick; label = topicName(pick); ord = 1000 }
+      else if (sr && ser[sr] >= 4) { k = 'sr:' + sr; label = sr; ord = 2000 }
+      else { k = '~'; label = 'שונות'; ord = 1e7 }
+    }
+    (g[k] = g[k] || { k, label, ord, items: [] }).items.push(s);
+  });
+  return Object.values(g).sort((a, b) => a.ord !== b.ord ? a.ord - b.ord : b.items.length - a.items.length);
+}
+function list(base, key, grouped) {
+  const arr = applyF(base), k = key + fKey();
+  let body;
+  const gs = grouped && arr.length > 40 ? groupsOf(arr) : null;
+  if (gs && gs.length > 1 && gs[0].items.length < arr.length * 0.9 && !Q.get('flat'))
+    body = `<div class="muted gnote">מחולק ל־${gs.length} קבוצות · <a onclick="setF('flat','1')">הצג כרשימה אחת</a></div>` +
+      gs.map(g => `<details class="grp" ${gs.length <= 3 ? 'open' : ''}><summary>${esc(g.label)} <b>${g.items.length}</b></summary>${pagedList(g.items, k + g.k, 20)}</details>`).join('');
+  else body = (Q.get('flat') && grouped ? `<div class="muted gnote"><a onclick="setF('flat','')">הצג בקבוצות</a></div>` : '') + (arr.length ? pagedList(arr, k) : '<div class="empty">אין שיעורים התואמים לסינון</div>');
+  return filterUI(base) + `<div class="muted">${arr.length} שיעורים</div>` + body;
+}
+function topicTiles(ids, base) {
+  return `<div class="grid">${ids.map(id => { const n = base.filter(s => (s.tp || []).includes(id)).length; return n ? `<a class="tile" href="#/topics/${encodeURIComponent(id)}${location.hash.includes('?') ? '?' + Q : ''}"><div class="t">${esc(topicName(id))}</div><div class="n">${n} שיעורים</div></a>` : '' }).join('')}</div>`;
+}
 const views = {
+  topics(id) {
+    const base = byRav(DB.shiurim);
+    if (!id) {
+      const n = base.filter(s => s.tp).length;
+      return ravChips() + `<h1 class="page">נושאים</h1><div class="muted">${n} מתוך ${base.length} שיעורים מסווגים לנושא</div>` + topicTiles(DB.topics.filter(t => !t.parent).map(t => t.id), base);
+    }
+    const t = DB.topics.find(x => x.id === id); if (!t) return '<div class="empty">נושא לא נמצא</div>';
+    const kids = DB.topics.filter(x => x.parent === id).map(x => x.id);
+    const pool = DB.shiurim.filter(s => (s.tp || []).includes(id));
+    return `<nav class="crumbs"><a href="#/">בית</a><span class="sep">›</span><a href="#/topics">נושאים</a>${t.parent ? `<span class="sep">›</span><a href="#/topics/${encodeURIComponent(t.parent)}">${esc(topicName(t.parent))}</a>` : ''}</nav>` +
+      ravChips() + `<h1 class="page">${esc(t.name)}</h1>` + (id === 'parasha' ? '<p><a class="btn" href="#/par">לתצוגת הפרשות ›</a></p>' : '') +
+      (kids.length ? `<h2 class="sec">תתי־נושאים</h2>` + topicTiles(kids, base) : '') + `<h2 class="sec">שיעורים</h2>` + list(pool, 'tp' + id, true);
+  },
   par(i) {
     const cur = (currentParasha() || { par: [] }).par;
     if (i === '' || i === undefined) {
@@ -72,11 +168,11 @@ const views = {
       return h;
     }
     i = +i; const p = DB.parashot[i]; if (!p) return '<div class="empty">פרשה לא נמצאה</div>';
-    const list = parShiurim(i);
+    const plist = parShiurim(i);
     const nav = `<div class="prow">${i > 0 ? `<a class="btn" href="#/par/${i - 1}">› פרשת ${esc(DB.parashot[i - 1].name)}</a>` : ''}<span style="flex:1"></span>${i < 53 ? `<a class="btn" href="#/par/${i + 1}">פרשת ${esc(DB.parashot[i + 1].name)} ‹</a>` : ''}</div>`;
     return `<nav class="crumbs"><a href="#/">בית</a><span class="sep">›</span><a href="#/par">פרשת השבוע</a><span class="sep">›</span><span>ספר ${esc(p.book)}</span></nav>` + ravChips() +
-      `<h1 class="page">פרשת ${esc(p.name)}${cur.includes(i) ? ' <span class="badge">השבוע</span>' : ''}</h1><div class="muted">${list.length} שיעורים</div>` + nav +
-      (list.length ? pagedList(list, 'par' + i + curRav()) : '<div class="empty">אין עדיין שיעורים לפרשה זו</div>') + nav;
+      `<h1 class="page">פרשת ${esc(p.name)}${cur.includes(i) ? ' <span class="badge">השבוע</span>' : ''}</h1>` + nav +
+      (plist.length ? list(DB.shiurim.filter(s => (s.par || []).includes(i)), 'par' + i, false) : '<div class="empty">אין עדיין שיעורים לפרשה זו</div>') + nav;
   },
   home() {
     const pos = positions();
@@ -100,8 +196,8 @@ const views = {
     let h = crumbs(path.slice(0, -1)) + `<h1 class="page">${esc(c.title)}</h1><div class="muted">${c.count} שיעורים</div>`;
     if (c.children.length) h += `<h2 class="sec">תתי־נושאים</h2>` + tiles(c.children);
     const own = DB.shiurim.filter(s => s.cat === id);
-    const list = own.length ? own : descendantsShiurim(id);
-    h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + pagedList(list, 'c' + id);
+    const lst = own.length ? own : descendantsShiurim(id);
+    h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + list(lst, 'c' + id, true);
     return h;
   },
   search(q) {
@@ -110,8 +206,8 @@ const views = {
     const words = q.split(/\s+/);
     if (!TRSEARCH) { fetch('data/transcripts-search.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { TRSEARCH = j; render() }).catch(() => TRSEARCH = {}); TRSEARCH = {} }
     const inTr = s => s.tr && TRSEARCH[s.c] && words.every(w => TRSEARCH[s.c].includes(w));
-    const res = byRav(DB.shiurim).filter(s => { if (inTr(s)) return true; const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
-    return ravChips() + `<h2 class="sec">${res.length} תוצאות עבור "${esc(q)}"</h2>` + (res.length ? pagedList(res, 'q' + q) : '<div class="empty">לא נמצאו שיעורים</div>');
+    const res = DB.shiurim.filter(s => { if (inTr(s)) return true; const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
+    return ravChips() + `<h2 class="sec">תוצאות עבור "${esc(q)}"</h2>` + (res.length ? list(res, 'q' + q, false) : '<div class="empty">לא נמצאו שיעורים</div>');
   },
   fav() {
     const f = favs().map(u => byUid[u]).filter(Boolean);
@@ -197,7 +293,8 @@ async function renderTr(s) {
 let TRSEARCH = null;
 function render() {
   if (!DB) return;
-  const parts = location.hash.replace(/^#\/?/, '').split('/');
+  const [h0, qs] = location.hash.replace(/^#\/?/, '').split('?'); Q = new URLSearchParams(qs || ''); Q.delete('x');
+  const parts = h0.split('/');
   const view = views[parts[0]] ? parts[0] : 'home';
   const arg = parts.slice(1).map(decodeURIComponent).join('/');
   app.innerHTML = views[view](arg);
@@ -205,7 +302,7 @@ function render() {
 }
 window.render = render;
 window.addEventListener('hashchange', () => { render(); scrollTo(0, 0) });
-$('#searchForm').onsubmit = e => { e.preventDefault(); location.hash = '#/search/' + encodeURIComponent($('#q').value.trim()) };
+$('#searchForm').onsubmit = e => { e.preventDefault(); location.hash = '#/search/' + encodeURIComponent($('#q').value.trim()) + (location.hash.includes('?') ? '?' + Q : '') };
 let deb; $('#q').oninput = e => { clearTimeout(deb); deb = setTimeout(() => { const v = e.target.value.trim(); if (v.length > 1) history.replaceState(null, '', '#/search/' + encodeURIComponent(v)), render() }, 300) };
 fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; d.shiurim.forEach(s => byUid[s.uid] = s); render() })
   .catch(() => app.innerHTML = '<div class="empty">שגיאה בטעינת הנתונים</div>');

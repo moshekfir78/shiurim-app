@@ -76,3 +76,15 @@ h1.page{font-size:1.4rem;line-height:1.35;margin:4px 2px 8px;color:var(--pri);wh
 .tabs a{padding:2px 6px}
 
 .text.tr p{margin:.4em 0}.ts{color:var(--acc);font-family:monospace;font-size:.85rem;cursor:pointer;margin-inline-end:6px}.trst{background:#fff7e6;border:1px solid #f0d9a8;border-radius:12px;padding:10px 14px}
+/* filters + groups */
+.fbar{display:flex;gap:8px;align-items:center;margin:8px 0}.fbar .chips{padding:0}.fbar .btn{flex:0 0 auto}
+.sheet{position:fixed;inset:0;background:#0006;z-index:50;display:none;align-items:flex-end;justify-content:center}.sheet.open{display:flex}
+.sheet-in{background:var(--bg,#fff);width:100%;max-width:560px;max-height:85vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 16px 24px;display:flex;flex-direction:column;gap:10px}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;font-size:1.05rem}
+.fl{display:flex;flex-direction:column;gap:4px;flex:1}.fl span{font-size:.85rem;color:var(--muted)}.fl select{padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);font:inherit;color:inherit}
+.frow{display:flex;gap:10px}
+@media(min-width:700px){.sheet{align-items:center}.sheet-in{border-radius:16px}}
+.grp{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:8px 0;padding:0 10px}
+.grp summary{cursor:pointer;padding:12px 2px;font-weight:600}.grp summary b{color:var(--muted);font-weight:500;margin-inline-start:6px}
+.gnote{margin:6px 0}.gnote a{color:var(--pri);cursor:pointer}
+.tabs a{padding:2px 6px}
