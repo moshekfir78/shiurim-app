@@ -110,7 +110,7 @@ const views = {
     const words = q.split(/\s+/);
     if (!TRSEARCH) { fetch('data/transcripts-search.json', { cache: 'no-cache' }).then(r => r.json()).then(j => { TRSEARCH = j; render() }).catch(() => TRSEARCH = {}); TRSEARCH = {} }
     const inTr = s => s.tr && TRSEARCH[s.c] && words.every(w => TRSEARCH[s.c].includes(w));
-    const res = byRav(DB.shiurim).filter(s => inTr(s) || { const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
+    const res = byRav(DB.shiurim).filter(s => { if (inTr(s)) return true; const hay = s.title + ' ' + s.tags.join(' ') + ' ' + catPath(s.cat).map(c => c.title).join(' '); return words.every(w => hay.includes(w)) });
     return ravChips() + `<h2 class="sec">${res.length} תוצאות עבור "${esc(q)}"</h2>` + (res.length ? pagedList(res, 'q' + q) : '<div class="empty">לא נמצאו שיעורים</div>');
   },
   fav() {
