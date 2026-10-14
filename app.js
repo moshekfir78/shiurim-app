@@ -190,7 +190,7 @@ const views = {
     const cont = Object.entries(pos).filter(([u]) => !curRav() || (byUid[u] || {}).rav === curRav()).filter(([u, p]) => byUid[u] && p.d && p.t > 15 && p.t < p.d - 20)
       .sort((a, b) => b[1].at - a[1].at).slice(0, 5).map(([u]) => byUid[u]);
     const r = curRav();
-    let h = ravChips() + skCard() + parCard();
+    let h = skCard() + ravChips() + parCard();
     if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
     if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
     else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id)) + extrasSec();
