@@ -27,8 +27,8 @@ function item(s) {
   const pct = p && p.d ? Math.min(100, p.t / p.d * 100) : 0;
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
-    <div class="play ${s.youtube && !s.audio.length ? 'yt' : ''}">${s.audio.length ? '▶' : s.youtube ? '▶' : '📄'}</div>
-    <div class="body"><div class="title">${esc(s.title)}</div>
+    <div class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
+    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}
     <div class="meta">${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
 }
@@ -91,6 +91,8 @@ const views = {
     return crumbs(catPath(s.cat)) +
       `<h1 class="page">${esc(s.title)}</h1>
       <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''} · ${esc(srcName(s.source))}</div>
+      ${s.sub ? `<div class="sub big">${esc(s.sub)}</div>` : ''}
+      ${s.spotify && !s.youtube ? `<div class="sp-wrap ${s.spotifyVideo ? 'vid' : ''}"><iframe id="spf" src="https://open.spotify.com/embed/episode/${encodeURIComponent(s.spotify)}${s.spotifyVideo ? '/video' : ''}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify"></iframe></div>` : ''}
       ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
       ${s.tags.length ? `<div class="tags">${s.tags.map(t => `<a class="tag" href="#/search/${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>` : ''}
       ${s.audio.length ? `<div class="player"><audio id="au" controls preload="metadata"></audio>
@@ -100,7 +102,7 @@ const views = {
         <div class="muted" id="resume" style="margin-top:6px"></div></div>` :
         `<div class="prow" style="margin:12px 0"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
       <h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
-      <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : 'לעמוד המקורי ↗'}</a>
+      <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
       ${(s.alsoAt || []).map(u => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">גם ב${u.includes('youtube') ? 'יוטיוב' : 'מקור נוסף'} ↗</a>`).join('')}</p>`;
   }
 };
