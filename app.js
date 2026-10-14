@@ -12,6 +12,8 @@ const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('he-IL', { day: 'n
 const fmtTime = t => { t = Math.floor(t || 0); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0') };
 const catPath = id => { const out = []; while (id) { const c = DB.categories[id]; if (!c) break; out.unshift(c); id = c.parent } return out };
 const srcName = id => (DB.sources.find(s => s.id === id) || {}).name || id;
+const isSk = id => { const p = catPath(id)[0]; return !!(p && DB.extras && DB.extras.some(r => 'rav:' + r.id === p.id)) };
+const extrasSec = () => (DB.extras || []).length ? `<h2 class="sec">פנאי</h2>` + tiles(DB.extras.map(x => 'rav:' + x.id)) : '';
 const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
 let Q = new URLSearchParams();
 const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
@@ -48,11 +50,11 @@ function pagedList(arr, key, step = 30) {
 }
 function descendantsShiurim(catId) {
   const ids = new Set(); const walk = id => { ids.add(id); DB.categories[id].children.forEach(walk) }; walk(catId);
-  return DB.shiurim.filter(s => ids.has(s.cat));
+  return DB.all.filter(s => ids.has(s.cat));
 }
 function tiles(ids) {
   return `<div class="grid">${ids.map(id => DB.categories[id]).map(c =>
-    `<a class="tile ${c.rav ? 'ravt' : ''}" style="--c:${c.rav ? ravColor(c.rav) : tColor(c.id)}" href="#/cat/${encodeURIComponent(c.id)}">${c.rav ? av(c.rav) : ''}<div class="t">${esc(c.title)}</div><div class="n">${c.count} שיעורים</div></a>`).join('')}</div>`;
+    `<a class="tile ${c.rav ? 'ravt' : ''}" style="--c:${c.rav ? ravColor(c.rav) : tColor(c.id)}" href="#/cat/${encodeURIComponent(c.id)}">${c.rav ? av(c.rav) : ''}<div class="t">${esc(c.title)}</div><div class="n">${c.count} ${isSk(c.id) ? 'סרטונים' : 'שיעורים'}</div></a>`).join('')}</div>`;
 }
 
 function currentParasha() {
@@ -190,20 +192,20 @@ const views = {
     let h = ravChips() + parCard();
     if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
     if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
-    else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id));
+    else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id)) + extrasSec();
     h += `<h2 class="sec">שיעורים אחרונים</h2>` + pagedList(byRav(DB.shiurim), 'home' + r, 15);
     return h;
   },
   cat(id) {
     if (!id) {
       if (curRav()) id = 'rav:' + curRav();
-      else return ravChips() + `<h1 class="page">רבנים</h1>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id));
+      else return ravChips() + `<h1 class="page">רבנים</h1>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id)) + extrasSec();
     }
     const c = DB.categories[id]; if (!c) return `<div class="empty">הנושא לא נמצא</div>`;
     const path = catPath(id);
-    let h = crumbs(path.slice(0, -1)) + `<h1 class="page">${esc(c.title)}</h1><div class="muted">${c.count} שיעורים</div>`;
+    let h = crumbs(path.slice(0, -1)) + `<h1 class="page">${esc(c.title)}</h1><div class="muted">${c.count} ${isSk(id) ? 'סרטונים' : 'שיעורים'}</div>`;
     if (c.children.length) h += `<h2 class="sec">תתי־נושאים</h2>` + tiles(c.children);
-    const own = DB.shiurim.filter(s => s.cat === id);
+    const own = DB.all.filter(s => s.cat === id);
     const lst = own.length ? own : descendantsShiurim(id);
     h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + list(lst, 'c' + id, true);
     return h;
@@ -328,7 +330,7 @@ document.addEventListener('click', e => { if (e.target.closest('.fbar .btn')) se
 window.addEventListener('hashchange', () => { if (!history.state) history.replaceState({ d: lastD + 1 }, ''); lastD = navD(); render(); updBack(); scrollTo(0, 0) });
 $('#searchForm').onsubmit = e => { e.preventDefault(); location.hash = '#/search/' + encodeURIComponent($('#q').value.trim()) + (location.hash.includes('?') ? '?' + Q : '') };
 let deb; $('#q').oninput = e => { clearTimeout(deb); deb = setTimeout(() => { const v = e.target.value.trim(); if (v.length > 1) (location.hash.startsWith('#/search/') ? history.replaceState(history.state, '', '#/search/' + encodeURIComponent(v)) : history.pushState({ d: navD() + 1 }, '', '#/search/' + encodeURIComponent(v))), render() }, 300) };
-fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; window.byUidRef = byUid; window.DBravName = ravName; d.shiurim.forEach(s => byUid[s.uid] = s); render(); updBack() })
+fetch('data/index.json', { cache: 'no-cache' }).then(r => r.json()).then(d => { DB = d; window.byUidRef = byUid; window.DBravName = ravName; d.shiurim.forEach(s => byUid[s.uid] = s); const SKR = new Set(d.ravs.filter(r => r.kind === 'sketches').map(r => r.id)); d.all = d.shiurim; d.extras = d.ravs.filter(r => SKR.has(r.id) && r.count); d.shiurim = d.shiurim.filter(s => !SKR.has(s.rav)); d.ravs = d.ravs.filter(r => !SKR.has(r.id)); render(); updBack() })
   .catch(() => app.innerHTML = '<div class="empty">שגיאה בטעינת הנתונים</div>');
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update());
