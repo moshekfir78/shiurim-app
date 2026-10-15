@@ -14,7 +14,7 @@ const catPath = id => { const out = []; while (id) { const c = DB.categories[id]
 const srcName = id => (DB.sources.find(s => s.id === id) || {}).name || id;
 const isSk = id => { const p = catPath(id)[0]; return !!(p && DB.extras && DB.extras.some(r => 'rav:' + r.id === p.id)) };
 const extrasSec = () => (DB.extras || []).length ? `<h2 class="sec">פנאי</h2>` + tiles(DB.extras.map(x => 'rav:' + x.id)) : '';
-const skCard = () => (DB.extras || []).map(x => `<a class="skcard" href="#/cat/rav:${x.id}"><span class="ic">🎭</span><span><b>${esc(x.name)}</b><small>${DB.categories['rav:' + x.id].children.map(c => esc(DB.categories[c].title)).join(' · ')}</small></span><span class="n">${x.count} ›</span></a>`).join('');
+const skCard = () => (DB.extras || []).length ? `<div class="skrow">${DB.extras.map(x => `<a class="skchip" href="#/cat/rav:${x.id}">🎭 ${esc(x.name)}</a>`).join('')}</div>` : '';
 const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
 let Q = new URLSearchParams();
 const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
@@ -206,7 +206,7 @@ const views = {
     const path = catPath(id);
     let h = crumbs(path.slice(0, -1)) + `<h1 class="page">${esc(c.title)}</h1><div class="muted">${c.count} ${isSk(id) ? 'סרטונים' : 'שיעורים'}</div>`;
     if (c.children.length) h += `<h2 class="sec">תתי־נושאים</h2>` + tiles(c.children);
-    if (isSk(id) && c.children.length) return h;
+    if (isSk(id)) return c.children.length ? h : h + `<h2 class="sec">סרטונים</h2>` + pagedList(DB.all.filter(s => s.cat === id), 'sk' + id, 100);
     const own = DB.all.filter(s => s.cat === id);
     const lst = own.length ? own : descendantsShiurim(id);
     h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + list(lst, 'c' + id, true);

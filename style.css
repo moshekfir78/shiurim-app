@@ -290,5 +290,4 @@ main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-ins
 /* v15 sources */
 .srcl{display:block}.srcprev{display:block;color:var(--muted);font-family:"Frank Ruhl Libre","David",serif;font-size:.92rem;line-height:1.6;margin-top:4px}
 
-.skcard{display:flex;align-items:center;gap:12px;margin:10px 0 4px;padding:12px 16px;border-radius:var(--r,14px);background:#2f4a6d;color:#fff;text-decoration:none}
-.skcard .ic{font-size:1.6rem}.skcard b{display:block;font-size:1.1rem}.skcard small{opacity:.85;font-size:.8rem}.skcard .n{margin-inline-start:auto;font-weight:700;white-space:nowrap}
+.skrow{display:flex;justify-content:flex-end;margin:8px 0 -4px}.skchip{display:inline-block;padding:5px 12px;border-radius:999px;border:1px solid #2f4a6d55;background:#fff;color:#2f4a6d;font-size:.85rem;font-weight:600;text-decoration:none;white-space:nowrap}
