@@ -207,9 +207,10 @@ const views = {
     let h = crumbs(path.slice(0, -1)) + `<h1 class="page">${esc(c.title)}</h1><div class="muted">${c.count} ${isSk(id) ? 'סרטונים' : 'שיעורים'}</div>`;
     if (c.children.length) h += `<h2 class="sec">תתי־נושאים</h2>` + tiles(c.children);
     if (isSk(id)) return c.children.length ? h : h + `<h2 class="sec">סרטונים</h2>` + pagedList(DB.all.filter(s => s.cat === id), 'sk' + id, 100);
-    const own = DB.all.filter(s => s.cat === id);
+    let own = DB.all.filter(s => s.cat === id);
+    if (own.some(s => s.o != null)) own = own.slice().sort((a, b) => ((a.o ?? 9999) - (b.o ?? 9999)) || (a.date || '').localeCompare(b.date || ''));
     const lst = own.length ? own : descendantsShiurim(id);
-    h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + list(lst, 'c' + id, true);
+    h += `<h2 class="sec">${own.length ? 'שיעורים' : 'כל השיעורים בנושא'}</h2>` + list(lst, 'c' + id, !own.length);
     return h;
   },
   search(q) {
@@ -231,7 +232,7 @@ const views = {
     setTimeout(() => setupShiur(s), 0);
     return crumbs(catPath(s.cat)) +
       `<h1 class="page">${esc(s.title)}</h1>
-      <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''} · ${esc(srcName(s.source))}</div>
+      <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''}</div>
       ${s.sub ? `<div class="sub big">${esc(s.sub)}</div>` : ''}
       ${s.spotify && !s.youtube ? `<div class="sp-wrap ${s.spotifyVideo ? 'vid' : ''}"><iframe id="spf" src="https://open.spotify.com/embed/episode/${encodeURIComponent(s.spotify)}${s.spotifyVideo ? '/video' : ''}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify"></iframe></div>` : ''}
       ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
@@ -270,7 +271,7 @@ async function setupShiur(s) {
     $('#b15').onclick = () => au.currentTime = Math.max(0, au.currentTime - 15);
     $('#f15').onclick = () => au.currentTime += 30;
     $('#spd').onchange = e => { au.playbackRate = +e.target.value; LS.set('speed', +e.target.value) };
-    if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: srcName(s.source), artwork: [{ src: 'icons/icon-512.png', sizes: '512x512' }] });
+    if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: ravName(s.rav), artwork: [{ src: 'icons/icon-512.png', sizes: '512x512' }] });
   }
   Promise.resolve(renderTr(s)).then(() => window.Study && Study.mount(s));
   const t = $('#txt');
