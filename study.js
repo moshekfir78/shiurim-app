@@ -138,8 +138,8 @@ async function mount(s) {
     </section>
     <section data-pane="tr" hidden><div id="stTrHost"></div>
       ${autoTr ? `<details class="grp"><summary>תיקון התמלול <b>עותק מקומי</b></summary><p class="muted">עורכים עותק מקומי; התמלול המקורי נשמר.${cur.trEdit ? ' <button class="btn" id="stTrReset">חזרה למקור</button>' : ''}</p>
-      ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></details>` : ''}</section>
-    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות (ספריא)</h3><div id="stRefs"><p class="muted">טוען…</p></div><h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
+      ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></details>` : ''}${(c.trStories || []).length ? `<h3 class="sub-h">נספח סיפורים</h3><ul>${c.trStories.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</section>
+    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות (ספריא)</h3><div id="stRefs"><p class="muted">טוען…</p></div>${(c.trSources || []).length ? `<h3 class="sub-h">מקורות שזוהו בתמלול</h3><ul>${c.trSources.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
     <section data-pane="exp" hidden><div class="row"><button class="btn" id="stDocx">Word (.docx)</button><button class="btn" id="stPdf">PDF</button><button class="btn" id="stShare">שיתוף…</button><a class="btn" id="stWa" target="_blank" rel="noopener">וואטסאפ</a></div></section>
   </div>`;
   // move the auto transcript box and the site's source text into their tabs (no copying into the user's summary)
