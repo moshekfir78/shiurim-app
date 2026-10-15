@@ -296,12 +296,16 @@ async function renderTr(s) {
     return;
   }
   if (!canTr(s)) { box.innerHTML = `<p class="muted">תמלול לא זמין: השיעור זמין רק בספוטיפיי ואין גישה ציבורית לקובץ השמע.</p>`; return }
-  if (st && st.status === 'working') { box.innerHTML = `<p class="trst">⏳ בתמלול… התמלול יופיע כאן כשיסתיים.</p>`; return }
+  if (st && st.status === 'working') { box.innerHTML = `<p class="trst">⏳ בתמלול… התמלול יופיע כאן כשיסתיים.</p>`; clearTimeout(window._trPoll); window._trPoll = setTimeout(() => { if (location.hash.includes(s.uid)) { TRST = null; renderTr(s) } }, 30000); return }
   if (st && st.status === 'failed') { box.innerHTML = `<p class="muted">התמלול נכשל: ${esc(st.reason || '')}</p>`; return }
-  const url = `https://github.com/${REPO}/issues/new?title=${encodeURIComponent('[תמלול] ' + s.uid)}&body=${encodeURIComponent('בקשת תמלול לשיעור:\n' + s.title + '\n' + location.origin + location.pathname + '#/s/' + s.uid + '\n\n(אין צורך לשנות דבר, רק ללחוץ Submit)')}`;
-  box.innerHTML = `<p class="prow"><a class="btn" id="trreq" href="${url}" target="_blank" rel="noopener">📝 בקש תמלול</a>
-    ${asked ? '<span class="muted">הבקשה נשלחה – התמלול יתחיל תוך כ־10 דקות ויופיע כאן.</span>' : '<span class="muted">נפתח טופס קצר ב־GitHub (נדרש חשבון)</span>'}</p>`;
-  $('#trreq').onclick = () => { const r = LS.get('trReq', {}); r[s.uid] = Date.now(); LS.set('trReq', r); setTimeout(() => renderTr(s), 300) };
+  const POLL = () => { clearTimeout(window._trPoll); window._trPoll = setTimeout(() => { if ($('#trbox') && location.hash.includes(encodeURIComponent(s.uid).replace(/%3A/g, ':')) || location.hash.includes(s.uid)) { TRST = null; renderTr(s) } }, 30000) };
+  if (asked && Date.now() - asked < 6 * 3600e3) { box.innerHTML = `<p class="trst">⏳ הבקשה נשלחה — התמלול יופיע כאן תוך כמה דקות.</p>`; POLL(); return }
+  box.innerHTML = `<p class="prow"><button class="btn" id="trreq">📝 בקש תמלול</button></p>`;
+  $('#trreq').onclick = async () => {
+    $('#trreq').disabled = true;
+    try { await fetch('https://ntfy.sh/sh-tr-eda8b9c188a97097a43564f400f7a2d2', { method: 'POST', body: s.uid }) } catch (e) { $('#trreq').disabled = false; alert('שליחת הבקשה נכשלה, נסו שוב'); return }
+    const r = LS.get('trReq', {}); r[s.uid] = Date.now(); LS.set('trReq', r); renderTr(s);
+  };
 }
 let TRSEARCH = null;
 function render() {
