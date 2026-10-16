@@ -222,11 +222,12 @@ def yt_captions(vid):
             errs.append("yt-dlp:none")
     except Exception as e: errs.append("yt-dlp:" + type(e).__name__)
     log("captions unavailable:", ", ".join(errs)); return None, ",".join(errs)
-def gem_captions(key, caps, ctx=""):
+WHISPER_PRE = CAP_PRE.replace("טקסט כתוביות של יוטיוב (ייתכן שאוטומטיות, בלי פיסוק)", "טקסט שתומלל אוטומטית מההקלטה במודל ivrit.ai (Whisper), בלי חלוקה לפסקאות ועם פיסוק חלקי")
+def gem_captions(key, caps, ctx="", pre=None):
     dur = caps[-1][0] + 5; out = []
     for off in range(0, int(dur) + 1, CHUNK):
         lines = [f"{_ts(a)} {b}" for a, b in caps if off <= a < off + CHUNK]
-        if lines: out += parse_all(gem_generate(key, {"text": "\n".join(lines)}, ctx, CAP_PRE), 0, 0)
+        if lines: out += parse_all(gem_generate(key, {"text": "\n".join(lines)}, ctx, pre or CAP_PRE), 0, 0)
     return out, dur
 
 NO_WHISPER = CI or bool(os.environ.get("NO_WHISPER"))   # whisper on a CPU runner is far too slow (~8x realtime)
@@ -239,7 +240,7 @@ def transcribe(path):
     a = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768
     dur = len(a) / 16000
     if dur > MAX_SECONDS: raise RuntimeError(f"השיעור ארוך מדי לתמלול ({int(dur // 60)} דקות)")
-    if _model is None: _model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=max(2, (os.cpu_count() or 4) - 2))
+    if _model is None: _model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=os.cpu_count() or 4)
     segs, _ = _model.transcribe(a, language="he", beam_size=5, vad_filter=True, condition_on_previous_text=False,
                                 compression_ratio_threshold=2.0, no_speech_threshold=0.5, log_prob_threshold=-0.8,
                                 repetition_penalty=1.1, no_repeat_ngram_size=3)
@@ -249,13 +250,30 @@ def transcribe(path):
         if t: out.append({"s": round(sg.start, 1), "t": t})
     return out, dur
 
+WSRC = "ivrit.ai"
+DEADLINE = float(os.environ.get("JOB_DEADLINE") or 0)      # epoch secs; CI sets it so a job never hits the 6h limit
+WHISPER_RT = float(os.environ.get("WHISPER_RT") or 0.6)    # est. runner secs per audio sec (int8, 4 vCPU)
+def whisper_caps(segs):
+    """merge short whisper segments into ~20s lines for the formatter"""
+    out = []
+    for g in segs:
+        if out and g["s"] - out[-1][0] < 20: out[-1] = (out[-1][0], out[-1][1] + " " + g["t"])
+        else: out.append((g["s"], g["t"]))
+    return out
+def fmt_raw(segs):
+    """raw whisper -> ~1-minute paragraphs (published when Gemini formatting is unavailable)"""
+    out = []
+    for g in segs:
+        if out and g["s"] - out[-1]["s"] < 60: out[-1]["t"] += " " + g["t"]
+        else: out.append({"s": g["s"], "t": g["t"]})
+    return out
 def process(uid, issue=None):
     s = index().get(uid)
     if not s: raise RuntimeError("מזהה שיעור לא קיים באפליקציה")
     if os.path.exists(os.path.join(TDIR, fname(uid) + ".json")): return "already"
     set_status(uid, "working", issue=issue); publish()
     t0 = time.time()
-    used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); src = "Gemini"
+    used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); src = "Gemini"; raw = None; dur = 0
     ctx = s["title"]
     try:
         d = load(os.path.join(ROOT, "public", "data", "content", fname(uid) + ".json"), {})
@@ -263,33 +281,57 @@ def process(uid, issue=None):
     except Exception: pass
     with tempfile.TemporaryDirectory() as td:
         p = os.path.join(td, "a")
+        # 1) YouTube captions (saved cache first; live fetch usually blocked on Actions)
         if key and s.get("youtube") and not os.environ.get("NO_CAPTIONS"):
             caps, kind = yt_captions(s["youtube"])
             if caps:
                 try: segs, dur = gem_captions(key, caps, ctx); used = gem_model(key); src = CAP_SRC + (f" ({kind})" if kind else ""); log("captions", kind, len(caps))
                 except Busy: raise
                 except Exception as e: log("caption formatting failed, falling back:", e); segs = None; EXTRA.clear()
-        if not segs and key and not s.get("audio") and s.get("youtube"):
+        # 2) ivrit.ai whisper on the audio, then Gemini text-only formatting
+        have_audio = False
+        if not segs:
+            try: get_audio(s, p); have_audio = os.path.exists(p) and os.path.getsize(p) > 10000
+            except Exception as e: log("audio download failed:", str(e)[:200])
+        if not segs and have_audio and not os.environ.get("NO_WHISPER"):
+            ad = dur_of(p)
+            if DEADLINE and time.time() + ad * WHISPER_RT + 600 > DEADLINE: raise Busy(f"not enough job time for {round(ad/60)} min audio")
+            tw = time.time(); raw, dur = transcribe(p); log(f"whisper {round(dur/60)} min audio in {round((time.time()-tw)/60,1)} min")
+            used = MODEL; src = WSRC
+            if key:
+                try: EXTRA.clear(); segs, _ = gem_captions(key, whisper_caps(raw), ctx, WHISPER_PRE); used = MODEL + " + " + gem_model(key)
+                except Exception as e: log("formatting unavailable, publishing raw whisper:", str(e)[:200]); segs = None; EXTRA.clear()
+            if not segs: segs = fmt_raw(raw)
+        # 3) Gemini directly (YouTube link, then audio file)
+        if not segs and key and s.get("youtube"):
             try: segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0); used = gem_model(key)
             except Busy: raise
-            except Exception as e: log("gemini youtube failed, trying audio download:", e); segs = None
-        if not segs:
-            get_audio(s, p)
-            if key:
-                try: segs, dur = gem_audio(key, p, td, ctx); used = gem_model(key)
-                except Busy: raise
-                except Exception as e:
-                    if NO_WHISPER: raise
-                    log("gemini failed, fallback whisper:", e); segs = None
-            if not segs:
-                if NO_WHISPER: raise RuntimeError("אין מפתח Gemini")
-                EXTRA.clear(); segs, dur = transcribe(p); used = MODEL
-    save(os.path.join(TDIR, fname(uid) + ".json"), {"uid": uid, "model": used, "date": datetime.date.today().isoformat(),
-                                                   "audioSeconds": round(dur), "source": src if used != MODEL else "Whisper", "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])})
+            except Exception as e: log("gemini youtube failed:", e); segs = None
+        if not segs and key and have_audio:
+            segs, dur = gem_audio(key, p, td, ctx); used = gem_model(key)
+        if not segs: raise RuntimeError("לא נמצא שמע זמין לתמלול" if not have_audio else "אין מפתח Gemini")
+    rec = {"uid": uid, "model": used, "date": datetime.date.today().isoformat(), "audioSeconds": round(dur), "source": src,
+           "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])}
+    if raw is not None and used == MODEL: rec["needsFormat"] = True; rec["raw"] = raw
+    save(os.path.join(TDIR, fname(uid) + ".json"), rec)
     took = round(time.time() - t0)
-    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used, source=src if used != MODEL else "Whisper"); publish()
-    log(f"done {uid}: {round(dur/60)} min audio in {round(took/60,1)} min")
+    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used, source=src); publish()
+    log(f"done {uid}: {round(dur/60)} min audio in {round(took/60,1)} min ({src})")
     return took
+def reformat_pending(limit=2):
+    """retry Gemini formatting of raw whisper transcripts published earlier"""
+    key = gem_key()
+    if not key: return
+    n = 0
+    for f in sorted(os.listdir(TDIR)):
+        if n >= limit or f == "status.json" or not f.endswith(".json"): continue
+        fp = os.path.join(TDIR, f); r = load(fp, {})
+        if not r.get("needsFormat") or not r.get("raw"): continue
+        n += 1; s = index().get(r["uid"], {}); EXTRA.clear()
+        try: segs, _ = gem_captions(key, whisper_caps(r["raw"]), s.get("title", ""), WHISPER_PRE)
+        except Exception as e: log("reformat later", r["uid"], str(e)[:120]); return
+        r.update(segments=segs, sources=EXTRA.get("sources", []), stories=EXTRA.get("stories", []), model=MODEL + " + " + gem_model(key))
+        r.pop("needsFormat"); r.pop("raw"); save(fp, r); log("reformatted", r["uid"]); publish()
 
 def gh(*a): return subprocess.run(["gh", *a, "-R", REPO], capture_output=True, text=True)
 
@@ -364,5 +406,7 @@ if __name__ == "__main__":
     while True:
         if n % 10 == 0 or CI: poll_once()
         poll_ntfy(); n += 1
+        try: reformat_pending()
+        except Exception as e: log("reformat error", e)
         if "--once" in sys.argv: break
         time.sleep(60)
