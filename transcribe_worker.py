@@ -9,8 +9,8 @@ Usage: python3 transcribe_worker.py [--once] [--uid UID]   (--uid: transcribe di
 """
 import json, os, re, subprocess, sys, time, hashlib, tempfile, datetime
 ROOT = os.path.dirname(os.path.abspath(__file__))
-REPO = "orikfir10/shiurim-app"
-SITE = "https://orikfir10.github.io/shiurim-app/"
+REPO = "moshekfir78/shiurim-app"
+SITE = "https://moshekfir78.github.io/shiurim-app/"
 TDIR = os.path.join(ROOT, "data", "transcripts")
 STATUS = os.path.join(TDIR, "status.json")
 MODEL = "ivrit-ai/whisper-large-v3-turbo-ct2"
@@ -71,17 +71,13 @@ GEM_ENV = os.path.expanduser("~/.secrets/gemini.env")
 GEM_API = "https://generativelanguage.googleapis.com"
 GEM_PREF = ["gemini-3.1-pro", "gemini-3.1-pro-preview", "gemini-3-pro", "gemini-3-pro-preview", "gemini-2.5-pro", "gemini-3-flash", "gemini-2.5-flash"]
 CHUNK = 40 * 60                 # split audio into 40-minute chunks
-PROMPT = """אתה מתמלל שיעורי תורה מקצועי. תמלל את השיעור בעברית לתמלול חכם, נקי ומקצועי:
-- נאמן לדברי הדובר ולסגנונו; הסר גמגומים, חזרות ומילות מילוי, אך אל תסכם ואל תקצר תוכן.
-- חלק לפסקאות עם פיסוק מלא. התחל כל פסקה בחותמת זמן [HH:MM:SS] מתחילת הקובץ.
-- אם יש יותר מדובר אחד, פתח כל פסקה (אחרי חותמת הזמן) בשם הדובר או "שואל:" / "הרב:" ואחריו נקודתיים. דובר יחיד – בלי תוויות.
-- ציטוטים ממקורות סמן במירכאות. השתמש בחיפוש Google כדי לזהות מקורות מדויקים (ספר, פרק, פסוק/דף).
-החזר בדיוק שלושה חלקים עם הכותרות האלה ולא דבר מלבדם:
-### תמלול
-### מקורות
-(שורה לכל מקור: "<שם מקור מדויק, למשל בראשית א, א / ברכות ב ע"א> – <ציטוט קצר או הקשר>")
-### נספח סיפורים
-(שורה לכל סיפור/משל שסופר בשיעור: "[HH:MM:SS] <כותרת קצרה> – <תקציר במשפט>"; אם אין – כתוב "אין")"""
+PROMPT_FILE = os.path.join(ROOT, "prompts", "transcribe_he.txt")   # the user's AI Studio prompt, verbatim
+def build_prompt(ref, speakers=False):
+    t = open(PROMPT_FILE, encoding="utf-8").read()
+    i = t.index("7. זיהוי דוברים:"); j = t.index("להלן טקסט הסימוכין")
+    sec = [l for l in t[i:j].splitlines() if ("אם נדרש" in l) == speakers and "תגיות" in l][0]
+    t = t[:i] + "7. זיהוי דוברים:\n" + sec.split(":", 1)[1].strip().strip('"') + "\n\n" + t[j:]
+    return t.replace("{language}", "עברית").replace("{referenceText}", ref)
 def gem_key():
     if os.environ.get("GEMINI_API_KEY"): return os.environ["GEMINI_API_KEY"]
     try:
@@ -99,25 +95,24 @@ def gem_model(key):
         names = {m["name"].split("/")[-1] for m in gem_req("GET", GEM_API + "/v1beta/models?pageSize=200", key).json().get("models", [])}
         _gem_model = next((m for m in GEM_PREF if m in names), None) or sorted(n for n in names if n.startswith("gemini") and "pro" in n)[-1]
     return _gem_model
-GEM_CASCADE = ["gemini-3.1-pro-preview", "gemini-pro-latest", "gemini-3.8-flash", "gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-flash"]
+GEM_CASCADE = [("gemini-3.5-transcribe", False), ("gemini-3.1-pro-preview", True), ("gemini-3.1-pro-preview", False),
+               ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-flash-latest", False), ("gemini-2.5-flash", False)]
 def gem_generate(key, part, ctx=""):
-    """Try Pro first, then Flash; each with Google Search grounding, then without. Skips on 429/503/404."""
+    """User's prompt; transcribe model, then Pro (+Google Search), then Flash. Busy if all fail on quota/overload."""
     global _gem_model
-    txt = PROMPT + (("\n\nמילון מונחים ורקע מתוך אתר השיעור (לאיות שמות ומושגים):\n" + ctx[:6000]) if ctx else "")
+    txt = build_prompt(ctx[:8000])
     errs = []
-    for m in GEM_CASCADE:
-        for search in (True, False):
-            body = {"contents": [{"parts": [part, {"text": txt}]}], "generationConfig": {"temperature": 0.2, "maxOutputTokens": 65536}}
-            if search: body["tools"] = [{"google_search": {}}]
-            try:
-                j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body).json()
-                out = "".join(p.get("text", "") for p in j["candidates"][0]["content"]["parts"] if not p.get("thought"))
-                if out.strip():
-                    _gem_model = m + (" +search" if search else ""); return out
-            except Exception as e:
-                errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}")
-                if "429" in str(e) and not search: break
-    if all(e[-3:] in ("429", "503", "500") for e in errs): raise Busy("Gemini: " + ", ".join(errs))
+    for m, search in GEM_CASCADE:
+        body = {"contents": [{"parts": [part, {"text": txt}]}], "generationConfig": {"temperature": 0, "maxOutputTokens": 65536}}
+        if search: body["tools"] = [{"google_search": {}}]
+        try:
+            j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body).json()
+            out = "".join(p.get("text", "") for p in j["candidates"][0]["content"]["parts"] if not p.get("thought"))
+            if out.strip():
+                _gem_model = m + (" +search" if search else ""); return out
+        except Exception as e:
+            errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}")
+    if all(e[-3:] in ("429", "503", "500", "404") for e in errs) and any(e[-3:] != "404" for e in errs): raise Busy("Gemini: " + ", ".join(errs))
     raise RuntimeError("Gemini: " + ", ".join(errs))
 class Busy(RuntimeError): pass   # quota/overload: retry on a later run instead of failing
 def gem_upload(key, path):
@@ -135,25 +130,25 @@ def split3(text):
     for ln in text.splitlines():
         h = ln.strip().lstrip("#").strip()
         if ln.strip().startswith("#"):
-            cur = "src" if h.startswith("מקורות") else "st" if "סיפור" in h else "tr" if h.startswith("תמלול") else cur; continue
+            cur = "st" if "סיפור" in h else "src" if "מקורות" in h else "tr" if h.startswith("תמלול") else cur; continue
         sec[cur].append(ln)
     clean_l = lambda L: [l.strip(" -*•\t") for l in L if l.strip(" -*•\t") and l.strip(" -*•\t") != "אין"]
     return "\n".join(sec["tr"]), clean_l(sec["src"]), clean_l(sec["st"])
 EXTRA = {}
-def parse_all(text, offset=0):
+def parse_all(text, offset=0, span=0):
     tr, src, st = split3(text)
     EXTRA.setdefault("sources", []).extend(src); EXTRA.setdefault("stories", []).extend(st)
-    return parse(tr, offset)
+    return parse(tr, offset, span)
 TS = re.compile(r"^\s*\[?(\d{1,2}):(\d{2})(?::(\d{2}))?\]?\s*")
-def parse(text, offset=0):
-    out = []
+def parse(text, offset=0, span=0):
+    out = []; total = max(1, len(text)); pos = 0; anyts = bool(TS.search(text.lstrip()[:20])) if text.strip() else False
     for para in re.split(r"\n\s*\n|\n", text):
         para = para.strip()
         if not para: continue
-        m = TS.match(para); s = offset
+        m = TS.match(para); s = offset + (span * pos / total if span and not anyts else 0); pos += len(para) + 1
         if m:
             a, b, c = m.groups(); s = offset + (int(a)*3600+int(b)*60+int(c) if c else int(a)*60+int(b)); para = para[m.end():].strip()
-        elif out: s = out[-1]["s"]
+        elif out and anyts: s = out[-1]["s"]
         if para: out.append({"s": round(s, 1), "t": para})
     return out
 def dur_of(path):
@@ -167,13 +162,13 @@ def gem_audio(key, path, td, ctx=""):
         cp = os.path.join(td, f"c{i}.mp3")
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(off), "-t", str(CHUNK), "-i", path, "-ac", "1", "-b:a", "48k", cp], check=True)
         f = gem_upload(key, cp)
-        try: out += parse_all(gem_generate(key, {"file_data": {"mime_type": f["mimeType"], "file_uri": f["uri"]}}, ctx), off)
+        try: out += parse_all(gem_generate(key, {"file_data": {"mime_type": f["mimeType"], "file_uri": f["uri"]}}, ctx), off, min(CHUNK, dur - off))
         finally:
             try: gem_req("DELETE", GEM_API + "/v1beta/" + f["name"], key)
             except Exception: pass
     return out, dur
-def gem_youtube(key, vid, ctx=""):
-    segs = parse_all(gem_generate(key, {"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}}, ctx))
+def gem_youtube(key, vid, ctx="", dur=0):
+    segs = parse_all(gem_generate(key, {"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}}, ctx), 0, dur or 0)
     return segs, (segs[-1]["s"] if segs else 0)
 
 NO_WHISPER = CI or bool(os.environ.get("NO_WHISPER"))   # whisper on a CPU runner is far too slow (~8x realtime)
@@ -211,7 +206,7 @@ def process(uid, issue=None):
     with tempfile.TemporaryDirectory() as td:
         p = os.path.join(td, "a")
         if key and not s.get("audio") and s.get("youtube"):
-            try: segs, dur = gem_youtube(key, s["youtube"], ctx); used = gem_model(key)
+            try: segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0); used = gem_model(key)
             except Busy: raise
             except Exception as e: log("gemini youtube failed, trying audio download:", e); segs = None
         if not segs:

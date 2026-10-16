@@ -1,0 +1,1 @@
+User's exact AI Studio prompt (from user, verbatim, Oct 16 2026) - use as the transcription prompt, {language}=עברית, {referenceText}=shiur title + site source text/description; speaker section: pick variant by whether multiple speakers expected (default: no tags).

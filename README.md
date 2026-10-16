@@ -51,7 +51,7 @@ All data stays on the device (IndexedDB `shiurim-study` + localStorage); there i
 Search includes your own notes and summaries.
 
 ## Google Drive sync (public/sync.js, public/config.js)
-- Off until `public/config.js` has `googleClientId` (OAuth Web client, JS origin `https://orikfir10.github.io`). Then a "התחבר עם Google לסנכרון" box appears on #/notes.
+- Off until `public/config.js` has `googleClientId` (OAuth Web client, JS origin `https://moshekfir78.github.io`). Then a "התחבר עם Google לסנכרון" box appears on #/notes.
 - Scope `drive.appdata` only; one file `shiurim-sync.json` in the user's hidden appDataFolder. No server.
 - Items: favs, pos, trReq, speed, rav (localStorage) + IndexedDB `study` records. Per-item last-write-wins by timestamp; removals are tombstones.
 - Sync on open, ~4 s after changes, every 3 min while visible, and when the app is hidden. Tokens last ~1 h (no refresh token without a server); after that the box asks to reconnect with one tap.

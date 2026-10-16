@@ -282,7 +282,7 @@ async function setupShiur(s) {
     else t.innerHTML = '<span class="muted">אין טקסט לשיעור זה</span>';
   } catch { t.innerHTML = '<span class="muted">לא ניתן לטעון את המקורות</span>' }
 }
-const REPO = 'orikfir10/shiurim-app';
+const REPO = 'moshekfir78/shiurim-app';
 let TRST = null;
 const trStatus = async () => TRST || (TRST = await fetch('data/transcripts-status.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({})));
 const canTr = s => s.audio.length || s.youtube;
@@ -291,7 +291,7 @@ async function renderTr(s) {
   const st = (await trStatus())[s.uid], asked = LS.get('trReq', {})[s.uid];
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   if (c.transcript) {
-    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span></h2><div class="text tr">${c.transcript.map(g => `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${esc(g.t)}</p>`).join('')}</div>`;
+    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span></h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
     return;
   }

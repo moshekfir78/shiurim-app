@@ -111,7 +111,7 @@ function pushVersion(list, html) { const last = list[0]; if (last && last.html =
 async function mount(s) {
   const box = $('#study'); if (!box) return; curS = s; cur = await getRec(s.uid);
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
-  const autoTr = c.transcript ? c.transcript.map(g => `<p>[${fmt(g.s)}] ${esc(g.t)}</p>`).join('') : '';
+  const autoTr = c.transcript ? c.transcript.map(g => /^\s*>/.test(g.t) ? `<blockquote>${esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</blockquote>` : `<p>[${fmt(g.s)}] ${esc(g.t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('') : '';
   const hasT = nowT() !== null;
   const notes = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
   // keep references to page parts that live inside tabs (auto transcript box, site's own source text)
