@@ -1,0 +1,15 @@
+name: captest
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q requests yt-dlp youtube-transcript-api
+      - run: |
+          python3 -c "
+          import transcribe_worker as w
+          for v in ['89aodQmm7yU','WYOGXSMGKIw']:
+              c,k=w.yt_captions(v); print(v, k, len(c or []), (c or [[0,'']])[0])
+          "
+          yt-dlp --skip-download --write-auto-subs --sub-langs iw --sub-format json3 -o /tmp/s https://www.youtube.com/watch?v=89aodQmm7yU 2>&1 | tail -3; ls /tmp/s* || true
