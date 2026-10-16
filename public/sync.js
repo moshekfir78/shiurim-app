@@ -9,7 +9,7 @@ const LSK = { on: 'sync_on', tok: 'sync_tok', state: 'sync_state', last: 'sync_l
 const jget = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } };
 const jset = (k, v) => _set.call(localStorage, k, JSON.stringify(v));
 const _set = Storage.prototype.setItem;
-const WATCH = new Set(['favs', 'pos', 'trReq', 'speed', 'rav']);
+const WATCH = new Set(['favs', 'pos', 'trReq', 'speed', 'rav', 'recent']);
 let status = 'idle', err = '', busy = false, applying = false, timer = null, tokenClient = null, gisP = null;
 
 // ---------- IndexedDB (same DB as study.js) ----------
@@ -25,7 +25,7 @@ async function localItems() {
   jget('favs', []).forEach(u => L['fav:' + u] = true);
   Object.entries(jget('pos', {})).forEach(([u, v]) => L['pos:' + u] = v);
   Object.entries(jget('trReq', {})).forEach(([u, v]) => L['tr:' + u] = v);
-  ['speed', 'rav'].forEach(k => { const v = localStorage.getItem(k); if (v != null) L['ls:' + k] = jget(k, null) });
+  ['speed', 'rav', 'recent'].forEach(k => { const v = localStorage.getItem(k); if (v != null) L['ls:' + k] = jget(k, null) });
   (await idbAll()).forEach(r => L['study:' + r.uid] = r);
   return L;
 }

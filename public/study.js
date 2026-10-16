@@ -13,7 +13,7 @@ const db = () => dbp || (dbp = new Promise((ok, no) => { const r = indexedDB.ope
 const tx = async (mode, fn) => { const d = await db(); return new Promise((ok, no) => { const t = d.transaction('study', mode); const st = t.objectStore('study'); const res = fn(st); t.oncomplete = () => ok(res instanceof IDBRequest ? res.result : res); t.onerror = () => no(t.error) }) };
 const getRec = async uid => (await tx('readonly', st => st.get(uid))) || { uid, notes: [], versions: [], trVersions: [] };
 const allRecs = () => tx('readonly', st => st.getAll());
-const putRec = async rec => { rec.updated = Date.now(); await tx('readwrite', st => st.put(rec)); INDEX[rec.uid] = textOf(rec) };
+const putRec = async rec => { rec.updated = Date.now(); window.touchShiur && touchShiur(rec.uid); await tx('readwrite', st => st.put(rec)); INDEX[rec.uid] = textOf(rec) };
 // in-memory text index for search
 const strip = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent || '' };
 const textOf = r => [strip(r.summary), strip(r.trEdit), ...(r.notes || []).map(n => n.text)].join(' ');

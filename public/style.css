@@ -299,3 +299,4 @@ main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-ins
 .glogin{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid #cfd6dd;background:#fff;color:#2b3440;border-radius:999px;padding:7px 12px;font:600 14px Rubik,sans-serif;cursor:pointer;margin-inline-start:8px;flex-shrink:0}.glogin.on{background:#eef6ef;border-color:#b9d8bf;color:#2f6b3a}@media(max-width:520px){.glogin{padding:6px 9px;font-size:12px}}
 
 .sitefoot{text-align:center;font-size:.8rem;color:var(--muted);padding:6px 0 90px}.sitefoot a{color:var(--muted)}
+.trsrc{display:inline-block;font-size:.72rem;font-weight:500;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 9px;margin-inline-start:6px;vertical-align:middle}.heard{font-size:.8rem;color:var(--muted)}#heard{margin:6px 0}

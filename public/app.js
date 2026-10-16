@@ -7,6 +7,11 @@ const LS = {
 };
 const favs = () => LS.get('favs', []);
 const positions = () => LS.get('pos', {});
+const recents = () => LS.get('recent', {});
+function touch(uid) { if (!uid) return; const r = recents(); if (Date.now() - (r[uid] || 0) < 2000) return; r[uid] = Date.now(); const k = Object.keys(r).sort((a, b) => r[b] - r[a]).slice(0, 200); LS.set('recent', Object.fromEntries(k.map(u => [u, r[u]]))) }
+const whenStr = ts => new Date(ts).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+const lastHeard = uid => { const p = positions()[uid]; return p && p.at ? 'נשמע לאחרונה: ' + whenStr(p.at) + (p.t > 5 ? ' · נעצר ב־' + fmtTime(p.t) : '') : '' };
+window.touchShiur = touch;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jerusalem' }) : '';
 const fmtTime = t => { t = Math.floor(t || 0); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0') };
@@ -34,13 +39,14 @@ function ravChips() {
     DB.ravs.filter(x => x.count).map(x => `<a class="chip rc ${r === x.id ? 'sel' : ''}" style="--c:${ravColor(x.id)}" onclick="setRav('${x.id}')">${av(x.id)}${esc(x.name)}<b>${x.count}</b></a>`).join('') + '</div>';
 }
 
+function ytStart(uid) { const p = positions()[uid]; return p && p.t > 5 && (!p.d || p.t < p.d - 10) ? '&start=' + Math.floor(p.t) : '' }
 function item(s) {
   const p = positions()[s.uid], c = catPath(s.cat).slice(curRav() ? 1 : 0).map(x => x.title).join(' › ');
   const pct = p && p.d ? Math.min(100, p.t / p.d * 100) : 0;
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
     <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
-    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${s.tr ? '<div class="sub">📝 יש תמלול</div>' : ''}
+    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${s.tr ? '<div class="sub">📝 יש תמלול</div>' : ''}${p && p.at ? `<div class="sub heard">${esc(lastHeard(s.uid))}</div>` : ''}
     <div class="meta">${s.duration ? fmtTime(s.duration).replace(/:\d\d$/, '') + (s.duration >= 3600 ? ' שע׳' : ' דק׳') + ' · ' : ''}${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
 }
@@ -191,7 +197,9 @@ const views = {
       .sort((a, b) => b[1].at - a[1].at).slice(0, 5).map(([u]) => byUid[u]);
     const r = curRav();
     let h = skCard() + ravChips() + parCard();
-    if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
+    const rc = recents(), recent = Object.keys(rc).filter(u => byUid[u] && (!curRav() || byUid[u].rav === curRav())).sort((a, b) => rc[b] - rc[a]).slice(0, 10).map(u => byUid[u]);
+    if (recent.length) h += `<h2 class="sec">לאחרונה</h2><div class="list">${recent.map(item).join('')}</div>`;
+    else if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
     if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
     else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id)) + extrasSec();
     h += `<h2 class="sec">שיעורים אחרונים</h2>` + pagedList(byRav(DB.shiurim), 'home' + r, 15);
@@ -235,7 +243,7 @@ const views = {
       <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''}</div>
       ${s.sub ? `<div class="sub big">${esc(s.sub)}</div>` : ''}
       ${s.spotify && !s.youtube ? `<div class="sp-wrap ${s.spotifyVideo ? 'vid' : ''}"><iframe id="spf" src="https://open.spotify.com/embed/episode/${encodeURIComponent(s.spotify)}${s.spotifyVideo ? '/video' : ''}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify"></iframe></div>` : ''}
-      ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
+      ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1${ytStart(uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
       ${s.tags.length ? `<div class="tags">${s.tags.map(t => `<a class="tag" href="#/search/${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>` : ''}
       ${s.audio.length ? `<div class="player"><audio id="au" controls preload="metadata"></audio>
         <div class="prow"><button class="btn" id="b15">↻ 15 שנ׳</button><button class="btn" id="f15">30 שנ׳ ↺</button>
@@ -243,6 +251,7 @@ const views = {
         <select class="btn speed" id="spd">${[0.75, 1, 1.25, 1.5, 1.75, 2].map(v => `<option value="${v}" ${v == (LS.get('speed', 1)) ? 'selected' : ''}>×${v}</option>`).join('')}</select></div>
         <div class="muted" id="resume" style="margin-top:6px"></div></div>` :
         `<div class="prow" style="margin:12px 0"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
+      <div class="muted heard" id="heard">${esc(lastHeard(uid))}${s.youtube && !s.audio.length && ytStart(uid) ? ' · ממשיכים מ־' + fmtTime(positions()[uid].t) : ''}</div>
       <div id="trbox"></div><div id="study"></div>
       <h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
       <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
@@ -252,7 +261,25 @@ const views = {
 function crumbs(path) {
   return `<nav class="crumbs"><a href="#/">בית</a>${path.map(c => `<span class="sep">›</span><a href="#/cat/${encodeURIComponent(c.id)}">${esc(c.title)}</a>`).join('')}</nav>`;
 }
+let ytSave = null;
+window.addEventListener('message', e => { if (!/youtube/.test(e.origin) || !ytSave) return; try { const d = JSON.parse(e.data); if (d.info) ytSave(d.info) } catch {} });
 async function setupShiur(s) {
+  touch(s.uid);
+  app.onclick = e => { if (e.target.closest('button,a,[data-p],select,.ts')) touch(s.uid) };
+  app.oninput = () => touch(s.uid);
+  const yf = $('#ytf');
+  if (yf && !s.audio.length) {
+    let yt = { t: 0, d: 0 }, last = 0;
+    const save = () => { if (!(yt.t > 0)) return; const p = positions(); p[s.uid] = { t: yt.t, d: yt.d, at: Date.now() }; LS.set('pos', p) };
+    ytSave = i => { if (typeof i.currentTime === 'number') yt.t = i.currentTime; if (i.duration) yt.d = i.duration;
+      if (i.playerState === 1) touch(s.uid);
+      if (i.playerState === 2 || i.playerState === 0 || (i.playerState === 1 && Date.now() - last > 5000) || (typeof i.currentTime === 'number' && Date.now() - last > 5000 && yt.t > 0 && i.playerState !== -1)) { last = Date.now(); if (yt.t > 0) save() } };
+    const hello = () => yf.contentWindow && yf.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 2 }), '*');
+    yf.addEventListener('load', hello); setTimeout(hello, 1500);
+    const off = () => { save(); window.removeEventListener('pagehide', off); window.removeEventListener('hashchange', off); ytSave = null };
+    window.addEventListener('pagehide', off); window.addEventListener('hashchange', off);
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && ytSave && save());
+  }
   const fb = $('#fav');
   fb && (fb.onclick = () => { let f = favs(); const on = f.includes(s.uid); f = on ? f.filter(u => u !== s.uid) : [s.uid, ...f]; LS.set('favs', f); fb.classList.toggle('on', !on); fb.textContent = on ? '☆ למועדפים' : '★ במועדפים' });
   const au = $('#au');
@@ -267,7 +294,9 @@ async function setupShiur(s) {
     let last = 0;
     const save = () => { const p = positions(); p[s.uid] = { t: au.currentTime, d: au.duration || 0, at: Date.now() }; LS.set('pos', p) };
     au.ontimeupdate = () => { if (Date.now() - last > 3000) { last = Date.now(); save() } };
-    au.onpause = save; au.onended = save;
+    au.onpause = save; au.onended = save; au.onplay = () => touch(s.uid);
+    window.addEventListener('pagehide', () => au.currentTime > 0 && save(), { once: true });
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && $('#au') === au && au.currentTime > 0 && save());
     $('#b15').onclick = () => au.currentTime = Math.max(0, au.currentTime - 15);
     $('#f15').onclick = () => au.currentTime += 30;
     $('#spd').onchange = e => { au.playbackRate = +e.target.value; LS.set('speed', +e.target.value) };
@@ -291,7 +320,7 @@ async function renderTr(s) {
   const st = (await trStatus())[s.uid], asked = LS.get('trReq', {})[s.uid];
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   if (c.transcript) {
-    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span></h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
+    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
     return;
   }

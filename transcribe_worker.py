@@ -7,7 +7,7 @@ Requests = open GitHub issues in REPO whose title starts with "[תמלול]" and
   rebuild + redeploy, comment on the issue and close it.
 Usage: python3 transcribe_worker.py [--once] [--uid UID]   (--uid: transcribe directly, no issue)
 """
-import json, os, re, subprocess, sys, time, hashlib, tempfile, datetime
+import json, os, re, subprocess, sys, time, hashlib, tempfile, datetime, shutil
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO = "moshekfir78/shiurim-app"
 SITE = "https://moshekfir78.github.io/shiurim-app/"
@@ -97,10 +97,10 @@ def gem_model(key):
     return _gem_model
 GEM_CASCADE = [("gemini-3.5-transcribe", False), ("gemini-3.1-pro-preview", True), ("gemini-3.1-pro-preview", False),
                ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-flash-latest", False), ("gemini-2.5-flash", False)]
-def gem_generate(key, part, ctx=""):
+def gem_generate(key, part, ctx="", pre=""):
     """User's prompt; transcribe model, then Pro (+Google Search), then Flash. Busy if all fail on quota/overload."""
     global _gem_model
-    txt = build_prompt(ctx[:8000])
+    txt = pre + build_prompt(ctx[:8000])
     errs = []
     for m, search in GEM_CASCADE:
         body = {"contents": [{"parts": [part, {"text": txt}]}], "generationConfig": {"temperature": 0, "maxOutputTokens": 65536}}
@@ -174,6 +174,57 @@ def gem_youtube(key, vid, ctx="", dur=0):
     segs = parse_all(gem_generate(key, {"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}}, ctx), 0, dur or 0)
     return segs, (segs[-1]["s"] if segs else 0)
 
+# ---- YouTube captions (Hebrew; manual preferred, else auto) -> Gemini text-only formatting ----
+CAP_SRC = "כתוביות יוטיוב"
+CAP_PRE = """הערה חשובה לפני ההוראות: אין כאן הקלטה. הקלט הוא טקסט כתוביות של יוטיוב (ייתכן שאוטומטיות, בלי פיסוק), וכל שורה בו מתחילה בחותמת זמן בסוגריים מרובעים.
+התפקיד שלך הוא רק לערוך ולעצב את הטקסט הזה לפי ההוראות שלהלן: חלוקה לפסקאות, פיסוק, הסרת מילות מילוי, גמגומים וחזרות, וסימון ציטוטים ב-'>'. אל תקצר, אל תסכם ואל תשמיט שום תוכן. אל תוסיף תוכן שלא נאמר. מותר לתקן רק שגיאות זיהוי ברורות לפי ההקשר.
+כל פסקה חייבת להתחיל בחותמת הזמן של השורה הראשונה שלה, באותו פורמט בדיוק, למשל [12:34] או [1:02:03].
+אחרי התמלול הערוך, הפק את "### נספח סיפורים ואנקדוטות" ואת "### דף מקורות" כרגיל.
+
+"""
+def _ts(x):
+    x = int(x); h, m, s = x // 3600, x % 3600 // 60, x % 60
+    return f"[{h}:{m:02d}:{s:02d}]" if h else f"[{m}:{s:02d}]"
+def yt_captions(vid):
+    """[(start, text)] Hebrew captions or None. youtube-transcript-api first, then yt-dlp."""
+    errs = []
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi as Y
+        tl = Y().list(vid); tr = None; kind = ""
+        for f, k in ((tl.find_manually_created_transcript, "ידניות"), (tl.find_generated_transcript, "אוטומטיות")):
+            try: tr = f(["iw", "he"]); kind = k; break
+            except Exception: pass
+        if tr:
+            out = [(c.start, c.text.replace("\n", " ").strip()) for c in tr.fetch()]
+            out = [(a, b) for a, b in out if b]
+            if out: return out, kind
+        else: return None, "no-hebrew"
+    except Exception as e:
+        n = type(e).__name__
+        if n in ("TranscriptsDisabled", "NoTranscriptFound"): return None, "no-hebrew"
+        errs.append("api:" + n)
+    try:
+        with tempfile.TemporaryDirectory() as td:
+            ytdlp = shutil.which("yt-dlp") or os.path.expanduser("~/.local/bin/yt-dlp")
+            for flag, kind in (("--write-subs", "ידניות"), ("--write-auto-subs", "אוטומטיות")):
+                subprocess.run([ytdlp, "--skip-download", flag, "--sub-langs", "iw,he", "--sub-format", "json3", "-o", os.path.join(td, "s"),
+                                f"https://www.youtube.com/watch?v={vid}"], capture_output=True, text=True, timeout=120)
+                fs = [f for f in os.listdir(td) if f.endswith(".json3")]
+                if fs:
+                    ev = json.load(open(os.path.join(td, fs[0]))).get("events", [])
+                    out = [(e["tStartMs"] / 1000, "".join(x.get("utf8", "") for x in e.get("segs", [])).replace("\n", " ").strip()) for e in ev if e.get("segs")]
+                    out = [(a, b) for a, b in out if b]
+                    if out: return out, kind
+            errs.append("yt-dlp:none")
+    except Exception as e: errs.append("yt-dlp:" + type(e).__name__)
+    log("captions unavailable:", ", ".join(errs)); return None, ",".join(errs)
+def gem_captions(key, caps, ctx=""):
+    dur = caps[-1][0] + 5; out = []
+    for off in range(0, int(dur) + 1, CHUNK):
+        lines = [f"{_ts(a)} {b}" for a, b in caps if off <= a < off + CHUNK]
+        if lines: out += parse_all(gem_generate(key, {"text": "\n".join(lines)}, ctx, CAP_PRE), 0, 0)
+    return out, dur
+
 NO_WHISPER = CI or bool(os.environ.get("NO_WHISPER"))   # whisper on a CPU runner is far too slow (~8x realtime)
 _model = None
 def transcribe(path):
@@ -200,7 +251,7 @@ def process(uid, issue=None):
     if os.path.exists(os.path.join(TDIR, fname(uid) + ".json")): return "already"
     set_status(uid, "working", issue=issue); publish()
     t0 = time.time()
-    used = MODEL; segs = None; key = gem_key(); EXTRA.clear()
+    used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); src = "Gemini"
     ctx = s["title"]
     try:
         d = load(os.path.join(ROOT, "public", "data", "content", fname(uid) + ".json"), {})
@@ -208,7 +259,13 @@ def process(uid, issue=None):
     except Exception: pass
     with tempfile.TemporaryDirectory() as td:
         p = os.path.join(td, "a")
-        if key and not s.get("audio") and s.get("youtube"):
+        if key and s.get("youtube") and not os.environ.get("NO_CAPTIONS"):
+            caps, kind = yt_captions(s["youtube"])
+            if caps:
+                try: segs, dur = gem_captions(key, caps, ctx); used = gem_model(key); src = CAP_SRC + (f" ({kind})" if kind else ""); log("captions", kind, len(caps))
+                except Busy: raise
+                except Exception as e: log("caption formatting failed, falling back:", e); segs = None; EXTRA.clear()
+        if not segs and key and not s.get("audio") and s.get("youtube"):
             try: segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0); used = gem_model(key)
             except Busy: raise
             except Exception as e: log("gemini youtube failed, trying audio download:", e); segs = None
@@ -224,9 +281,9 @@ def process(uid, issue=None):
                 if NO_WHISPER: raise RuntimeError("אין מפתח Gemini")
                 EXTRA.clear(); segs, dur = transcribe(p); used = MODEL
     save(os.path.join(TDIR, fname(uid) + ".json"), {"uid": uid, "model": used, "date": datetime.date.today().isoformat(),
-                                                   "audioSeconds": round(dur), "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])})
+                                                   "audioSeconds": round(dur), "source": src if used != MODEL else "Whisper", "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])})
     took = round(time.time() - t0)
-    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used); publish()
+    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used, source=src if used != MODEL else "Whisper"); publish()
     log(f"done {uid}: {round(dur/60)} min audio in {round(took/60,1)} min")
     return took
 
