@@ -14,8 +14,8 @@ SITE = "https://moshekfir78.github.io/shiurim-app/"
 TDIR = os.path.join(ROOT, "data", "transcripts")
 STATUS = os.path.join(TDIR, "status.json")
 MODEL = "ivrit-ai/whisper-large-v3-turbo-ct2"
-MODES = {"fast": {"model": "ivrit-ai/whisper-large-v3-turbo-ct2", "beam": 1, "rt": 0.35, "label": "מהיר"},
-         "accurate": {"model": "ivrit-ai/whisper-large-v3-ct2", "beam": 5, "rt": 1.6, "label": "מדויק"}}
+MODES = {"fast": {"model": "ivrit-ai/whisper-large-v3-turbo-ct2", "beam": 1, "rt": 1.5, "label": "מהיר"},
+         "accurate": {"model": "ivrit-ai/whisper-large-v3-ct2", "beam": 5, "rt": 6.0, "label": "מדויק"}}
 MAX_SECONDS = 3 * 3600          # refuse audio longer than 3h
 POLL = 600                      # seconds between polls in loop mode
 fname = lambda uid: hashlib.sha1(uid.encode()).hexdigest()[:16]
