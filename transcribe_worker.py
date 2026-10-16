@@ -109,7 +109,9 @@ def gem_generate(key, part, ctx=""):
             j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body).json()
             out = "".join(p.get("text", "") for p in j["candidates"][0]["content"]["parts"] if not p.get("thought"))
             if out.strip():
-                _gem_model = m + (" +search" if search else ""); return out
+                _gem_model = m + (" +search" if search else "")
+                if errs: log("gemini fallbacks:", ", ".join(errs))
+                return out
         except Exception as e:
             errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}")
     if all(e[-3:] in ("429", "503", "500", "404") for e in errs) and any(e[-3:] != "404" for e in errs): raise Busy("Gemini: " + ", ".join(errs))
@@ -132,7 +134,8 @@ def split3(text):
         if ln.strip().startswith("#"):
             cur = "st" if "סיפור" in h else "src" if "מקורות" in h else "tr" if h.startswith("תמלול") else cur; continue
         sec[cur].append(ln)
-    clean_l = lambda L: [l.strip(" -*•\t") for l in L if l.strip(" -*•\t") and l.strip(" -*•\t") != "אין"]
+    cl = lambda l: re.sub(r"^\s*(?:[-•]|\*(?!\*))\s*", "", l).replace("**", "").strip()
+    clean_l = lambda L: [cl(l) for l in L if cl(l) and cl(l) != "אין"]
     return "\n".join(sec["tr"]), clean_l(sec["src"]), clean_l(sec["st"])
 EXTRA = {}
 def parse_all(text, offset=0, span=0):
