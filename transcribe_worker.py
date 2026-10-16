@@ -96,7 +96,7 @@ def gem_model(key):
         _gem_model = next((m for m in GEM_PREF if m in names), None) or sorted(n for n in names if n.startswith("gemini") and "pro" in n)[-1]
     return _gem_model
 GEM_CASCADE = [("gemini-3.5-transcribe", False), ("gemini-3.1-pro-preview", True), ("gemini-3.1-pro-preview", False),
-               ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-flash-latest", False), ("gemini-2.5-flash", False)]
+               ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-3.7-flash", False), ("gemini-3.6-flash", False), ("gemini-3.5-flash", False), ("gemini-flash-latest", False), ("gemini-flash-lite-latest", False), ("gemini-2.5-flash", False)]
 def gem_generate(key, part, ctx="", pre=""):
     """User's prompt; transcribe model, then Pro (+Google Search), then Flash. Busy if all fail on quota/overload."""
     global _gem_model
@@ -188,6 +188,10 @@ def _ts(x):
 def yt_captions(vid):
     """[(start, text)] Hebrew captions or None. youtube-transcript-api first, then yt-dlp."""
     errs = []
+    cp = os.path.join(ROOT, "data", "captions", vid + ".json")   # pre-fetched (e.g. from the box) when YouTube blocks the runner
+    if os.path.exists(cp):
+        c = load(cp, {});
+        if c.get("caps"): return [tuple(x) for x in c["caps"]], c.get("kind", "")
     try:
         from youtube_transcript_api import YouTubeTranscriptApi as Y
         tl = Y().list(vid); tr = None; kind = ""
@@ -349,6 +353,12 @@ def poll_ntfy():
     save(NTFY_STATE, st); publish()
 
 if __name__ == "__main__":
+    if "--fetch-captions" in sys.argv:   # box helper: python3 transcribe_worker.py --fetch-captions VID [VID...]
+        os.makedirs(os.path.join(ROOT, "data", "captions"), exist_ok=True)
+        for v in sys.argv[sys.argv.index("--fetch-captions") + 1:]:
+            c, k = yt_captions(v); print(v, k, len(c or []))
+            if c: save(os.path.join(ROOT, "data", "captions", v + ".json"), {"kind": k, "caps": c})
+        sys.exit()
     if "--uid" in sys.argv: print(process(sys.argv[sys.argv.index("--uid") + 1])); sys.exit()
     n = 0
     while True:
