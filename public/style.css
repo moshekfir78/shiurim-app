@@ -295,3 +295,5 @@ main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-ins
 .syncbox{margin:12px 0}.syncbox .row{margin-top:8px}
 
 .tr blockquote.trq,.editor blockquote{margin:.4em 1.2em .8em 0;padding:.5em .9em;border-right:4px solid #b08d57;background:rgba(176,141,87,.10);border-radius:6px;font-family:'Frank Ruhl Libre',David,serif}
+
+.glogin{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;border:1px solid #cfd6dd;background:#fff;color:#2b3440;border-radius:999px;padding:7px 12px;font:600 14px Rubik,sans-serif;cursor:pointer;margin-inline-start:8px;flex-shrink:0}.glogin.on{background:#eef6ef;border-color:#b9d8bf;color:#2f6b3a}@media(max-width:520px){.glogin{padding:6px 9px;font-size:12px}}
