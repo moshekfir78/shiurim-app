@@ -14,6 +14,8 @@ SITE = "https://moshekfir78.github.io/shiurim-app/"
 TDIR = os.path.join(ROOT, "data", "transcripts")
 STATUS = os.path.join(TDIR, "status.json")
 MODEL = "ivrit-ai/whisper-large-v3-turbo-ct2"
+MODES = {"fast": {"model": "ivrit-ai/whisper-large-v3-turbo-ct2", "beam": 1, "rt": 0.35, "label": "מהיר"},
+         "accurate": {"model": "ivrit-ai/whisper-large-v3-ct2", "beam": 5, "rt": 1.6, "label": "מדויק"}}
 MAX_SECONDS = 3 * 3600          # refuse audio longer than 3h
 POLL = 600                      # seconds between polls in loop mode
 fname = lambda uid: hashlib.sha1(uid.encode()).hexdigest()[:16]
@@ -231,17 +233,17 @@ def gem_captions(key, caps, ctx="", pre=None):
     return out, dur
 
 NO_WHISPER = CI or bool(os.environ.get("NO_WHISPER"))   # whisper on a CPU runner is far too slow (~8x realtime)
-_model = None
-def transcribe(path):
-    global _model
+_models = {}
+def transcribe(path, mode="fast"):
+    cfg = MODES.get(mode, MODES["fast"])
     import numpy as np
     from faster_whisper import WhisperModel
     pcm = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", path, "-f", "s16le", "-ac", "1", "-ar", "16000", "-"], capture_output=True).stdout
     a = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768
     dur = len(a) / 16000
     if dur > MAX_SECONDS: raise RuntimeError(f"השיעור ארוך מדי לתמלול ({int(dur // 60)} דקות)")
-    if _model is None: _model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=os.cpu_count() or 4)
-    segs, _ = _model.transcribe(a, language="he", beam_size=5, vad_filter=True, condition_on_previous_text=False,
+    if cfg["model"] not in _models: _models[cfg["model"]] = WhisperModel(cfg["model"], device="cpu", compute_type="int8", cpu_threads=os.cpu_count() or 4)
+    segs, _ = _models[cfg["model"]].transcribe(a, language="he", beam_size=cfg["beam"], vad_filter=True, condition_on_previous_text=False,
                                 compression_ratio_threshold=2.0, no_speech_threshold=0.5, log_prob_threshold=-0.8,
                                 repetition_penalty=1.1, no_repeat_ngram_size=3)
     out = []
@@ -267,10 +269,12 @@ def fmt_raw(segs):
         if out and g["s"] - out[-1]["s"] < 60: out[-1]["t"] += " " + g["t"]
         else: out.append({"s": g["s"], "t": g["t"]})
     return out
-def process(uid, issue=None):
+def process(uid, issue=None, mode="fast"):
+    mode = mode if mode in MODES else "fast"; cfg = MODES[mode]
     s = index().get(uid)
     if not s: raise RuntimeError("מזהה שיעור לא קיים באפליקציה")
-    if os.path.exists(os.path.join(TDIR, fname(uid) + ".json")): return "already"
+    old = load(os.path.join(TDIR, fname(uid) + ".json"), None)
+    if old and not (mode == "accurate" and old.get("mode") != "accurate"): return "already"   # accurate may upgrade a fast/other transcript
     set_status(uid, "working", issue=issue); publish()
     t0 = time.time()
     used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); src = "Gemini"; raw = None; dur = 0
@@ -282,7 +286,7 @@ def process(uid, issue=None):
     with tempfile.TemporaryDirectory() as td:
         p = os.path.join(td, "a")
         # 1) YouTube captions (saved cache first; live fetch usually blocked on Actions)
-        if key and s.get("youtube") and not os.environ.get("NO_CAPTIONS"):
+        if mode == "fast" and key and s.get("youtube") and not os.environ.get("NO_CAPTIONS"):
             caps, kind = yt_captions(s["youtube"])
             if caps:
                 try: segs, dur = gem_captions(key, caps, ctx); used = gem_model(key); src = CAP_SRC + (f" ({kind})" if kind else ""); log("captions", kind, len(caps))
@@ -295,11 +299,11 @@ def process(uid, issue=None):
             except Exception as e: log("audio download failed:", str(e)[:200])
         if not segs and have_audio and not os.environ.get("NO_WHISPER"):
             ad = dur_of(p)
-            if DEADLINE and time.time() + ad * WHISPER_RT + 600 > DEADLINE: raise Busy(f"not enough job time for {round(ad/60)} min audio")
-            tw = time.time(); raw, dur = transcribe(p); log(f"whisper {round(dur/60)} min audio in {round((time.time()-tw)/60,1)} min")
-            used = MODEL; src = WSRC
+            if DEADLINE and time.time() + ad * cfg["rt"] + 600 > DEADLINE: raise Busy(f"not enough job time for {round(ad/60)} min audio")
+            tw = time.time(); raw, dur = transcribe(p, mode); log(f"whisper {round(dur/60)} min audio in {round((time.time()-tw)/60,1)} min")
+            used = wm = cfg["model"]; src = WSRC + " · " + cfg["label"]
             if key:
-                try: EXTRA.clear(); segs, _ = gem_captions(key, whisper_caps(raw), ctx, WHISPER_PRE); used = MODEL + " + " + gem_model(key)
+                try: EXTRA.clear(); segs, _ = gem_captions(key, whisper_caps(raw), ctx, WHISPER_PRE); used = wm + " + " + gem_model(key)
                 except Exception as e: log("formatting unavailable, publishing raw whisper:", str(e)[:200]); segs = None; EXTRA.clear()
             if not segs: segs = fmt_raw(raw)
         # 3) Gemini directly (YouTube link, then audio file)
@@ -312,10 +316,11 @@ def process(uid, issue=None):
         if not segs: raise RuntimeError("לא נמצא שמע זמין לתמלול" if not have_audio else "אין מפתח Gemini")
     rec = {"uid": uid, "model": used, "date": datetime.date.today().isoformat(), "audioSeconds": round(dur), "source": src,
            "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])}
-    if raw is not None and used == MODEL: rec["needsFormat"] = True; rec["raw"] = raw
+    rec["mode"] = mode if raw is not None else ("fast" if mode == "fast" else "other")
+    if raw is not None and "+" not in used: rec["needsFormat"] = True; rec["raw"] = raw
     save(os.path.join(TDIR, fname(uid) + ".json"), rec)
     took = round(time.time() - t0)
-    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used, source=src); publish()
+    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used, source=src, mode=rec["mode"]); publish()
     log(f"done {uid}: {round(dur/60)} min audio in {round(took/60,1)} min ({src})")
     return took
 def reformat_pending(limit=2):
@@ -330,7 +335,7 @@ def reformat_pending(limit=2):
         n += 1; s = index().get(r["uid"], {}); EXTRA.clear()
         try: segs, _ = gem_captions(key, whisper_caps(r["raw"]), s.get("title", ""), WHISPER_PRE)
         except Exception as e: log("reformat later", r["uid"], str(e)[:120]); return
-        r.update(segments=segs, sources=EXTRA.get("sources", []), stories=EXTRA.get("stories", []), model=MODEL + " + " + gem_model(key))
+        r.update(segments=segs, sources=EXTRA.get("sources", []), stories=EXTRA.get("stories", []), model=r.get("model", MODEL) + " + " + gem_model(key))
         r.pop("needsFormat"); r.pop("raw"); save(fp, r); log("reformatted", r["uid"]); publish()
 
 def gh(*a): return subprocess.run(["gh", *a, "-R", REPO], capture_output=True, text=True)
@@ -371,18 +376,21 @@ def poll_ntfy():
     except Exception as e: log("ntfy error", e)
     if msgs: st["since"] = msgs[-1]["id"]
     for m in msgs:                                    # new requests join the queue
-        uid = (m.get("message") or "").strip()[:200]
+        msg = (m.get("message") or "").strip()[:200]; uid, _, md = msg.partition("|")
+        st.setdefault("mode", {})[uid] = md if md in MODES else "fast"
         st["retry"].setdefault(uid, time.time())
     save(NTFY_STATE, st)
     idx = index(); stat = load(STATUS, {})
     for uid, first in sorted(st["retry"].items(), key=lambda kv: kv[1]):
-        if uid not in idx or os.path.exists(os.path.join(TDIR, fname(uid) + ".json")):
+        md = st.get("mode", {}).get(uid, "fast")
+        ex = load(os.path.join(TDIR, fname(uid) + ".json"), None)
+        if uid not in idx or (ex and not (md == "accurate" and ex.get("mode") != "accurate")):
             st["retry"].pop(uid, None); save(NTFY_STATE, st); continue
         now = time.time(); st["jobs"] = [t for t in st["jobs"] if now - t < 3600]
         if len(st["jobs"]) >= MAX_PER_HOUR: log("rate limit, later:", uid); break
         st["jobs"].append(now); save(NTFY_STATE, st)
         log("request", uid)
-        try: process(uid); st["retry"].pop(uid, None)
+        try: process(uid, None, md); st["retry"].pop(uid, None); st.get("mode", {}).pop(uid, None)
         except Busy as e:
             log("gemini busy", uid, e)
             if now - first > RETRY_FOR:

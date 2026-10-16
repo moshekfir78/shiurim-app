@@ -165,7 +165,7 @@ for r in items:
     f = fname(r["uid"])
     tr = TRANSCRIPTS.get(f)
     with open(os.path.join(PUB, "content", f + ".json"), "w", encoding="utf-8") as fh:
-        json.dump({"html": r.get("contentHtml"), "excerpt": r.get("excerpt", ""), **({"transcript": tr["segments"], "trModel": tr.get("model"), "trSource": tr.get("source") or ("Whisper" if "whisper" in (tr.get("model") or "") else "Gemini"), "trDate": tr.get("date"), "trSources": tr.get("sources", []), "trStories": tr.get("stories", [])} if tr else {})}, fh, ensure_ascii=False)
+        json.dump({"html": r.get("contentHtml"), "excerpt": r.get("excerpt", ""), **({"transcript": tr["segments"], "trModel": tr.get("model"), "trMode": tr.get("mode"), "trRaw": bool(tr.get("needsFormat")), "trSource": tr.get("source") or ("Whisper" if "whisper" in (tr.get("model") or "") else "Gemini"), "trDate": tr.get("date"), "trSources": tr.get("sources", []), "trStories": tr.get("stories", [])} if tr else {})}, fh, ensure_ascii=False)
     s = {k: r[k] for k in ("uid", "source", "rav", "title", "tags", "date", "audio", "pageUrl")} | {"cat": parent, "c": f}
     if r["source"].startswith("spotify") and r.get("excerpt"): s["sub"] = r["excerpt"][:80]
     cat_titles = []; node = parent

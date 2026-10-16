@@ -320,21 +320,29 @@ async function renderTr(s) {
   const st = (await trStatus())[s.uid], asked = LS.get('trReq', {})[s.uid];
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   if (c.transcript) {
-    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
+    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}${c.trRaw ? '<span class="trsrc">טרם עוצב</span>' : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
+    if (c.trMode !== 'accurate' && s.audio.length) {
+      const up = asked && asked.mode === 'accurate' && Date.now() - asked.at < 24 * 3600e3;
+      box.insertAdjacentHTML('beforeend', up ? `<p class="trst">⏳ ביקשת תמלול מדויק — הוא יחליף את הנוכחי כשיסתיים.</p>` : `<p class="prow"><button class="btn" id="trUp">🎯 שדרג לתמלול מדויק (איטי)</button></p>`);
+      $('#trUp') && ($('#trUp').onclick = () => reqTr(s, 'accurate'));
+    }
     return;
   }
   if (!canTr(s)) { box.innerHTML = `<p class="muted">תמלול לא זמין: השיעור זמין רק בספוטיפיי ואין גישה ציבורית לקובץ השמע.</p>`; return }
   if (st && st.status === 'working') { box.innerHTML = `<p class="trst">⏳ בתמלול… התמלול יופיע כאן כשיסתיים.</p>`; clearTimeout(window._trPoll); window._trPoll = setTimeout(() => { if (location.hash.includes(s.uid)) { TRST = null; renderTr(s) } }, 30000); return }
   if (st && st.status === 'failed') { box.innerHTML = `<p class="muted">התמלול נכשל: ${esc(st.reason || '')}</p>`; return }
   const POLL = () => { clearTimeout(window._trPoll); window._trPoll = setTimeout(() => { if ($('#trbox') && location.hash.includes(encodeURIComponent(s.uid).replace(/%3A/g, ':')) || location.hash.includes(s.uid)) { TRST = null; renderTr(s) } }, 30000) };
-  if (asked && Date.now() - asked < 6 * 3600e3) { box.innerHTML = `<p class="trst">⏳ הבקשה נשלחה — התמלול יופיע כאן תוך כמה דקות.</p>`; POLL(); return }
-  box.innerHTML = `<p class="prow"><button class="btn" id="trreq">📝 בקש תמלול</button></p>`;
-  $('#trreq').onclick = async () => {
-    $('#trreq').disabled = true;
-    try { await fetch('https://ntfy.sh/sh-tr-eda8b9c188a97097a43564f400f7a2d2', { method: 'POST', body: s.uid }) } catch (e) { $('#trreq').disabled = false; alert('שליחת הבקשה נכשלה, נסו שוב'); return }
-    const r = LS.get('trReq', {}); r[s.uid] = Date.now(); LS.set('trReq', r); renderTr(s);
-  };
+  if (asked && Date.now() - (asked.at || asked) < 6 * 3600e3) { box.innerHTML = `<p class="trst">⏳ הבקשה נשלחה — התמלול יופיע כאן תוך כמה דקות.</p>`; POLL(); return }
+  box.innerHTML = `<p class="prow"><button class="btn" id="trFast">⚡ תמלול מהיר</button>${s.audio.length ? '<button class="btn" id="trAcc">🎯 תמלול מדויק (איטי)</button>' : ''}</p>
+    <p class="muted" style="font-size:.8rem">מהיר: כמה דקות. מדויק: מודל ivrit.ai הגדול, יכול לקחת זמן רב יותר.</p>`;
+  $('#trFast').onclick = () => reqTr(s, 'fast');
+  $('#trAcc') && ($('#trAcc').onclick = () => reqTr(s, 'accurate'));
+}
+async function reqTr(s, mode) {
+  touch(s.uid); document.querySelectorAll('#trbox button').forEach(b => b.disabled = true);
+  try { await fetch('https://ntfy.sh/sh-tr-eda8b9c188a97097a43564f400f7a2d2', { method: 'POST', body: s.uid + '|' + mode }) } catch (e) { document.querySelectorAll('#trbox button').forEach(b => b.disabled = false); alert('שליחת הבקשה נכשלה, נסו שוב'); return }
+  const r = LS.get('trReq', {}); r[s.uid] = { at: Date.now(), mode }; LS.set('trReq', r); TRST = null; renderTr(s);
 }
 let TRSEARCH = null;
 function render() {
