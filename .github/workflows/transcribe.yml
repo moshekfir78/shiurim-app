@@ -1,0 +1,30 @@
+name: transcribe
+on:
+  schedule: [{cron: "*/10 * * * *"}]
+  workflow_dispatch:
+permissions: {contents: write, issues: write, pages: write, id-token: write}
+concurrency: {group: repo-write, cancel-in-progress: false}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: {name: github-pages}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y -qq ffmpeg >/dev/null && pip install -q requests yt-dlp
+      - name: Transcribe pending requests
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
+          python3 build.py >/dev/null
+          python3 transcribe_worker.py --once
+          [ -f .deploy-needed ] && echo "DEPLOY=1" >> $GITHUB_ENV || true
+      - if: env.DEPLOY == '1'
+        uses: actions/configure-pages@v5
+      - if: env.DEPLOY == '1'
+        uses: actions/upload-pages-artifact@v3
+        with: {path: public}
+      - if: env.DEPLOY == '1'
+        uses: actions/deploy-pages@v4

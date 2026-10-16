@@ -1,0 +1,11 @@
+.secrets/
+*.env
+gemini.env
+.deploy/
+__pycache__/
+*.pyc
+public/data/
+.deploy-needed
+*.jks
+*.keystore
+*.tmp

@@ -1,0 +1,31 @@
+{
+ "source": {
+  "id": "spotify-avraham",
+  "name": "Spotify · שיעורי הרב מיכאל אברהם",
+  "site": "https://open.spotify.com/show/2OYA8nQcMcq6vJJnQmTe4Q",
+  "rav": "avraham"
+ },
+ "shiurim": {
+  "spotify:7bBIoiE2BSFtKzmUwchJlj": {
+   "uid": "spotify:7bBIoiE2BSFtKzmUwchJlj",
+   "source": "spotify-avraham",
+   "sourceId": "7bBIoiE2BSFtKzmUwchJlj",
+   "rav": "avraham",
+   "title": "מידות הדרש ההגיוניות כבסיס ללוגיקה לא דדוקטיבית",
+   "excerpt": "",
+   "tags": [],
+   "duration": 2263,
+   "path": [
+    {
+     "id": "pod:spotify-avraham",
+     "title": "פודקאסט · שיעורי הרב מיכאל אברהם (Spotify)"
+    }
+   ],
+   "date": "2025-09-03T00:00:00Z",
+   "audio": [],
+   "spotify": "7bBIoiE2BSFtKzmUwchJlj",
+   "spotifyVideo": false,
+   "pageUrl": "https://open.spotify.com/episode/7bBIoiE2BSFtKzmUwchJlj"
+  }
+ }
+}

@@ -1,0 +1,338 @@
+[
+ {
+  "id": "nifla-po",
+  "rav": "piron",
+  "name": "נפלא פה (גלצ)",
+  "feed": "https://www.omnycontent.com/d/playlist/6dcbc33f-1fb6-49de-9ae2-ad8a00c01523/0e3b8702-8e24-46bf-9a32-adef00e3702a/dc50e2a8-849e-4502-908b-adef00e4890c/podcast.rss",
+  "spotify": "https://open.spotify.com/show/3xA6ON9dcCxpQxjQNd2RKS"
+ },
+ {
+  "id": "birkat-moshe",
+  "rav": "hendler",
+  "name": "אורי וישעי - ישיבת ברכת משה",
+  "feed": "https://feeds.redcircle.com/999c0a6e-b224-450c-8e1e-841b1be406a3",
+  "titleMustContain": [
+   "הנדלר"
+  ]
+ },
+ {
+  "id": "ypt-pshat-granot",
+  "rav": "granot",
+  "name": "ישיבת אורות שאול - שיעורי פשט בפרשת השבוע",
+  "feed": "https://anchor.fm/s/f9079af0/podcast/rss",
+  "titleMustContain": [
+   "גרנות"
+  ]
+ },
+ {
+  "id": "ypt-pshat-eldar",
+  "rav": "eldar",
+  "name": "ישיבת אורות שאול - שיעורי פשט בפרשת השבוע",
+  "feed": "https://anchor.fm/s/f9079af0/podcast/rss",
+  "titleMustContain": [
+   "אלדר"
+  ]
+ },
+ {
+  "id": "ypt-esther-granot",
+  "rav": "granot",
+  "name": "מגילת אסתר מדברת אלינו",
+  "feed": "https://anchor.fm/s/10ef6ea14/podcast/rss",
+  "titleMustContain": [
+   "גרנות"
+  ]
+ },
+ {
+  "id": "ypt-esther-eldar",
+  "rav": "eldar",
+  "name": "מגילת אסתר מדברת אלינו",
+  "feed": "https://anchor.fm/s/10ef6ea14/podcast/rss",
+  "titleMustContain": [
+   "אלדר"
+  ]
+ },
+ {
+  "id": "ypt-sefirot-eldar",
+  "rav": "eldar",
+  "name": "עשר ספירות | הרב איתמר אלדר ומתן חסידים",
+  "feed": "https://anchor.fm/s/111b999cc/podcast/rss",
+  "titleMustContain": [
+   "אלדר"
+  ]
+ },
+ {
+  "id": "ypt-maasiot-eldar",
+  "rav": "eldar",
+  "name": "הרב איתמר אלדר-סיפורי מעשיות",
+  "feed": "https://anchor.fm/s/11284368c/podcast/rss",
+  "titleMustContain": [
+   "אלדר"
+  ]
+ },
+ {
+  "id": "rashut-cherlow",
+  "rav": "cherlow",
+  "name": "רשו\"ת השידור עם הרב יובל שרלו",
+  "feed": "https://anchor.fm/s/f1e315c4/podcast/rss"
+ },
+ {
+  "id": "gush-chidush-cherlow",
+  "rav": "cherlow",
+  "name": "חידוש מהגוש (ישיבת הר עציון)",
+  "feed": "https://anchor.fm/s/f93023e4/podcast/rss",
+  "titleMustContain": [
+   "שרלו"
+  ]
+ },
+ {
+  "id": "gush-hesder-rachmani",
+  "rav": "rachmani",
+  "name": "זאת תורת ההסדר והמילואים (ישיבת הר עציון)",
+  "feed": "https://anchor.fm/s/fd761c88/podcast/rss",
+  "titleMustContain": [
+   "רחמני"
+  ]
+ },
+ {
+  "id": "avraham-podhome",
+  "rav": "avraham",
+  "name": "שיעורי הרב מיכאל אברהם",
+  "feed": "https://serve.podhome.fm/rss/a21f44c6-8d6d-48dc-a7ce-3cc24f7f54a9",
+  "titleExclude": [
+   "דיבייט",
+   "ויכוח",
+   "עימות",
+   "ראיון",
+   "ריאיון",
+   "מתארח",
+   "פאנל",
+   "פודקאסט",
+   "בשיחה עם",
+   "טריילר",
+   "פרומו",
+   "חדשות",
+   "שיחה עם",
+   "אחים למחלוקת",
+   "דרך המחשבה עם",
+   "עצם העניין",
+   "רב שיח",
+   "אחד על אחד",
+   "פגישת מחזור",
+   "דברי פתיחה",
+   "ערב שיח",
+   "מגיע לשיחה",
+   "#היהודים באים#"
+  ]
+ },
+ {
+  "id": "avraham-anchor",
+  "rav": "avraham",
+  "name": "שיעורי הרב מיכאל אברהם (צוות פודקאסט הרב מיכי)",
+  "feed": "https://anchor.fm/s/f2d2fef4/podcast/rss",
+  "titleExclude": [
+   "דיבייט",
+   "ויכוח",
+   "עימות",
+   "ראיון",
+   "ריאיון",
+   "מתארח",
+   "פאנל",
+   "פודקאסט",
+   "בשיחה עם",
+   "טריילר",
+   "פרומו",
+   "חדשות",
+   "שיחה עם",
+   "אחים למחלוקת",
+   "דרך המחשבה עם",
+   "עצם העניין",
+   "רב שיח",
+   "אחד על אחד",
+   "פגישת מחזור",
+   "דברי פתיחה",
+   "ערב שיח",
+   "מגיע לשיחה",
+   "#היהודים באים#"
+  ]
+ },
+ {
+  "id": "siach-sadeh",
+  "rav": "siach",
+  "name": "שיח בשדה - ישיבת שיח יצחק",
+  "feed": "https://anchor.fm/s/113a12070/podcast/rss"
+ },
+ {
+  "id": "siach-acharon",
+  "rav": "siach",
+  "name": "אחרון חביב - ישיבת שיח יצחק",
+  "feed": "https://anchor.fm/s/104cf32bc/podcast/rss"
+ },
+ {
+  "id": "cherlow-8c6e0764",
+  "rav": "cherlow",
+  "name": "הרב יובל שרלו - משנתו הקיומית של הרב סולובייצ׳יק",
+  "feed": "https://rss.castbox.fm/everest/8c6e0764a9f34e5c8d0c316279bc1dd1.xml"
+ },
+ {
+  "id": "shagar-3b9296aa",
+  "rav": "siach",
+  "name": "הרב שג\"ר: גמרא - קידושין פרק ראשון - שיעורים מישיבת שיח יצחק",
+  "feed": "https://rss.castbox.fm/everest/3b9296aa03af473c907202d8a768bbd4.xml"
+ },
+ {
+  "id": "shagar-deb18c87",
+  "rav": "siach",
+  "name": "הרב שג\"ר: דעת תבונות - ישיבת שיח יצחק",
+  "feed": "https://rss.castbox.fm/everest/deb18c8770dd4be8897c3286a8e9d19a.xml"
+ },
+ {
+  "id": "shagar-df1779cc",
+  "rav": "siach",
+  "name": "הרב שג\"ר: סיפורי מעשיות של רבי נחמן",
+  "feed": "https://rss.castbox.fm/everest/df1779cc588d4c238c8de270fd74d07b.xml",
+  "titleExclude": [
+   "מעשה משבעה קבצנים"
+  ]
+ },
+ {
+  "id": "shagar-5c15a26d",
+  "rav": "siach",
+  "name": "הרב שג\"ר: תניא - שער הייחוד והאמונה וליקוטי אמרים",
+  "feed": "https://rss.castbox.fm/everest/5c15a26d13a543de911cb7437ceca4ee.xml"
+ },
+ {
+  "id": "shagar-4ab29943",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים לראש השנה",
+  "feed": "https://rss.castbox.fm/everest/4ab2994331774747a6d58e0878554315.xml"
+ },
+ {
+  "id": "shagar-ddbe6c8e",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים בתורת הרב קוק",
+  "feed": "https://rss.castbox.fm/everest/ddbe6c8e0cfa4d738c0e3d197675b819.xml"
+ },
+ {
+  "id": "shagar-3cdbbc55",
+  "rav": "siach",
+  "name": "הרב שג\"ר: מהר\"ל - נתיבות עולם ותפארת ישראל",
+  "feed": "https://rss.castbox.fm/everest/3cdbbc55097349edb526eb5e6663aa32.xml"
+ },
+ {
+  "id": "shagar-c9130c7e",
+  "rav": "siach",
+  "name": "הרב שג\"ר: חובות הלבבות - סדרה שנייה",
+  "feed": "https://rss.castbox.fm/everest/c9130c7e6d4e46c9adb19d64b7dc7513.xml"
+ },
+ {
+  "id": "shagar-530601c1",
+  "rav": "siach",
+  "name": "הרב שג\"ר: פרשת השבוע",
+  "feed": "https://rss.castbox.fm/everest/530601c167024030ad2cabb91a198cd7.xml"
+ },
+ {
+  "id": "shagar-bab5b70e",
+  "rav": "siach",
+  "name": "הרב שג\"ר: אבלות, חורבן וייסורים",
+  "feed": "https://rss.castbox.fm/everest/bab5b70e051c42718a31af2ff94c7a78.xml",
+  "titleExclude": [
+   "חורבן ואבלות"
+  ]
+ },
+ {
+  "id": "shagar-3a087752",
+  "rav": "siach",
+  "name": "הרב שג\"ר: קונטרס ההתפעלות",
+  "feed": "https://rss.castbox.fm/everest/3a0877523aeb41fd98f99dd4057e2cd4.xml"
+ },
+ {
+  "id": "shagar-28baed19",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים בליקוטי מוהר\"ן",
+  "feed": "https://rss.castbox.fm/everest/28baed19ef634753ba602c70949fa119.xml"
+ },
+ {
+  "id": "shagar-e8151f9d",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים לפורים",
+  "feed": "https://rss.castbox.fm/everest/e8151f9d365842ce892cb8c6bc10f33f.xml"
+ },
+ {
+  "id": "shagar-8493229c",
+  "rav": "siach",
+  "name": "הרב שג\"ר: תורת הרמב\"ן",
+  "feed": "https://rss.castbox.fm/everest/8493229c4be944aaa46d6f5cbcabe5cc.xml",
+  "titleExclude": [
+   "ייחוד ה' ב"
+  ]
+ },
+ {
+  "id": "shagar-458b8e23",
+  "rav": "siach",
+  "name": "הרב שג\"ר: גמרא - קידושין פרק ראשון - שיעורים מבית מורשה",
+  "feed": "https://rss.castbox.fm/everest/458b8e2351ed44dda2b8434b66e4d82d.xml"
+ },
+ {
+  "id": "shagar-fc4059e0",
+  "rav": "siach",
+  "name": "הרב שג\"ר: תניא - שיעורים נוספים",
+  "feed": "https://rss.castbox.fm/everest/fc4059e0bf8c4f4485ce21669c11cfe7.xml"
+ },
+ {
+  "id": "shagar-ee68508a",
+  "rav": "siach",
+  "name": "הרב שג\"ר: מחשבת הלכה",
+  "feed": "https://rss.castbox.fm/everest/ee68508a02bd49578a677eae85804507.xml"
+ },
+ {
+  "id": "shagar-a3261e4e",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים במי השילוח",
+  "feed": "https://rss.castbox.fm/everest/a3261e4e742a46dfb3ae1b63971a920d.xml"
+ },
+ {
+  "id": "shagar-a4104c9e",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים לשבועות",
+  "feed": "https://rss.castbox.fm/everest/a4104c9ed9f7461cbae8ec91db2fe594.xml"
+ },
+ {
+  "id": "shagar-e8875875",
+  "rav": "siach",
+  "name": "הרב שג\"ר: התפילה בחסידות",
+  "feed": "https://rss.castbox.fm/everest/e8875875fc3c4634bf81a417f2ba9598.xml"
+ },
+ {
+  "id": "shagar-ebcf11e5",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים לחנוכה",
+  "feed": "https://rss.castbox.fm/everest/ebcf11e54038403889b11e9990db69c8.xml"
+ },
+ {
+  "id": "shagar-15f96983",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים על השפת אמת",
+  "feed": "https://rss.castbox.fm/everest/15f969830bf14a85807889c0764730fa.xml",
+  "titleExclude": [
+   "גלות, גאולה וארץ ישראל"
+  ]
+ },
+ {
+  "id": "shagar-b1399699",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים ליום הכיפורים",
+  "feed": "https://rss.castbox.fm/everest/b1399699997f40fead22d83587882170.xml"
+ },
+ {
+  "id": "shagar-a0ce2475",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים ליום העצמאות",
+  "feed": "https://rss.castbox.fm/everest/a0ce2475c34841eb8e1b1c0d1683041a.xml"
+ },
+ {
+  "id": "shagar-584c95e2",
+  "rav": "siach",
+  "name": "הרב שג\"ר: שיעורים בצדקת הצדיק",
+  "feed": "https://rss.castbox.fm/everest/584c95e2cdd24d94ae8c2497fe8ebf92.xml"
+ }
+]

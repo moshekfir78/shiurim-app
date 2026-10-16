@@ -1,0 +1,303 @@
+#!/usr/bin/env python3
+"""On-demand transcription worker.
+Requests = open GitHub issues in REPO whose title starts with "[תמלול]" and contains a shiur uid
+(the app's "בקש תמלול" button opens such an issue pre-filled). For each request:
+  status -> "working" (published so the app shows "בתמלול..."), fetch audio, transcribe with
+  ivrit-ai whisper (faster-whisper, CPU), save data/transcripts/<c>.json, status -> "done",
+  rebuild + redeploy, comment on the issue and close it.
+Usage: python3 transcribe_worker.py [--once] [--uid UID]   (--uid: transcribe directly, no issue)
+"""
+import json, os, re, subprocess, sys, time, hashlib, tempfile, datetime
+ROOT = os.path.dirname(os.path.abspath(__file__))
+REPO = "orikfir10/shiurim-app"
+SITE = "https://orikfir10.github.io/shiurim-app/"
+TDIR = os.path.join(ROOT, "data", "transcripts")
+STATUS = os.path.join(TDIR, "status.json")
+MODEL = "ivrit-ai/whisper-large-v3-turbo-ct2"
+MAX_SECONDS = 3 * 3600          # refuse audio longer than 3h
+POLL = 600                      # seconds between polls in loop mode
+fname = lambda uid: hashlib.sha1(uid.encode()).hexdigest()[:16]
+log = lambda *a: print(datetime.datetime.now().strftime("%H:%M:%S"), *a, flush=True)
+
+def load(p, d):
+    try: return json.load(open(p, encoding="utf-8"))
+    except Exception: return d
+def save(p, o):
+    json.dump(o, open(p + ".tmp", "w", encoding="utf-8"), ensure_ascii=False); os.replace(p + ".tmp", p)
+def set_status(uid, st, **kw):
+    s = load(STATUS, {}); s[uid] = {"status": st, "at": datetime.datetime.now(datetime.timezone.utc).isoformat(), **kw}; save(STATUS, s)
+CI = bool(os.environ.get("GITHUB_ACTIONS"))
+def publish():
+    """Box: build + redeploy. GitHub Actions: build + commit/push data/ (the workflow deploys Pages at the end)."""
+    subprocess.run([sys.executable, "build.py"], cwd=ROOT, check=True, capture_output=True)
+    if not CI:
+        subprocess.run(["./redeploy.sh"], cwd=ROOT, check=True, capture_output=True); return
+    subprocess.run(["git", "add", "data"], cwd=ROOT, check=True)
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT).returncode == 0: return
+    subprocess.run(["git", "commit", "-qm", "transcripts: update"], cwd=ROOT, check=True)
+    for _ in range(5):
+        subprocess.run(["git", "pull", "-q", "--rebase", "-X", "theirs"], cwd=ROOT)
+        if subprocess.run(["git", "push", "-q"], cwd=ROOT).returncode == 0: break
+        time.sleep(10)
+    open(os.path.join(ROOT, ".deploy-needed"), "w").close()
+
+def index():
+    return {s["uid"]: s for s in load(os.path.join(ROOT, "public", "data", "index.json"), {"shiurim": []})["shiurim"]}
+
+def get_audio(s, out):
+    """Download audio for a shiur to `out`. Returns None or raises with a Hebrew reason."""
+    for u in s.get("audio") or []:
+        r = subprocess.run(["curl", "-sfL", "--max-time", "1800", "-o", out, u])
+        if r.returncode == 0 and os.path.getsize(out) > 10000: return
+    if s.get("youtube"):
+        import shutil
+        ytdlp = shutil.which("yt-dlp") or os.path.expanduser("~/.local/bin/yt-dlp")
+        r = subprocess.run([ytdlp, "-f", "bestaudio", "-o", out, "--force-overwrites", "--no-part", f"https://www.youtube.com/watch?v={s['youtube']}"], capture_output=True, text=True)
+        if r.returncode == 0 and os.path.exists(out): return
+        raise RuntimeError("לא ניתן להוריד את השמע מיוטיוב כרגע (" + (r.stderr.strip().splitlines() or ["?"])[-1][:120] + ")")
+    if s.get("spotify"):
+        raise RuntimeError("שיעור שזמין רק בספוטיפיי – אין גישה ציבורית לקובץ השמע, לכן אי אפשר לתמלל")
+    raise RuntimeError("לא נמצא קובץ שמע לשיעור")
+
+LAT = re.compile(r"[A-Za-z]+|[\U00010000-\U0010FFFF\u2600-\u27BF�]")
+def clean(t):
+    he = len(re.findall(r"[א-ת]", t)); la = len(re.findall(r"[A-Za-z]", t))
+    if he >= la: t = LAT.sub("", t)          # Hebrew segment: drop stray Latin tokens / emoji (whisper hallucinations)
+    return re.sub(r"\s{2,}", " ", t).strip()
+
+
+# ---- Gemini (primary). Key is read ONLY from ~/.secrets/gemini.env, never stored in the repo/public. ----
+GEM_ENV = os.path.expanduser("~/.secrets/gemini.env")
+GEM_API = "https://generativelanguage.googleapis.com"
+GEM_PREF = ["gemini-3.1-pro", "gemini-3.1-pro-preview", "gemini-3-pro", "gemini-3-pro-preview", "gemini-2.5-pro", "gemini-3-flash", "gemini-2.5-flash"]
+CHUNK = 40 * 60                 # split audio into 40-minute chunks
+PROMPT = """אתה מתמלל שיעורי תורה מקצועי. תמלל את השיעור בעברית לתמלול חכם, נקי ומקצועי:
+- נאמן לדברי הדובר ולסגנונו; הסר גמגומים, חזרות ומילות מילוי, אך אל תסכם ואל תקצר תוכן.
+- חלק לפסקאות עם פיסוק מלא. התחל כל פסקה בחותמת זמן [HH:MM:SS] מתחילת הקובץ.
+- אם יש יותר מדובר אחד, פתח כל פסקה (אחרי חותמת הזמן) בשם הדובר או "שואל:" / "הרב:" ואחריו נקודתיים. דובר יחיד – בלי תוויות.
+- ציטוטים ממקורות סמן במירכאות. השתמש בחיפוש Google כדי לזהות מקורות מדויקים (ספר, פרק, פסוק/דף).
+החזר בדיוק שלושה חלקים עם הכותרות האלה ולא דבר מלבדם:
+### תמלול
+### מקורות
+(שורה לכל מקור: "<שם מקור מדויק, למשל בראשית א, א / ברכות ב ע"א> – <ציטוט קצר או הקשר>")
+### נספח סיפורים
+(שורה לכל סיפור/משל שסופר בשיעור: "[HH:MM:SS] <כותרת קצרה> – <תקציר במשפט>"; אם אין – כתוב "אין")"""
+def gem_key():
+    if os.environ.get("GEMINI_API_KEY"): return os.environ["GEMINI_API_KEY"]
+    try:
+        m = re.search(r"GEMINI_API_KEY\s*=\s*['\"]?([^'\"\s]+)", open(GEM_ENV).read()); return m and m.group(1)
+    except Exception: return None
+def gem_req(method, url, key, **kw):
+    import requests
+    r = requests.request(method, url, headers={"x-goog-api-key": key, **kw.pop("headers", {})}, timeout=kw.pop("timeout", 900), **kw)
+    if r.status_code >= 400: raise RuntimeError(f"Gemini {r.status_code}: {r.text[:200]}")
+    return r
+_gem_model = None
+def gem_model(key):
+    global _gem_model
+    if not _gem_model:
+        names = {m["name"].split("/")[-1] for m in gem_req("GET", GEM_API + "/v1beta/models?pageSize=200", key).json().get("models", [])}
+        _gem_model = next((m for m in GEM_PREF if m in names), None) or sorted(n for n in names if n.startswith("gemini") and "pro" in n)[-1]
+    return _gem_model
+GEM_CASCADE = ["gemini-3.1-pro-preview", "gemini-pro-latest", "gemini-3.8-flash", "gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-flash"]
+def gem_generate(key, part, ctx=""):
+    """Try Pro first, then Flash; each with Google Search grounding, then without. Skips on 429/503/404."""
+    global _gem_model
+    txt = PROMPT + (("\n\nמילון מונחים ורקע מתוך אתר השיעור (לאיות שמות ומושגים):\n" + ctx[:6000]) if ctx else "")
+    errs = []
+    for m in GEM_CASCADE:
+        for search in (True, False):
+            body = {"contents": [{"parts": [part, {"text": txt}]}], "generationConfig": {"temperature": 0.2, "maxOutputTokens": 65536}}
+            if search: body["tools"] = [{"google_search": {}}]
+            try:
+                j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body).json()
+                out = "".join(p.get("text", "") for p in j["candidates"][0]["content"]["parts"] if not p.get("thought"))
+                if out.strip():
+                    _gem_model = m + (" +search" if search else ""); return out
+            except Exception as e:
+                errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}")
+                if "429" in str(e) and not search: break
+    if all(e[-3:] in ("429", "503", "500") for e in errs): raise Busy("Gemini: " + ", ".join(errs))
+    raise RuntimeError("Gemini: " + ", ".join(errs))
+class Busy(RuntimeError): pass   # quota/overload: retry on a later run instead of failing
+def gem_upload(key, path):
+    size = os.path.getsize(path)
+    r = gem_req("POST", GEM_API + "/upload/v1beta/files", key, json={"file": {"display_name": "shiur"}}, headers={
+        "X-Goog-Upload-Protocol": "resumable", "X-Goog-Upload-Command": "start",
+        "X-Goog-Upload-Header-Content-Length": str(size), "X-Goog-Upload-Header-Content-Type": "audio/mpeg"})
+    f = gem_req("POST", r.headers["X-Goog-Upload-URL"], key, data=open(path, "rb"), headers={
+        "X-Goog-Upload-Offset": "0", "X-Goog-Upload-Command": "upload, finalize"}).json()["file"]
+    while f.get("state") == "PROCESSING":
+        time.sleep(5); f = gem_req("GET", GEM_API + "/v1beta/" + f["name"], key).json()
+    return f
+def split3(text):
+    sec = {"tr": [], "src": [], "st": []}; cur = "tr"
+    for ln in text.splitlines():
+        h = ln.strip().lstrip("#").strip()
+        if ln.strip().startswith("#"):
+            cur = "src" if h.startswith("מקורות") else "st" if "סיפור" in h else "tr" if h.startswith("תמלול") else cur; continue
+        sec[cur].append(ln)
+    clean_l = lambda L: [l.strip(" -*•\t") for l in L if l.strip(" -*•\t") and l.strip(" -*•\t") != "אין"]
+    return "\n".join(sec["tr"]), clean_l(sec["src"]), clean_l(sec["st"])
+EXTRA = {}
+def parse_all(text, offset=0):
+    tr, src, st = split3(text)
+    EXTRA.setdefault("sources", []).extend(src); EXTRA.setdefault("stories", []).extend(st)
+    return parse(tr, offset)
+TS = re.compile(r"^\s*\[?(\d{1,2}):(\d{2})(?::(\d{2}))?\]?\s*")
+def parse(text, offset=0):
+    out = []
+    for para in re.split(r"\n\s*\n|\n", text):
+        para = para.strip()
+        if not para: continue
+        m = TS.match(para); s = offset
+        if m:
+            a, b, c = m.groups(); s = offset + (int(a)*3600+int(b)*60+int(c) if c else int(a)*60+int(b)); para = para[m.end():].strip()
+        elif out: s = out[-1]["s"]
+        if para: out.append({"s": round(s, 1), "t": para})
+    return out
+def dur_of(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path], capture_output=True, text=True)
+    return float(r.stdout.strip() or 0)
+def gem_audio(key, path, td, ctx=""):
+    dur = dur_of(path)
+    if dur > MAX_SECONDS: raise RuntimeError(f"השיעור ארוך מדי לתמלול ({int(dur // 60)} דקות)")
+    out = []
+    for i, off in enumerate(range(0, int(dur) + 1, CHUNK)):
+        cp = os.path.join(td, f"c{i}.mp3")
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(off), "-t", str(CHUNK), "-i", path, "-ac", "1", "-b:a", "48k", cp], check=True)
+        f = gem_upload(key, cp)
+        try: out += parse_all(gem_generate(key, {"file_data": {"mime_type": f["mimeType"], "file_uri": f["uri"]}}, ctx), off)
+        finally:
+            try: gem_req("DELETE", GEM_API + "/v1beta/" + f["name"], key)
+            except Exception: pass
+    return out, dur
+def gem_youtube(key, vid, ctx=""):
+    segs = parse_all(gem_generate(key, {"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}}, ctx))
+    return segs, (segs[-1]["s"] if segs else 0)
+
+NO_WHISPER = CI or bool(os.environ.get("NO_WHISPER"))   # whisper on a CPU runner is far too slow (~8x realtime)
+_model = None
+def transcribe(path):
+    global _model
+    import numpy as np
+    from faster_whisper import WhisperModel
+    pcm = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", path, "-f", "s16le", "-ac", "1", "-ar", "16000", "-"], capture_output=True).stdout
+    a = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768
+    dur = len(a) / 16000
+    if dur > MAX_SECONDS: raise RuntimeError(f"השיעור ארוך מדי לתמלול ({int(dur // 60)} דקות)")
+    if _model is None: _model = WhisperModel(MODEL, device="cpu", compute_type="int8", cpu_threads=max(2, (os.cpu_count() or 4) - 2))
+    segs, _ = _model.transcribe(a, language="he", beam_size=5, vad_filter=True, condition_on_previous_text=False,
+                                compression_ratio_threshold=2.0, no_speech_threshold=0.5, log_prob_threshold=-0.8,
+                                repetition_penalty=1.1, no_repeat_ngram_size=3)
+    out = []
+    for sg in segs:
+        t = clean(sg.text)
+        if t: out.append({"s": round(sg.start, 1), "t": t})
+    return out, dur
+
+def process(uid, issue=None):
+    s = index().get(uid)
+    if not s: raise RuntimeError("מזהה שיעור לא קיים באפליקציה")
+    if os.path.exists(os.path.join(TDIR, fname(uid) + ".json")): return "already"
+    set_status(uid, "working", issue=issue); publish()
+    t0 = time.time()
+    used = MODEL; segs = None; key = gem_key(); EXTRA.clear()
+    ctx = s["title"]
+    try:
+        d = load(os.path.join(ROOT, "public", "data", "content", fname(uid) + ".json"), {})
+        ctx += "\n" + re.sub(r"<[^>]+>", " ", d.get("html") or d.get("excerpt") or "")
+    except Exception: pass
+    with tempfile.TemporaryDirectory() as td:
+        p = os.path.join(td, "a")
+        if key and not s.get("audio") and s.get("youtube"):
+            try: segs, dur = gem_youtube(key, s["youtube"], ctx); used = gem_model(key)
+            except Busy: raise
+            except Exception as e: log("gemini youtube failed, trying audio download:", e); segs = None
+        if not segs:
+            get_audio(s, p)
+            if key:
+                try: segs, dur = gem_audio(key, p, td, ctx); used = gem_model(key)
+                except Busy: raise
+                except Exception as e:
+                    if NO_WHISPER: raise
+                    log("gemini failed, fallback whisper:", e); segs = None
+            if not segs:
+                if NO_WHISPER: raise RuntimeError("אין מפתח Gemini")
+                EXTRA.clear(); segs, dur = transcribe(p); used = MODEL
+    save(os.path.join(TDIR, fname(uid) + ".json"), {"uid": uid, "model": used, "date": datetime.date.today().isoformat(),
+                                                   "audioSeconds": round(dur), "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])})
+    took = round(time.time() - t0)
+    set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used); publish()
+    log(f"done {uid}: {round(dur/60)} min audio in {round(took/60,1)} min")
+    return took
+
+def gh(*a): return subprocess.run(["gh", *a, "-R", REPO], capture_output=True, text=True)
+
+def poll_once():
+    r = gh("issue", "list", "--state", "open", "--limit", "50", "--json", "number,title,body")
+    if r.returncode: log("gh error", r.stderr.strip()); return
+    idx = None
+    for it in sorted(json.loads(r.stdout or "[]"), key=lambda x: x["number"]):
+        if not it["title"].startswith("[תמלול]"): continue
+        m = re.search(r"([a-z][a-z0-9-]*:[^\s]+)", it["title"] + " " + (it["body"] or ""))
+        uid = m.group(1) if m else None
+        idx = idx or index()
+        if not uid or uid not in idx:
+            gh("issue", "close", str(it["number"]), "--comment", "לא נמצא מזהה שיעור תקין בבקשה, ולכן היא נסגרה."); continue
+        url = SITE + "#/s/" + uid
+        try:
+            res = process(uid, it["number"])
+        except Busy as e:
+            log("gemini busy, issue stays open", e); set_status(uid, "working", issue=it["number"]); publish(); return
+        except Exception as e:
+            log("failed", uid, e); set_status(uid, "failed", issue=it["number"], reason=str(e)); publish()
+            gh("issue", "close", str(it["number"]), "--comment", f"לא ניתן לתמלל את השיעור: {e}"); continue
+        if True:
+            gh("issue", "close", str(it["number"]), "--comment", ("התמלול כבר קיים" if res == "already" else "התמלול מוכן") + f": {url}")
+
+NTFY_TOPIC = open(os.path.join(ROOT, "data", "ntfy_topic.txt")).read().strip()
+NTFY_STATE = os.path.join(ROOT, "data", "ntfy_state.json")
+MAX_PER_HOUR = 6
+RETRY_FOR = 24 * 3600           # keep retrying Gemini-quota failures for a day
+def poll_ntfy():
+    import requests
+    st = load(NTFY_STATE, {"since": "12h", "jobs": []}); st.setdefault("retry", {})
+    msgs = []
+    try:
+        r = requests.get(f"https://ntfy.sh/{NTFY_TOPIC}/json", params={"poll": "1", "since": st["since"]}, timeout=30)
+        msgs = [m for m in (json.loads(l) for l in r.text.splitlines() if l.strip()) if m.get("event") == "message"]
+    except Exception as e: log("ntfy error", e)
+    if msgs: st["since"] = msgs[-1]["id"]
+    for m in msgs:                                    # new requests join the queue
+        uid = (m.get("message") or "").strip()[:200]
+        st["retry"].setdefault(uid, time.time())
+    save(NTFY_STATE, st)
+    idx = index(); stat = load(STATUS, {})
+    for uid, first in sorted(st["retry"].items(), key=lambda kv: kv[1]):
+        if uid not in idx or os.path.exists(os.path.join(TDIR, fname(uid) + ".json")):
+            st["retry"].pop(uid, None); save(NTFY_STATE, st); continue
+        now = time.time(); st["jobs"] = [t for t in st["jobs"] if now - t < 3600]
+        if len(st["jobs"]) >= MAX_PER_HOUR: log("rate limit, later:", uid); break
+        st["jobs"].append(now); save(NTFY_STATE, st)
+        log("request", uid)
+        try: process(uid); st["retry"].pop(uid, None)
+        except Busy as e:
+            log("gemini busy", uid, e)
+            if now - first > RETRY_FOR:
+                st["retry"].pop(uid, None); set_status(uid, "failed", reason="מכסת התמלול החינמית של Gemini מלאה, נסה שוב מחר")
+            else: set_status(uid, "working", note="ממתין למכסת Gemini")
+            save(NTFY_STATE, st); publish(); break     # quota hit: stop this run
+        except Exception as e:
+            log("failed", uid, e); st["retry"].pop(uid, None); set_status(uid, "failed", reason=str(e))
+        save(NTFY_STATE, st); publish()
+    save(NTFY_STATE, st); publish()
+
+if __name__ == "__main__":
+    if "--uid" in sys.argv: print(process(sys.argv[sys.argv.index("--uid") + 1])); sys.exit()
+    n = 0
+    while True:
+        if n % 10 == 0 or CI: poll_once()
+        poll_ntfy(); n += 1
+        if "--once" in sys.argv: break
+        time.sleep(60)
