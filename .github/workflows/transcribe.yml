@@ -3,11 +3,11 @@ on:
   schedule: [{cron: "*/10 * * * *"}]
   workflow_dispatch:
 permissions: {contents: write, issues: write, pages: write, id-token: write}
-concurrency: {group: repo-write, cancel-in-progress: false}
+concurrency: {group: transcribe-fast, cancel-in-progress: false}
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 120
     environment: {name: github-pages}
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
         run: |
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
           python3 build.py >/dev/null
-          export JOB_DEADLINE=$(( $(date +%s) + 330*60 ))
+          export WORKER_MODE=fast JOB_DEADLINE=$(( $(date +%s) + 110*60 ))
           python3 transcribe_worker.py --once
           [ -f .deploy-needed ] && echo "DEPLOY=1" >> $GITHUB_ENV || true
       - if: env.DEPLOY == '1'

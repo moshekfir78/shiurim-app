@@ -184,6 +184,11 @@ for c in cats.values(): c["children"].sort(key=lambda i: (cats[i]["title"] == "�
 ravs = [{"id": k, "name": v["name"], "count": cats["rav:" + k]["count"], **({"kind": v["kind"]} if v.get("kind") else {})} for k, v in RAVS.items()]
 # transcription request status (for "בתמלול..." in the app) + full-text search index of transcripts
 _st = json.load(open(os.path.join(TDIR, "status.json"), encoding="utf-8")) if os.path.exists(os.path.join(TDIR, "status.json")) else {}
+for _p in sorted(glob.glob(os.path.join(ROOT, "data", "status", "*.json"))):
+    try:
+        for _u, _v in json.load(open(_p, encoding="utf-8")).items():
+            if _u not in _st or (_v.get("at") or "") >= (_st[_u].get("at") or ""): _st[_u] = _v
+    except Exception: pass
 json.dump({u: {k: v[k] for k in ("status", "reason") if k in v} for u, v in _st.items()}, open(os.path.join(PUB, "transcripts-status.json"), "w", encoding="utf-8"), ensure_ascii=False)
 json.dump({k: " ".join(sg["t"] for sg in v["segments"]) for k, v in TRANSCRIPTS.items()}, open(os.path.join(PUB, "transcripts-search.json"), "w", encoding="utf-8"), ensure_ascii=False)
 def schedule():

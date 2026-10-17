@@ -12,7 +12,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO = "moshekfir78/shiurim-app"
 SITE = "https://moshekfir78.github.io/shiurim-app/"
 TDIR = os.path.join(ROOT, "data", "transcripts")
-STATUS = os.path.join(TDIR, "status.json")
+STATUS = os.path.join(TDIR, "status.json")          # legacy (read-only)
+SDIR = os.path.join(ROOT, "data", "status")
+WORKER_MODE = os.environ.get("WORKER_MODE", "")      # "fast" / "accurate": each workflow handles only its own requests
 MODEL = "ivrit-ai/whisper-large-v3-turbo-ct2"
 MODES = {"fast": {"model": "ivrit-ai/whisper-large-v3-turbo-ct2", "beam": 1, "rt": 1.5, "label": "מהיר"},
          "accurate": {"model": "ivrit-ai/whisper-large-v3-turbo-ct2", "beam": 5, "rt": 1.0, "label": "מדויק"}}
@@ -27,7 +29,9 @@ def load(p, d):
 def save(p, o):
     json.dump(o, open(p + ".tmp", "w", encoding="utf-8"), ensure_ascii=False); os.replace(p + ".tmp", p)
 def set_status(uid, st, **kw):
-    s = load(STATUS, {}); s[uid] = {"status": st, "at": datetime.datetime.now(datetime.timezone.utc).isoformat(), **kw}; save(STATUS, s)
+    # one file per shiur so the fast and accurate workflows never conflict on push
+    os.makedirs(SDIR, exist_ok=True)
+    save(os.path.join(SDIR, fname(uid) + ".json"), {uid: {"status": st, "at": datetime.datetime.now(datetime.timezone.utc).isoformat(), **kw}})
 CI = bool(os.environ.get("GITHUB_ACTIONS"))
 def publish():
     """Box: build + redeploy. GitHub Actions: build + commit/push data/ (the workflow deploys Pages at the end)."""
@@ -379,12 +383,12 @@ def poll_once():
             gh("issue", "close", str(it["number"]), "--comment", ("התמלול כבר קיים" if res == "already" else "התמלול מוכן") + f": {url}")
 
 NTFY_TOPIC = open(os.path.join(ROOT, "data", "ntfy_topic.txt")).read().strip()
-NTFY_STATE = os.path.join(ROOT, "data", "ntfy_state.json")
+NTFY_STATE = os.path.join(ROOT, "data", "ntfy_state_accurate.json" if WORKER_MODE == "accurate" else "ntfy_state.json")
 MAX_PER_HOUR = 6
 RETRY_FOR = 24 * 3600           # keep retrying Gemini-quota failures for a day
 def poll_ntfy():
     import requests
-    st = load(NTFY_STATE, {"since": "12h", "jobs": []}); st.setdefault("retry", {})
+    st = load(NTFY_STATE, {"since": "6h", "jobs": []}); st.setdefault("retry", {})
     msgs = []
     try:
         r = requests.get(f"https://ntfy.sh/{NTFY_TOPIC}/json", params={"poll": "1", "since": st["since"]}, timeout=30)
@@ -392,8 +396,9 @@ def poll_ntfy():
     except Exception as e: log("ntfy error", e)
     if msgs: st["since"] = msgs[-1]["id"]
     for m in msgs:                                    # new requests join the queue
-        msg = (m.get("message") or "").strip()[:200]; uid, _, md = msg.partition("|")
-        st.setdefault("mode", {})[uid] = md if md in MODES else "fast"
+        msg = (m.get("message") or "").strip()[:200]; uid, _, md = msg.partition("|"); md = md if md in MODES else "fast"
+        if WORKER_MODE and md != WORKER_MODE: continue            # the other workflow handles it
+        st.setdefault("mode", {})[uid] = md
         st["retry"].setdefault(uid, time.time())
     save(NTFY_STATE, st)
     idx = index(); stat = load(STATUS, {})
@@ -428,9 +433,9 @@ if __name__ == "__main__":
     if "--uid" in sys.argv: print(process(sys.argv[sys.argv.index("--uid") + 1])); sys.exit()
     n = 0
     while True:
-        if n % 10 == 0 or CI: poll_once()
+        if WORKER_MODE != "accurate" and (n % 10 == 0 or CI): poll_once()
         poll_ntfy(); n += 1
-        try: reformat_pending()
+        try: WORKER_MODE != "accurate" and reformat_pending()
         except Exception as e: log("reformat error", e)
         if "--once" in sys.argv: break
         time.sleep(60)
