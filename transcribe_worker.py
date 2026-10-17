@@ -284,40 +284,56 @@ def process(uid, issue=None, mode="fast"):
         ctx += "\n" + re.sub(r"<[^>]+>", " ", d.get("html") or d.get("excerpt") or "")
     except Exception: pass
     with tempfile.TemporaryDirectory() as td:
-        p = os.path.join(td, "a")
-        # 1) YouTube captions (saved cache first; live fetch usually blocked on Actions)
-        if mode == "fast" and key and s.get("youtube") and not os.environ.get("NO_CAPTIONS"):
-            caps, kind = yt_captions(s["youtube"])
-            if caps:
-                try: segs, dur = gem_captions(key, caps, ctx); used = gem_model(key); src = CAP_SRC + (f" ({kind})" if kind else ""); log("captions", kind, len(caps))
-                except Busy: raise
-                except Exception as e: log("caption formatting failed, falling back:", e); segs = None; EXTRA.clear()
-        # 2) ivrit.ai whisper on the audio, then Gemini text-only formatting
-        have_audio = False
-        if not segs:
-            try: get_audio(s, p); have_audio = os.path.exists(p) and os.path.getsize(p) > 10000
-            except Exception as e: log("audio download failed:", str(e)[:200])
-        if not segs and have_audio and not os.environ.get("NO_WHISPER"):
-            ad = dur_of(p)
-            if DEADLINE and time.time() + ad * cfg["rt"] + 600 > DEADLINE: raise Busy(f"not enough job time for {round(ad/60)} min audio")
-            tw = time.time(); raw, dur = transcribe(p, mode); log(f"whisper {round(dur/60)} min audio in {round((time.time()-tw)/60,1)} min")
-            used = wm = cfg["model"]; src = WSRC + " · " + cfg["label"]
+        p = os.path.join(td, "a"); have_audio = False; busy = None
+        def audio():
+            nonlocal have_audio
+            if not have_audio:
+                try: get_audio(s, p); have_audio = os.path.exists(p) and os.path.getsize(p) > 10000
+                except Exception as e: log("audio download failed:", str(e)[:200])
+            return have_audio
+        def whisper(m):
+            nonlocal raw, dur, used, src, segs
+            c = MODES[m]; ad = dur_of(p)
+            if DEADLINE and time.time() + ad * c["rt"] + 600 > DEADLINE: raise Busy(f"not enough job time for {round(ad/60)} min audio")
+            tw = time.time(); raw, dur = transcribe(p, m); log(f"whisper[{m}] {round(dur/60)} min audio in {round((time.time()-tw)/60,1)} min")
+            used = c["model"]; src = WSRC + " · " + c["label"]
             if key:
-                try: EXTRA.clear(); segs, _ = gem_captions(key, whisper_caps(raw), ctx, WHISPER_PRE); used = wm + " + " + gem_model(key)
+                try: EXTRA.clear(); segs, _ = gem_captions(key, whisper_caps(raw), ctx, WHISPER_PRE); used = c["model"] + " + " + gem_model(key)
                 except Exception as e: log("formatting unavailable, publishing raw whisper:", str(e)[:200]); segs = None; EXTRA.clear()
             if not segs: segs = fmt_raw(raw)
-        # 3) Gemini directly (YouTube link, then audio file)
-        if not segs and key and s.get("youtube"):
-            try: segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0); used = gem_model(key)
-            except Busy: raise
-            except Exception as e: log("gemini youtube failed:", e); segs = None
-        if not segs and key and have_audio:
-            segs, dur = gem_audio(key, p, td, ctx); used = gem_model(key)
-        if not segs: raise RuntimeError("לא נמצא שמע זמין לתמלול" if not have_audio else "אין מפתח Gemini")
+        # 1) YouTube captions (saved cache first; live fetch usually blocked on Actions) - both modes
+        if s.get("youtube") and not os.environ.get("NO_CAPTIONS"):
+            caps, kind = yt_captions(s["youtube"])
+            if caps:
+                src = CAP_SRC + (f" ({kind})" if kind else ""); log("captions", kind, len(caps))
+                try:
+                    if not key: raise RuntimeError("no key")
+                    segs, dur = gem_captions(key, caps, ctx); used = gem_model(key)
+                except Exception as e:
+                    log("caption formatting unavailable, publishing raw captions:", str(e)[:200]); EXTRA.clear()
+                    raw = [{"s": round(a, 1), "t": t} for a, t in caps]; dur = caps[-1][0]; used = "captions"; segs = fmt_raw(raw)
+        if not segs and mode == "fast":
+            # 2a) fast: Gemini directly (YouTube link for YouTube-only items, else uploaded audio); all free models in order
+            if key:
+                try:
+                    if s.get("youtube") and not s.get("audio"): segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0)
+                    elif audio(): segs, dur = gem_audio(key, p, td, ctx)
+                    if segs: used = gem_model(key); src = "Gemini · מהיר"
+                except Exception as e: busy = e; log("gemini fast failed, falling back to ivrit.ai:", str(e)[:200]); segs = None; EXTRA.clear()
+            # 2b) all Gemini busy -> ivrit.ai turbo beam 1, format later
+            if not segs and audio() and not os.environ.get("NO_WHISPER"): whisper("fast")
+        if not segs and mode == "accurate":
+            # 2) accurate: ivrit.ai turbo beam 5, then Gemini text formatting
+            if audio() and not os.environ.get("NO_WHISPER"): whisper("accurate")
+            elif key and s.get("youtube"):
+                segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0); used = gem_model(key); src = "Gemini"
+        if not segs:
+            if isinstance(busy, Busy): raise busy
+            raise RuntimeError("לא נמצא שמע זמין לתמלול" if not have_audio else "אין מפתח Gemini")
     rec = {"uid": uid, "model": used, "date": datetime.date.today().isoformat(), "audioSeconds": round(dur), "source": src,
            "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])}
     rec["mode"] = mode if raw is not None else ("fast" if mode == "fast" else "other")
-    if raw is not None and "+" not in used: rec["needsFormat"] = True; rec["raw"] = raw
+    if raw is not None and "+" not in used and not used.startswith("gemini"): rec["needsFormat"] = True; rec["raw"] = raw
     save(os.path.join(TDIR, fname(uid) + ".json"), rec)
     took = round(time.time() - t0)
     set_status(uid, "done", issue=issue, seconds=took, audioSeconds=round(dur), model=used, source=src, mode=rec["mode"]); publish()
