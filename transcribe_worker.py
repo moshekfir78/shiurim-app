@@ -404,6 +404,7 @@ def poll_ntfy():
     idx = index(); stat = load(STATUS, {})
     for uid, first in sorted(st["retry"].items(), key=lambda kv: kv[1]):
         md = st.get("mode", {}).get(uid, "fast")
+        if WORKER_MODE and md != WORKER_MODE: continue             # belongs to the other workflow
         ex = load(os.path.join(TDIR, fname(uid) + ".json"), None)
         if uid not in idx or (ex and not (md == "accurate" and ex.get("mode") != "accurate")):
             st["retry"].pop(uid, None); save(NTFY_STATE, st); continue
