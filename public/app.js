@@ -318,11 +318,14 @@ const canTr = s => s.audio.length || s.youtube;
 async function renderTr(s) {
   const box = $('#trbox'); if (!box) return;
   const st = (await trStatus())[s.uid], asked = LS.get('trReq', {})[s.uid];
-  const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
+  const c = window.PTR ? await PTR.content(s) : await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
+  if (PTRJOB[s.uid]) { box.innerHTML = `<p class="trst" id="ptrSt">⏳ ${esc(PTRJOB[s.uid])}</p>`; return }
   if (c.transcript) {
     box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}${c.trRaw ? '<span class="trsrc">טרם עוצב</span>' : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
-    if (c.trMode !== 'accurate' && s.audio.length) {
+    if (c.personal) box.insertAdjacentHTML('beforeend', `<p class="muted" style="font-size:.8rem">התמלול האישי שלך מוצג במקום התמלול הציבורי.</p>`);
+    else if (window.PTR && PTR.hasKey()) { box.insertAdjacentHTML('beforeend', `<p class="prow"><button class="btn" id="trMine">⚡ תמלול אישי עם המפתח שלי</button></p>`); $('#trMine').onclick = () => personalTr(s) }
+    if (!c.personal && c.trMode !== 'accurate' && s.audio.length) {
       const up = asked && asked.mode === 'accurate' && Date.now() - asked.at < 24 * 3600e3;
       box.insertAdjacentHTML('beforeend', up ? `<p class="trst">⏳ ביקשת תמלול מדויק — הוא יחליף את הנוכחי כשיסתיים.</p>` : `<p class="prow"><button class="btn" id="trUp">🎯 שדרג לתמלול מדויק</button></p>`);
       $('#trUp') && ($('#trUp').onclick = () => reqTr(s, 'accurate'));
@@ -336,9 +339,24 @@ async function renderTr(s) {
   if (asked && Date.now() - (asked.at || asked) < 6 * 3600e3) { box.innerHTML = `<p class="trst">⏳ הבקשה נשלחה — התמלול יופיע כאן תוך כמה דקות.</p>`; POLL(); return }
   box.innerHTML = `<p class="prow"><button class="btn" id="trFast">⚡ תמלול מהיר</button>${s.audio.length ? '<button class="btn" id="trAcc">🎯 תמלול מדויק</button>' : ''}</p>
     <p class="muted" style="font-size:.8rem">מהיר: כמה דקות. מדויק: כ־45 דקות לכל שעת שיעור.</p>`;
-  $('#trFast').onclick = () => reqTr(s, 'fast');
+  if (window.PTR && PTR.hasKey()) { $('#trFast').textContent = '⚡ תמלול מהיר (עם המפתח שלי)'; $('#trFast').onclick = () => personalTr(s) }
+  else $('#trFast').onclick = () => reqTr(s, 'fast');
   $('#trAcc') && ($('#trAcc').onclick = () => reqTr(s, 'accurate'));
 }
+const PTRJOB = {};
+async function personalTr(s) {
+  touch(s.uid); const t0 = Date.now();
+  const step = m => { PTRJOB[s.uid] = m + ` (${Math.round((Date.now() - t0) / 1000)} שנ׳)`; const el = $('#ptrSt'); if (el) el.textContent = '⏳ ' + PTRJOB[s.uid]; else if ($('#trbox')) renderTr(s) };
+  const tick = setInterval(() => { const el = $('#ptrSt'); if (el && PTRJOB[s.uid]) el.textContent = '⏳ ' + PTRJOB[s.uid].replace(/\(\d+ שנ׳\)$/, `(${Math.round((Date.now() - t0) / 1000)} שנ׳)`) }, 1000);
+  step('מתחיל…');
+  try { const rec = await PTR.transcribe(s, step); delete PTRJOB[s.uid]; clearInterval(tick); console.log('personal transcript', rec.model, rec.seconds + 's');
+    if (location.hash.includes(s.uid) || location.hash.includes(encodeURIComponent(s.uid))) render() }
+  catch (e) { delete PTRJOB[s.uid]; clearInterval(tick); const box = $('#trbox');
+    const cors = e instanceof PTR.Cors;
+    if (box) { box.innerHTML = `<p class="trst">⚠ ${esc(e.message)}</p>${cors ? '<p class="prow"><button class="btn" id="trGh">שלח בקשת תמלול לשרת הציבורי במקום</button></p>' : '<p class="prow"><button class="btn" id="trRetry">נסה שוב</button></p>'}`;
+      $('#trGh') && ($('#trGh').onclick = () => reqTr(s, 'fast')); $('#trRetry') && ($('#trRetry').onclick = () => personalTr(s)) } }
+}
+window.personalTr = personalTr;
 async function reqTr(s, mode) {
   touch(s.uid); document.querySelectorAll('#trbox button').forEach(b => b.disabled = true);
   try { await fetch('https://ntfy.sh/sh-tr-eda8b9c188a97097a43564f400f7a2d2', { method: 'POST', body: s.uid + '|' + mode }) } catch (e) { document.querySelectorAll('#trbox button').forEach(b => b.disabled = false); alert('שליחת הבקשה נכשלה, נסו שוב'); return }

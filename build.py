@@ -216,3 +216,9 @@ json.dump({"topics": TAX, "parashot": [{"name": p[0], "book": p[1]} for p in PAR
 print(f"parasha: {sum(1 for x in shiurim if x.get('par'))} shiurim classified, {len({i for x in shiurim for i in x.get('par', [])})}/54 parashot, schedule {len(SCH)} weeks")
 print(f"built: {len(sources)} sources, {len(cats)} categories, {len(shiurim)} shiurim, {merged} duplicates merged")
 for r in ravs: print(" ", r["name"], r["count"])
+# personal (in-browser) transcription: the user's prompt + model cascade, same as the worker
+try:
+    import transcribe_worker as _tw
+    open(os.path.join(PUB, "prompt_he.txt"), "w", encoding="utf-8").write(_tw.build_prompt("{referenceText}"))
+    json.dump([[m, s] for m, s in _tw.GEM_CASCADE], open(os.path.join(PUB, "gemini_models.json"), "w"))
+except Exception as e: print("prompt export failed:", e)

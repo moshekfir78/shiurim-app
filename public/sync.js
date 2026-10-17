@@ -91,6 +91,32 @@ async function upload(at, items) {
   _set.call(localStorage, LSK.fid, r.id);
 }
 
+// ---------- personal transcripts: one Drive file per shiur (ptr-<hash>.json), kept out of the main file ----------
+const pname = async uid => 'ptr-' + [...new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(uid)))].slice(0, 8).map(b => b.toString(16).padStart(2, '0')).join('') + '.json';
+async function syncPtr(at) {
+  if (!window.PTR) return false;
+  const seen = jget('sync_ptr', {}); let changed = false, files = [], tok = '';
+  do { const r = await (await api(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1000&q=${encodeURIComponent("name contains 'ptr-'")}&fields=nextPageToken,files(id,name,modifiedTime)${tok ? '&pageToken=' + tok : ''}`, {}, at)).json();
+    files = files.concat(r.files || []); tok = r.nextPageToken } while (tok);
+  const remote = Object.fromEntries(files.map(f => [f.name, f])), local = await PTR.all(), byName = {};
+  for (const rec of local) { const n = await pname(rec.uid); byName[n] = rec; const f = remote[n];
+    if (f && seen[n] && seen[n].m === f.modifiedTime && seen[n].at >= rec.at) continue;      // in sync
+    if (f && (!seen[n] || seen[n].m !== f.modifiedTime)) {                                   // remote changed: newer wins
+      const rr = await (await api(`https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`, {}, at)).json();
+      if ((rr.at || 0) >= rec.at) { await PTR.put(rr, true); seen[n] = { m: f.modifiedTime, at: rr.at }; changed = true; continue } }
+    const body = JSON.stringify(rec); let res;                                                // local newer / new: upload
+    if (f) res = await (await api(`https://www.googleapis.com/upload/drive/v3/files/${f.id}?uploadType=media&fields=modifiedTime`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body }, at)).json();
+    else { const b = 'shiurimptr' + Date.now(), meta = JSON.stringify({ name: n, parents: ['appDataFolder'], mimeType: 'application/json' });
+      res = await (await api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b },
+        body: `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--` }, at)).json() }
+    seen[n] = { m: res.modifiedTime, at: rec.at };
+  }
+  for (const f of files) if (!byName[f.name] && (!seen[f.name] || seen[f.name].m !== f.modifiedTime)) {     // only on Drive: download
+    const rr = await (await api(`https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`, {}, at)).json();
+    if (rr && rr.uid) { await PTR.put(rr, true); seen[f.name] = { m: f.modifiedTime, at: rr.at }; changed = true } }
+  jset('sync_ptr', seen); return changed;
+}
+
 // ---------- sync ----------
 async function sync(interactive = false) {
   if (busy || (!interactive && !jget(LSK.on, false))) return; busy = true; setStatus('syncing');
@@ -99,8 +125,9 @@ async function sync(interactive = false) {
     const S = await stamp(), R = await download(at), M = merge(S, R || {});
     applying = true; try { await apply(M) } finally { applying = false }
     if (!R || JSON.stringify(M) !== JSON.stringify(R)) await upload(at, M);
+    const pc = await syncPtr(at).catch(e => { console.warn('ptr sync', e); return false });
     jset(LSK.state, M); jset(LSK.on, true); jset(LSK.last, Date.now()); setStatus('ok');
-    if (R && JSON.stringify(M) !== JSON.stringify(S) && window.render && !/^#\/s\//.test(location.hash)) window.render();
+    if (((R && JSON.stringify(M) !== JSON.stringify(S)) || pc) && window.render && !/^#\/s\//.test(location.hash)) window.render();
   } catch (e) { err = e.message; setStatus(e.message === 'need-login' ? 'login' : 'error') }
   finally { busy = false }
 }
@@ -111,11 +138,12 @@ IDBObjectStore.prototype.put = function (...a) { if (this.name === 'study') sche
 setInterval(() => document.visibilityState === 'visible' && schedule(0), 3 * 60e3);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(timer); sync(false) } else schedule(500) });
 window.addEventListener('load', () => schedule(1500));
+window.addEventListener('ptr-changed', () => schedule(1000));
 
 function disconnect() {
   const t = jget(LSK.tok, null);
   if (t && window.google && google.accounts) try { google.accounts.oauth2.revoke(t.at, () => {}) } catch { }
-  [LSK.on, LSK.tok, LSK.state, LSK.last, LSK.fid].forEach(k => localStorage.removeItem(k)); setStatus('idle');
+  [LSK.on, LSK.tok, LSK.state, LSK.last, LSK.fid, 'sync_ptr'].forEach(k => localStorage.removeItem(k)); setStatus('idle');
 }
 
 // ---------- UI (in the "my notes" / backup area) ----------
@@ -130,7 +158,7 @@ function setStatus(s) { status = s; topBtn(); const el = document.getElementById
 function fill(el) {
   const on = jget(LSK.on, false);
   el.innerHTML = `<b>סנכרון בין מכשירים (Google Drive)</b>
-    <div class="muted">הנתונים נשמרים בתיקייה מוסתרת של האפליקציה ב-Google Drive שלך בלבד: סיכומים, הערות, תיקוני תמלול, מועדפים, התקדמות והעדפות.</div>
+    <div class="muted">הנתונים נשמרים בתיקייה מוסתרת של האפליקציה ב-Google Drive שלך בלבד: סיכומים, הערות, תמלולים אישיים, תיקוני תמלול, מועדפים, התקדמות והעדפות.</div>
     <div class="muted" id="syncSt">${label()}</div>
     <div class="row">${on && status !== 'login' ? `<button class="btn" id="syncNow">סנכרן עכשיו</button><button class="btn" id="syncOff">התנתק</button>`
       : `<button class="btn on" id="syncIn">התחבר עם Google לסנכרון</button>${on ? '<button class="btn" id="syncOff">התנתק</button>' : ''}`}</div>`;
