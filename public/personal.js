@@ -118,7 +118,7 @@ function keyBox() {
       <div class="row">${k ? `<span class="muted">✓ מפתח שמור (…${k.slice(-4).replace(/./g, '•')})</span><button class="btn" id="gkClear">מחק מפתח</button>`
         : `<input id="gkIn" type="password" autocomplete="off" placeholder="הדביקו מפתח Gemini" style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;font:inherit"><button class="btn on" id="gkSave">שמור</button>`}</div>`;
     const b = id => el.querySelector('#' + id);
-    b('gkSave') && (b('gkSave').onclick = () => { const v = b('gkIn').value.trim(); if (!/^[\w-]{20,}$/.test(v)) return alert('המפתח לא נראה תקין'); localStorage.setItem(KEYK, v); fill() });
+    b('gkSave') && (b('gkSave').onclick = () => { const v = b('gkIn').value.replace(/[\s"'`\u200e\u200f\u202a-\u202e]/g, ''); if (!/^\S{20,}$/.test(v)) return alert('המפתח לא נראה תקין'); localStorage.setItem(KEYK, v); fill() });
     b('gkClear') && (b('gkClear').onclick = () => { if (confirm('למחוק את מפתח Gemini מהמכשיר?')) { localStorage.removeItem(KEYK); fill() } });
   };
   fill(); return el;
