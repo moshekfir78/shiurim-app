@@ -324,7 +324,7 @@ async function renderTr(s) {
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
     if (c.trMode !== 'accurate' && s.audio.length) {
       const up = asked && asked.mode === 'accurate' && Date.now() - asked.at < 24 * 3600e3;
-      box.insertAdjacentHTML('beforeend', up ? `<p class="trst">⏳ ביקשת תמלול מדויק — הוא יחליף את הנוכחי כשיסתיים.</p>` : `<p class="prow"><button class="btn" id="trUp">🎯 שדרג לתמלול מדויק (איטי)</button></p>`);
+      box.insertAdjacentHTML('beforeend', up ? `<p class="trst">⏳ ביקשת תמלול מדויק — הוא יחליף את הנוכחי כשיסתיים.</p>` : `<p class="prow"><button class="btn" id="trUp">🎯 שדרג לתמלול מדויק</button></p>`);
       $('#trUp') && ($('#trUp').onclick = () => reqTr(s, 'accurate'));
     }
     return;
@@ -334,8 +334,8 @@ async function renderTr(s) {
   if (st && st.status === 'failed') { box.innerHTML = `<p class="muted">התמלול נכשל: ${esc(st.reason || '')}</p>`; return }
   const POLL = () => { clearTimeout(window._trPoll); window._trPoll = setTimeout(() => { if ($('#trbox') && location.hash.includes(encodeURIComponent(s.uid).replace(/%3A/g, ':')) || location.hash.includes(s.uid)) { TRST = null; renderTr(s) } }, 30000) };
   if (asked && Date.now() - (asked.at || asked) < 6 * 3600e3) { box.innerHTML = `<p class="trst">⏳ הבקשה נשלחה — התמלול יופיע כאן תוך כמה דקות.</p>`; POLL(); return }
-  box.innerHTML = `<p class="prow"><button class="btn" id="trFast">⚡ תמלול מהיר</button>${s.audio.length ? '<button class="btn" id="trAcc">🎯 תמלול מדויק (איטי)</button>' : ''}</p>
-    <p class="muted" style="font-size:.8rem">מהיר: כמה דקות. מדויק: מודל ivrit.ai הגדול, יכול לקחת זמן רב יותר.</p>`;
+  box.innerHTML = `<p class="prow"><button class="btn" id="trFast">⚡ תמלול מהיר</button>${s.audio.length ? '<button class="btn" id="trAcc">🎯 תמלול מדויק</button>' : ''}</p>
+    <p class="muted" style="font-size:.8rem">מהיר: כמה דקות. מדויק: כ־45 דקות לכל שעת שיעור.</p>`;
   $('#trFast').onclick = () => reqTr(s, 'fast');
   $('#trAcc') && ($('#trAcc').onclick = () => reqTr(s, 'accurate'));
 }

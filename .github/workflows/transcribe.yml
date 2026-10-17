@@ -15,9 +15,6 @@ jobs:
       - name: Cache ivrit.ai fast model
         uses: actions/cache@v4
         with: {path: ~/.cache/huggingface/hub/models--ivrit-ai--whisper-large-v3-turbo-ct2, key: hf-ivrit-turbo-ct2}
-      - name: Cache ivrit.ai accurate model
-        uses: actions/cache@v4
-        with: {path: ~/.cache/huggingface/hub/models--ivrit-ai--whisper-large-v3-ct2, key: hf-ivrit-large-v3-ct2}
       - name: Transcribe pending requests
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
