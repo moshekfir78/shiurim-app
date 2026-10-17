@@ -1,1 +1,1 @@
-{"since": "EvnJdp7z0QGJ", "jobs": [1792254971.35198], "retry": {}, "mode": {"podcast:shagar-a4104c9e:1660110907046626451": "fast"}}
+{"since": "mQtke2gSOEnt", "jobs": [1792254971.35198, 1792255669.2911124], "retry": {"youtube:QKonAp_WZsA": 1792255669.2384825, "haravhendler:8OIaFzS1sMwmnYixSHWE": 1792255669.238485}, "mode": {"podcast:shagar-a4104c9e:1660110907046626451": "fast", "youtube:QKonAp_WZsA": "fast", "haravhendler:8OIaFzS1sMwmnYixSHWE": "accurate"}}
