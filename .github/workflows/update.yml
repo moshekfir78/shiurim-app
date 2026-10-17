@@ -5,12 +5,12 @@ on:
     inputs:
       quick: {description: "skip importers, only build + deploy", type: boolean, default: false}
 permissions: {contents: write, pages: write, id-token: write}
-concurrency: {group: repo-write, cancel-in-progress: false}
 jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 350
-    environment: {name: github-pages}
+    concurrency: {group: repo-write, cancel-in-progress: false}
+    outputs: {deploy: '1'}
     steps:
       - uses: actions/checkout@v4
       - run: pip install -q requests yt-dlp
@@ -21,8 +21,20 @@ jobs:
         run: |
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
           git add data
-          git diff --cached --quiet || { git commit -qm "daily update $(date -u +%F)"; git pull -q --rebase -X theirs; git push -q; }
-          python3 build.py >/dev/null
+          git diff --cached --quiet || { git commit -qm "daily update $(date -u +%F)"
+            for i in 1 2 3 4 5; do git pull -q --rebase -X theirs && git push -q && break; sleep 10; done; }
+  deploy:
+    needs: run
+    runs-on: ubuntu-latest
+    concurrency: {group: pages-deploy, cancel-in-progress: false}
+    environment: {name: github-pages}
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - name: Build from latest main
+        run: |
+          git fetch -q origin main && git reset -q --hard origin/main && git log -1 --oneline
+          pip install -q requests && python3 build.py >/dev/null
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: public}
