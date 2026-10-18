@@ -1,1 +1,1 @@
-{"ostlv:17913": {"status": "working", "at": "2026-10-18T16:41:25.646294+00:00", "issue": null}}
+{"ostlv:17913": {"status": "done", "at": "2026-10-18T16:44:26.324783+00:00", "issue": null, "seconds": 175, "audioSeconds": 0, "model": "gemini-3.8-flash", "source": "Gemini · מהיר", "mode": "fast"}}
