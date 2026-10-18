@@ -1,0 +1,9 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>מתחבר…</title>
+<style>body{font-family:system-ui,sans-serif;background:#f6f3ee;color:#333;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head>
+<body><div id="m">מתחבר ל-Google…</div><script>
+(function(){var p=new URLSearchParams(location.hash.slice(1)),back='./'+(localStorage.getItem('sync_return')||'');localStorage.removeItem('sync_return');
+var exp=localStorage.getItem('sync_oauth_state');localStorage.removeItem('sync_oauth_state');
+if(p.get('access_token')&&(!exp||p.get('state')===exp)){localStorage.setItem('sync_tok',JSON.stringify({at:p.get('access_token'),exp:Date.now()+((+p.get('expires_in')||3600)-60)*1000}));localStorage.setItem('sync_on','true');localStorage.setItem('sync_after_login','1')}
+else if(p.get('error')){document.getElementById('m').textContent='ההתחברות בוטלה: '+p.get('error')}
+setTimeout(function(){location.replace(back)},p.get('error')?2500:50)})();
+</script></body></html>

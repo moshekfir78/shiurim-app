@@ -55,10 +55,17 @@ async function apply(M) {
 }
 
 // ---------- Google auth (GIS token client) ----------
+const useRedirect = () => /Android|iPhone|iPad/i.test(navigator.userAgent) || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const loadGis = () => gisP || (gisP = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = () => no(new Error('טעינת Google נכשלה')); document.head.appendChild(s) }));
 function token(interactive) {
   const t = jget(LSK.tok, null); if (t && t.exp > Date.now() + 60e3) return Promise.resolve(t.at);
   if (!interactive) return Promise.reject(new Error('need-login'));
+  if (useRedirect()) {                    // installed app / Android: popups leave a blank screen, so use a full-page redirect
+    const st = Math.random().toString(36).slice(2); _set.call(localStorage, 'sync_oauth_state', st); _set.call(localStorage, 'sync_return', location.hash || '');
+    const ru = new URL('oauth.html', location.href.split('#')[0]).href;
+    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: CID, redirect_uri: ru, response_type: 'token', scope: SCOPE, state: st, include_granted_scopes: 'true', prompt: jget(LSK.on, false) ? '' : 'consent' }).toString().replace(/&prompt=$/, '');
+    return new Promise(() => {});
+  }
   return loadGis().then(() => new Promise((ok, no) => {
     tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CID, scope: SCOPE, prompt: jget(LSK.on, false) ? '' : 'consent',
       callback: r => { if (r.error) return no(new Error(r.error)); jset(LSK.tok, { at: r.access_token, exp: Date.now() + (r.expires_in - 60) * 1000 }); ok(r.access_token) },
@@ -137,7 +144,7 @@ const _put = IDBObjectStore.prototype.put;
 IDBObjectStore.prototype.put = function (...a) { if (this.name === 'study') schedule(); return _put.apply(this, a) };
 setInterval(() => document.visibilityState === 'visible' && schedule(0), 3 * 60e3);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(timer); sync(false) } else schedule(500) });
-window.addEventListener('load', () => schedule(1500));
+window.addEventListener('load', () => { if (localStorage.getItem('sync_after_login')) { localStorage.removeItem('sync_after_login'); sync(true) } else schedule(1500) });
 window.addEventListener('ptr-changed', () => schedule(1000));
 
 function disconnect() {
