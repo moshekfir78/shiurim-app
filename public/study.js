@@ -13,12 +13,13 @@ const db = () => dbp || (dbp = new Promise((ok, no) => { const r = indexedDB.ope
 const tx = async (mode, fn) => { const d = await db(); return new Promise((ok, no) => { const t = d.transaction('study', mode); const st = t.objectStore('study'); const res = fn(st); t.oncomplete = () => ok(res instanceof IDBRequest ? res.result : res); t.onerror = () => no(t.error) }) };
 const getRec = async uid => (await tx('readonly', st => st.get(uid))) || { uid, notes: [], versions: [], trVersions: [] };
 const allRecs = () => tx('readonly', st => st.getAll());
-const putRec = async rec => { rec.updated = Date.now(); window.touchShiur && touchShiur(rec.uid); await tx('readwrite', st => st.put(rec)); INDEX[rec.uid] = textOf(rec) };
+const putRec = async rec => { rec.updated = Date.now(); window.touchShiur && touchShiur(rec.uid); await tx('readwrite', st => st.put(rec)); INDEX[rec.uid] = textOf(rec); if (isMine(rec)) MINE[rec.uid] = 1; else delete MINE[rec.uid] };
 // in-memory text index for search
 const strip = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent || '' };
 const textOf = r => [strip(r.summary), strip(r.trEdit), ...(r.notes || []).map(n => n.text)].join(' ');
-const INDEX = {};
-allRecs().then(rs => { rs.forEach(r => INDEX[r.uid] = textOf(r)); if (/^#\/search/.test(location.hash)) window.render && render() }).catch(() => {});
+const INDEX = {}, MINE = {};
+const isMine = r => !!(strip(r.summary).trim() || r.trEdit || (r.notes || []).length || r.fileName);
+allRecs().then(rs => { rs.forEach(r => { INDEX[r.uid] = textOf(r); if (isMine(r)) MINE[r.uid] = 1 }); if (/^#\/(search|cat|topics|home|par)?/.test(location.hash)) window.render && render() }).catch(() => {});
 
 // ---------- sanitizing (whitelist) ----------
 const OK = new Set(['P', 'H2', 'H3', 'B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'BR', 'DIV', 'BLOCKQUOTE', 'SPAN', 'A']);
@@ -228,5 +229,5 @@ async function notesView(app) {
       for (const r of d.study) await tx('readwrite', st => st.put(r)); Object.entries(d.local || {}).forEach(([k, v]) => localStorage.setItem(k, v));
       d.study.forEach(r => INDEX[r.uid] = textOf(r)); alert('השחזור הושלם'); notesView(app) } catch (err) { alert('שחזור נכשל: ' + err.message) } };
 }
-Object.assign(Study, { mount, notesView, sources, timed, parseSubs, has: (uid, words) => { const t = INDEX[uid]; return !!t && words.every(w => t.includes(w)) }, _db: { allRecs, putRec, getRec } });
+Object.assign(Study, { mount, notesView, sources, timed, parseSubs, mine: uid => !!MINE[uid], has: (uid, words) => { const t = INDEX[uid]; return !!t && words.every(w => t.includes(w)) }, _db: { allRecs, putRec, getRec } });
 })();

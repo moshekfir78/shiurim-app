@@ -156,6 +156,28 @@ for cid, (_, par, title) in best.items():
 for cid, (_, par, _) in best.items(): cats[par]["children"].append(cid)
 
 TDIR = os.path.join(ROOT, "data", "transcripts")
+def _tr_at(uid, tr):
+    """Best-effort Asia/Jerusalem-friendly ISO time for when the transcript was added."""
+    import subprocess as _sp
+    st = _st_all.get(uid) or {}
+    if st.get("at"): return st["at"]
+    if tr.get("at"):  # personal-style ms or ISO
+        a = tr["at"]; return (datetime.datetime.utcfromtimestamp(a/1000).isoformat()+"Z") if isinstance(a,(int,float)) else str(a)
+    if tr.get("date"):
+        # date-only: use git commit time of the transcript file when available
+        fp = os.path.join(TDIR, hashlib.sha1(uid.encode()).hexdigest()[:16] + ".json")
+        try:
+            t = _sp.check_output(["git","log","-1","--format=%cI","--",fp], cwd=ROOT, text=True).strip()
+            if t: return t
+        except Exception: pass
+        return tr["date"] + "T12:00:00+00:00"
+    return None
+_st_all = json.load(open(os.path.join(TDIR, "status.json"), encoding="utf-8")) if os.path.exists(os.path.join(TDIR, "status.json")) else {}
+for _p in sorted(glob.glob(os.path.join(ROOT, "data", "status", "*.json"))):
+    try:
+        for _u, _v in json.load(open(_p, encoding="utf-8")).items():
+            if _u not in _st_all or (_v.get("at") or "") >= (_st_all[_u].get("at") or ""): _st_all[_u] = _v
+    except Exception: pass
 TRANSCRIPTS = {os.path.basename(p)[:-5]: json.load(open(p, encoding="utf-8")) for p in glob.glob(os.path.join(TDIR, "*.json")) if not p.endswith("status.json")}
 shiurim = []
 for r in items:
@@ -165,7 +187,7 @@ for r in items:
     f = fname(r["uid"])
     tr = TRANSCRIPTS.get(f)
     with open(os.path.join(PUB, "content", f + ".json"), "w", encoding="utf-8") as fh:
-        json.dump({"html": r.get("contentHtml"), "excerpt": r.get("excerpt", ""), **({"transcript": tr["segments"], "trModel": tr.get("model"), "trMode": tr.get("mode"), "trRaw": bool(tr.get("needsFormat")), "trSource": tr.get("source") or ("Whisper" if "whisper" in (tr.get("model") or "") else "Gemini"), "trDate": tr.get("date"), "trSources": tr.get("sources", []), "trStories": tr.get("stories", [])} if tr else {})}, fh, ensure_ascii=False)
+        json.dump({"html": r.get("contentHtml"), "excerpt": r.get("excerpt", ""), **({"transcript": tr["segments"], "trModel": tr.get("model"), "trMode": tr.get("mode"), "trRaw": bool(tr.get("needsFormat")), "trSource": tr.get("source") or ("Whisper" if "whisper" in (tr.get("model") or "") else "Gemini"), "trDate": tr.get("date"), "trAt": _tr_at(r["uid"], tr), "trSources": tr.get("sources", []), "trStories": tr.get("stories", [])} if tr else {})}, fh, ensure_ascii=False)
     s = {k: r[k] for k in ("uid", "source", "rav", "title", "tags", "date", "audio", "pageUrl")} | {"cat": parent, "c": f}
     if r["source"].startswith("spotify") and r.get("excerpt"): s["sub"] = r["excerpt"][:80]
     cat_titles = []; node = parent

@@ -18,7 +18,7 @@ async function content(s) {
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   const p = await get(s.uid).catch(() => null);
   if (p && p.segments && p.segments.length) Object.assign(c, { transcript: p.segments, trSources: p.sources || [], trStories: p.stories || [],
-    trSource: LABEL, trModel: p.model, trMode: 'personal', trRaw: false, personal: true, publicTranscript: c.transcript || null });
+    trSource: LABEL, trModel: p.model, trMode: 'personal', trRaw: false, personal: true, trAt: p.at ? new Date(p.at).toISOString() : null, publicTranscript: c.transcript || null });
   return c;
 }
 // ---------- prompt + output parsing (same as the worker) ----------
@@ -107,7 +107,7 @@ async function transcribe(s, onStep) {
   }
   if (!segs.length) throw new Error('Gemini החזיר תשובה ריקה');
   const rec = { uid: s.uid, segments: segs, sources: src, stories: st, model: used, at: Date.now(), seconds: Math.round((Date.now() - t0) / 1000) };
-  await put(rec); return rec;
+  await put2(rec); return rec;
 }
 // ---------- settings UI (on the "הערות" page, next to Drive sync) ----------
 function keyBox() {
@@ -127,5 +127,8 @@ function keyBox() {
 const wrap = () => { if (!window.Study || Study._keyWrapped) return; const orig = Study.notesView; Study._keyWrapped = true;
   Study.notesView = async app => { await orig(app); const box = keyBox(); const anchor = app.querySelector('#syncBox') || app.querySelector('.row'); anchor ? anchor.after(box) : app.prepend(box) } };
 wrap();
-window.PTR = { get, all, put, content, transcribe, hasKey: () => !!key(), Busy, Cors, LABEL, _wrap: wrap };
+const PHAS = {}; all().then(rs => rs.forEach(r => { if (r.segments && r.segments.length) PHAS[r.uid] = 1 })).catch(() => {});
+const _put0 = put; 
+async function put2(rec, fromSync) { await _put0(rec, fromSync); if (rec.segments && rec.segments.length) PHAS[rec.uid] = 1; else delete PHAS[rec.uid]; if (!fromSync && window.render) try { render() } catch {} }
+window.PTR = { get, all, put: put2, content, transcribe, hasKey: () => !!key(), Busy, Cors, LABEL, _wrap: wrap, _has: uid => !!PHAS[uid] };
 })();

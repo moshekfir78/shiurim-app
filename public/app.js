@@ -11,6 +11,11 @@ const recents = () => LS.get('recent', {});
 function touch(uid) { if (!uid) return; const r = recents(); if (Date.now() - (r[uid] || 0) < 2000) return; r[uid] = Date.now(); const k = Object.keys(r).sort((a, b) => r[b] - r[a]).slice(0, 200); LS.set('recent', Object.fromEntries(k.map(u => [u, r[u]]))) }
 const whenStr = ts => new Date(ts).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: 'numeric', month: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 const lastHeard = uid => { const p = positions()[uid]; return p && p.at ? 'נשמע לאחרונה: ' + whenStr(p.at) + (p.t > 5 ? ' · נעצר ב־' + fmtTime(p.t) : '') : '' };
+const trWhen = iso => { if (!iso) return ''; const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso + 'T12:00:00Z' : iso); if (isNaN(d)) return '';
+  return d.toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) };
+const hasMine = uid => !!(window.Study && Study.mine && Study.mine(uid)) || !!(window.PTR && PTR._has && PTR._has(uid));
+const badges = s => { const b = []; if (s.tr || (window.PTR && PTR._has && PTR._has(s.uid))) b.push('<span class="badge trb">📝 תמלול</span>');
+  if (hasMine(s.uid)) b.push('<span class="badge mineb">📎 שלי</span>'); return b.length ? `<div class="badges">${b.join('')}</div>` : '' };
 window.touchShiur = touch;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jerusalem' }) : '';
@@ -46,7 +51,7 @@ function item(s) {
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
     <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
-    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${s.tr ? '<div class="sub">📝 יש תמלול</div>' : ''}${p && p.at ? `<div class="sub heard">${esc(lastHeard(s.uid))}</div>` : ''}
+    <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${badges(s)}${p && p.at ? `<div class="sub heard">${esc(lastHeard(s.uid))}</div>` : ''}
     <div class="meta">${s.duration ? fmtTime(s.duration).replace(/:\d\d$/, '') + (s.duration >= 3600 ? ' שע׳' : ' דק׳') + ' · ' : ''}${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
 }
@@ -87,15 +92,16 @@ function setF(k, v) {
   location.hash = base + (qs ? '?' + qs : '');
 }
 window.setF = setF;
-window.clearF = () => { ['t', 'm', 'len', 'from', 'to', 'src', 'sort'].forEach(k => Q.delete(k)); setF('x', '') };
+window.clearF = () => { ['t', 'm', 'len', 'from', 'to', 'src', 'sort', 'tr'].forEach(k => Q.delete(k)); setF('x', '') };
 function applyF(arr) {
-  const t = Q.get('t'), m = Q.get('m'), len = LEN.find(l => l[0] === Q.get('len')), from = Q.get('from'), to = Q.get('to'), src = Q.get('src');
+  const t = Q.get('t'), m = Q.get('m'), len = LEN.find(l => l[0] === Q.get('len')), from = Q.get('from'), to = Q.get('to'), src = Q.get('src'), tr = Q.get('tr');
   let out = byRav(arr).filter(s => (!t || (s.tp || []).includes(t)) && (!m || (m === 'v' ? isVideo(s) : isAudio(s))) &&
-    (!len || (s.duration && s.duration >= len[2] && s.duration < len[3])) && (!from || year(s) >= from) && (!to || (year(s) && year(s) <= to)) && (!src || s.source === src));
+    (!len || (s.duration && s.duration >= len[2] && s.duration < len[3])) && (!from || year(s) >= from) && (!to || (year(s) && year(s) <= to)) && (!src || s.source === src) &&
+    (!tr || (tr === '1' && (s.tr || (window.PTR && PTR._has && PTR._has(s.uid)))) || (tr === 'mine' && hasMine(s.uid))));
   if (Q.get('sort') === 'old') out = out.slice().sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
   return out;
 }
-const fKey = () => ['r', 't', 'm', 'len', 'from', 'to', 'src', 'sort'].map(k => Q.get(k) || '').join('|');
+const fKey = () => ['r', 't', 'm', 'len', 'from', 'to', 'src', 'sort', 'tr'].map(k => Q.get(k) || '').join('|');
 function filterUI(base) {
   base = byRav(base);
   const cnt = {}; base.forEach(s => (s.tp || []).forEach(t => cnt[t] = (cnt[t] || 0) + 1));
@@ -105,7 +111,8 @@ function filterUI(base) {
   const sel = (k, label, opts) => `<label class="fl"><span>${label}</span><select onchange="setF('${k}',this.value)">${opts}</select></label>`;
   const tops = DB.topics.filter(t => cnt[t.id]).map(t => opt('t', t.id, (t.parent ? '— ' : '') + t.name, cnt[t.id])).join('');
   const active = [['r', v => ravName(v)], ['t', topicName], ['m', v => v === 'v' ? 'וידאו' : 'שמע'], ['len', v => (LEN.find(l => l[0] === v) || [])[1]],
-    ['from', v => 'משנת ' + v], ['to', v => 'עד ' + v], ['src', srcName], ['sort', v => v === 'old' ? 'מהישן לחדש' : '']].filter(([k]) => Q.get(k));
+    ['from', v => 'משנת ' + v], ['to', v => 'עד ' + v], ['src', srcName], ['sort', v => v === 'old' ? 'מהישן לחדש' : ''],
+    ['tr', v => v === '1' ? 'עם תמלול' : v === 'mine' ? 'שלי' : '']].filter(([k]) => Q.get(k));
   const n = active.filter(([k]) => k !== 'r').length;
   return `<div class="fbar"><button class="btn ${n ? 'on' : ''}" onclick="document.getElementById('fsheet').classList.add('open')">⚙ סינון${n ? ' (' + n + ')' : ''}</button>
     <div class="chips act">${active.map(([k, f]) => `<a class="chip sel" onclick="setF('${k}','')">${esc(f(Q.get(k)))} ✕</a>`).join('')}</div></div>
@@ -118,6 +125,7 @@ function filterUI(base) {
     <div class="frow">${sel('from', 'משנה', opt('from', '', '—') + years.map(y => opt('from', y, y)).join(''))}${sel('to', 'עד שנה', opt('to', '', '—') + years.map(y => opt('to', y, y)).join(''))}</div>
     ${sel('sort', 'מיון', opt('sort', '', 'מהחדש לישן') + opt('sort', 'old', 'מהישן לחדש'))}
     ${sel('src', 'מקור', opt('src', '', 'כל המקורות') + Object.entries(srcs).sort((a, b) => b[1] - a[1]).map(([id, k]) => opt('src', id, srcName(id), k)).join(''))}
+    ${sel('tr', 'תמלול / שלי', opt('tr', '', 'הכול') + opt('tr', '1', 'עם תמלול', base.filter(s => s.tr).length) + opt('tr', 'mine', 'עם תוכן שלי'))}
     <button class="btn" onclick="clearF()">נקה הכול</button></div></div>`;
 }
 // group a big flat list by its most specific topic (parasha / masechet / book / holiday / Tanya …)
@@ -240,7 +248,7 @@ const views = {
     setTimeout(() => setupShiur(s), 0);
     return crumbs(catPath(s.cat)) +
       `<h1 class="page">${esc(s.title)}</h1>
-      <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''}</div>
+      <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''}</div>${badges(s)}
       ${s.sub ? `<div class="sub big">${esc(s.sub)}</div>` : ''}
       ${s.spotify && !s.youtube ? `<div class="sp-wrap ${s.spotifyVideo ? 'vid' : ''}"><iframe id="spf" src="https://open.spotify.com/embed/episode/${encodeURIComponent(s.spotify)}${s.spotifyVideo ? '/video' : ''}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify"></iframe></div>` : ''}
       ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1${ytStart(uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
@@ -321,7 +329,7 @@ async function renderTr(s) {
   const c = window.PTR ? await PTR.content(s) : await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   if (PTRJOB[s.uid]) { box.innerHTML = `<p class="trst" id="ptrSt">⏳ ${esc(PTRJOB[s.uid])}</p>`; return }
   if (c.transcript) {
-    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}${c.trRaw ? '<span class="trsrc">טרם עוצב</span>' : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
+    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}${c.trAt || c.trDate ? `<span class="trsrc">נוסף: ${esc(trWhen(c.personal && c.trAt ? c.trAt : (c.trAt || c.trDate)))}</span>` : ''}${c.trRaw ? '<span class="trsrc">טרם עוצב</span>' : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
     if (c.personal) box.insertAdjacentHTML('beforeend', `<p class="muted" style="font-size:.8rem">התמלול האישי שלך מוצג במקום התמלול הציבורי.</p>`);
     else if (window.PTR && PTR.hasKey()) { box.insertAdjacentHTML('beforeend', `<p class="prow"><button class="btn" id="trMine">⚡ תמלול אישי עם המפתח שלי</button></p>`); $('#trMine').onclick = () => personalTr(s) }

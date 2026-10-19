@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """מערכונים (comedy sketches) – a separate top-level folder, NOT a rav and NOT shiurim.
-Config: data/sketches.json (curated YouTube ids per performer; titles verbatim from yt-dlp with lang=iw).
-Rules: Hebrew titles only, no Shorts (<=60s), no duplicates; no 15-min minimum (sketches are short).
-build.py skips parasha/topic classification for rav kind "sketches"; app.js keeps it out of rav lists/recommendations.
+Config: data/sketches.json (YouTube ids per performer; titles verbatim).
+Rescan (from a machine that can reach YouTube): python3 importers/sketches_scan.py
+then commit data/sketches.json. CI only rebuilds from the committed list (YouTube often blocks runners).
+Rules: Hebrew titles only, no Shorts (<=60s), no duplicates; no 15-min minimum.
 Writes data/sources/youtube-sketches.json."""
 import os, re, sys, json
 sys.path.insert(0, os.path.dirname(__file__))
@@ -14,7 +15,8 @@ for p in cfg["performers"]:
     n = 0
     for v in p["videos"]:
         t = v["title"]
-        if v["id"] in seen or (v.get("duration") or 0) <= 60 or not re.search(r"[\u0590-\u05FF]", t): continue
+        if v["id"] in seen or (v.get("duration") or 0) <= 60 or not re.search(r"[\u0590-\u05FF]", t):
+            continue
         seen.add(v["id"]); n += 1
         uid = f"yt-sk:{v['id']}"
         S[uid] = {"uid": uid, "source": "youtube-sketches", "sourceId": v["id"], "rav": "sketches", "title": t, "excerpt": "",

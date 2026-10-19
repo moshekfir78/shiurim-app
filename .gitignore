@@ -9,3 +9,4 @@ public/data/
 *.jks
 *.keystore
 *.tmp
+data/_sketches_scan/
