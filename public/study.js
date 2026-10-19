@@ -140,7 +140,7 @@ async function mount(s) {
     <section data-pane="tr" hidden><div id="stTrHost"></div>
       ${autoTr ? `<details class="grp"><summary>תיקון התמלול <b>עותק מקומי</b></summary><p class="muted">עורכים עותק מקומי; התמלול המקורי נשמר.${cur.trEdit ? ' <button class="btn" id="stTrReset">חזרה למקור</button>' : ''}</p>
       ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></details>` : ''}${(c.trStories || []).length ? `<h3 class="sub-h">נספח סיפורים</h3><ul>${c.trStories.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</section>
-    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות (ספריא)</h3><div id="stRefs"><p class="muted">טוען…</p></div>${(c.trSources || []).length ? `<h3 class="sub-h">מקורות שזוהו בתמלול</h3><ul>${c.trSources.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
+    <section data-pane="src" hidden><h3 class="sub-h">מראי מקומות (ספריא)</h3><div id="stRefs"><p class="muted">טוען…</p></div>${(c.trSources || []).length ? `<h3 class="sub-h">מקורות שזוהו בתמלול (גולמי)</h3><ul class="muted">${c.trSources.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}<h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
     <section data-pane="exp" hidden><div class="row"><button class="btn" id="stDocx">Word (.docx)</button><button class="btn" id="stPdf">PDF</button><button class="btn" id="stShare">שיתוף…</button><a class="btn" id="stWa" target="_blank" rel="noopener">וואטסאפ</a></div></section>
   </div>`;
   // move the auto transcript box and the site's source text into their tabs (no copying into the user's summary)
@@ -149,7 +149,13 @@ async function mount(s) {
   // tabs
   box.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { box.querySelectorAll('[data-p]').forEach(x => x.classList.toggle('on', x === b)); box.querySelectorAll('[data-pane]').forEach(p => p.hidden = p.dataset.pane !== b.dataset.p);
     if (b.dataset.p === 'src' && !box._refsDone) { box._refsDone = 1; const ed = $('#stEd'), tr = $('#stTr');
-      SrcLink.render($('#stRefs'), [s.title, c.excerpt || '', strip(c.html || ''), strip(ed ? ed.innerHTML : cur.summary || ''), strip(tr ? tr.innerHTML : autoTr), ...(cur.notes || []).map(n => n.text)].join(' \n ')) } });
+      const segs = (c.transcript || []).map(g => ({ s: g.s, t: g.t }));
+      const extras = (c.trSources || []).filter(Boolean);
+      const body = [s.title, c.excerpt || '', strip(c.html || ''), strip(tr ? tr.innerHTML : autoTr),
+        segs.map(g => g.t).join('\n'), ...(cur.notes || []).map(n => n.text)].join('\n');
+      // sources stay in מקורות only — never copied into הסיכום שלי
+      SrcLink.render($('#stRefs'), body, { segments: segs, extras }) } });
+  Study._seek = t => { const au = $('#au'); if (au) { au.currentTime = t; au.play() } else { try { seek(t) } catch (e) {} } };
   // summary autosave
   const ed = $('#stEd'); let deb;
   const save = async () => { cur.summary = clean(ed.innerHTML); cur.versions = cur.versions || []; pushVersion(cur.versions, cur.summary); await putRec(cur); $('#stSaved').textContent = 'נשמר ' + new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) };
