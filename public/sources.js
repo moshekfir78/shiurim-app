@@ -272,6 +272,7 @@
     if (!km) for (let k = Math.min(2, bw.length - 2); k >= 1; k--) { const tail = bw.slice(-k).join(' '); if (PARASHOT.includes(tail) || PAR_ALIAS[tail]) { rest = tail + ' ' + rest; book = bw.slice(0, -k).join(' '); break } }
     book = book.replace(/[,\s]+$/, '');
     { const w = book.split(' '); const last = w[w.length - 1]; if (w.length >= 2 && /^[א-ת]{1,3}'?$|^[א-ת]{1,2}"[א-ת]$/.test(last) && okn(last) && (ALIAS[w.slice(0, -1).join(' ')] || /רבה$|ר"$/.test(w[w.length - 2]))) { a.sec = gem(last); book = w.slice(0, -1).join(' ') } }
+    { const rb = (book + ' ' + rest).match(/^מדרש רבה,?\s+(בראשית|שמות|ויקרא|במדבר|דברים|שיר השירים|רות|איכה|קהלת|אסתר)\s*,?\s*(?:פרשה|פרק)?\s*([א-ת]{1,3}["']?[א-ת]?)?/); if (rb) { book = rb[1] + ' רבה'; rest = (book + ' ' + rest).slice(rb[0].length) + ' '; if (rb[2] && okn(rb[2])) a.sec = gem(rb[2]); rest = rest.replace(/^/, ' ') } }
     a.book = book;
     { const lm = rest.match(/^\s*([א-ת]{1,3}'?|[א-ת]{1,2}"[א-ת])(?=\s*,|\s+(?:אות|סימן|פסקה)\s)/); if (!a.sec && lm && okn(lm[1])) a.sec = gem(lm[1]) }
     const msm = rest.match(/מסכת\s+([א-ת"']+(?:\s+(?:קמא|מציעא|בתרא|השנה|קטן|זרה))?)/); if (msm) a.mas = msm[1];
@@ -282,7 +283,7 @@
     let par = pm ? pm[1] : null;
     if (!par) { const all = [...rest.matchAll(PAR_RE)].map(m => m[1]); par = all.find(x => !CHUMS.includes(x)) || all[0] || null }
     if (par) { par = par.replace(/\s+/g, ' '); a.par = PAR_ALIAS[par] || par }
-    const nm = rest.match(/(?:^|\s)(?:אות|אותיות|סימן|סי'|פרק|הערה|תורה|הלכה|מאמר|ס"ק|סעיף)\s+([א-ת]{1,4}["']?[א-ת]?|\d{1,4})(?=[\s,.:;)\-–]|$)/);
+    const nm = rest.match(/(?:^|\s)(?:אות|אותיות|סימן|סי'|פרק|הערה|תורה|הלכה|מאמר|ס"ק|סעיף|פסקה)\s+([א-ת]{1,4}["']?[א-ת]?|\d{1,4})(?=[\s,.:;)\-–]|$)/);
     if (nm && okn(nm[1])) a.n = gem(nm[1]);
     { const pk = rest.match(/(?:^|\s)פרק\s+([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?=[\s,]|$)/), ot = rest.match(/(?:^|\s)(?:אות|הלכה|משנה)\s+([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?=[\s,.]|$)/); if (pk && ot && okn(pk[1]) && okn(ot[1])) { a.sec = a.sec || gem(pk[1]); a.n = gem(ot[1]) } }
     if (/תני?ינא|ח"ב|חלק\s+ב'?(?=\s|,|$)|חלק שני/.test(rest)) a.part = 'ב';
@@ -360,7 +361,7 @@
     void base; return best;
   }
 
-  const EK = 'sefent1', ecache = (() => { try { return JSON.parse(localStorage.getItem(EK) || '{}') } catch (e) { return {} } })();
+  const EK = 'sefent2', ecache = (() => { try { return JSON.parse(localStorage.getItem(EK) || '{}') } catch (e) { return {} } })();
   const saveE = () => { try { localStorage.setItem(EK, JSON.stringify(ecache)) } catch (e) { } };
   async function resolveListed(head) {
     if (head in ecache) return ecache[head];
@@ -382,7 +383,7 @@
             const t = await fetch('https://www.sefaria.org/api/v3/texts/' + encodeURIComponent(b.url) + '?version=hebrew&return_format=text_only').then(r => r.ok ? r.json() : null).catch(() => null);
             if (t) { he = t.heRef || he; prev = t.versions && t.versions[0] ? flat(t.versions[0].text).slice(0, 180) : '' }
           }
-          out = { level: b.level, url: b.url, he, prev, book: a.book };
+          out = { level: b.level, url: b.url, ref: b.ref, he, prev, book: a.book };
         }
       }
       if (!out) out = { level: 0, book: a.book };
@@ -399,23 +400,102 @@
   }
   function listedFromHtml(html) {
     html = String(html || ''); const out = [];
-    const push = (s, from) => { for (const p of splitList(s)) { const hd = entryHead(p); const w = hd.split(' ').length; if (hd.length < 4 || w > 16 || BAD.test(hd)) continue; if (!looksRef(hd)) continue; out.push({ raw: p, head: hd, from }) } };
-    for (const m of html.matchAll(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi)) push(normE(m[1]), 'site');
-    for (const m of html.matchAll(/<p[^>]*>\s*<(?:strong|b)>([^<]{4,140})<\/(?:strong|b)>\s*<\/p>/gi)) push(normE(m[1]), 'site');
-    for (const m of html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)) {
-      const t = normE(m[1]); const pm = t.match(/\(([^()]{4,140})\)\s*[:.]?\s*$/);
-      if (pm && pm[1].split(' ').length <= 14) push(pm[1], 'site');
-    }
+    const push = (s, from, text) => { for (const p of splitList(s)) { const hd = entryHead(p); const w = hd.split(' ').length; if (hd.length < 4 || w > 16 || BAD.test(hd)) continue; if (!looksRef(hd)) continue; out.push({ raw: p, head: hd, from, text: text || '' }) } };
+    // walk blocks in order so a heading gets the passage that follows it
+    const blocks = [...html.matchAll(/<(h[1-6]|p)[^>]*>([\s\S]*?)<\/\1>/gi)].map(m => ({ tag: m[1].toLowerCase(), html: m[2], t: normE(m[2]) }));
+    const isHead = b => b.tag[0] === 'h' || /^\s*<(?:strong|b)>[^<]{4,140}<\/(?:strong|b)>\s*$/i.test(b.html);
+    blocks.forEach((b, i) => {
+      if (isHead(b)) {
+        let txt = ''; for (let j = i + 1; j < blocks.length && !isHead(blocks[j]) && txt.length < 900; j++) txt += ' ' + blocks[j].t;
+        push(b.t, 'site', txt.trim());
+      } else {
+        const pm = b.t.match(/\(([^()]{4,140})\)\s*[:.]?\s*$/);
+        if (pm && pm[1].split(' ').length <= 14) push(pm[1], 'site', b.t.slice(0, pm.index));
+      }
+    });
     return out;
   }
   function listedEntries(html, trSources) {
-    const all = listedFromHtml(html).concat((trSources || []).flatMap(s => splitList(normE(s)).map(p => ({ raw: p, head: entryHead(p), from: 'tr' }))).filter(e => e.head.length >= 3));
+    const all = listedFromHtml(html).concat((trSources || []).flatMap(s => splitList(normE(s)).map(p => ({ raw: p, head: entryHead(p), from: 'tr', text: ((p.match(/:\s*"([\s\S]+)/) || [])[1] || '').replace(/"\s*[.,]?\s*$/, '') }))).filter(e => e.head.length >= 3));
     const seen = new Map(), out = [];
-    for (const e of all) { const k = nb(e.head).replace(/[,\s]+/g, ' '); if (seen.has(k)) { if (e.from === 'tr' && !seen.get(k).raw.includes('"')) seen.get(k).raw = e.raw; continue } seen.set(k, e); out.push(e) }
+    for (const e of all) { const k = nb(e.head).replace(/[,\s]+/g, ' '); if (seen.has(k)) { const o = seen.get(k); if (e.from === 'tr' && !o.raw.includes('"')) o.raw = e.raw; if (!o.text && e.text) o.text = e.text; continue } seen.set(k, e); out.push(e) }
     return out;
   }
   const hbSearch = q => `https://www.google.com/search?q=${encodeURIComponent(q + ' site:hebrewbooks.org')}`;
   const otzSearch = q => `https://www.google.com/search?q=${encodeURIComponent(q + ' site:otzar.org')}`;
+
+  // ---------- Phrase search: find the exact ref from a distinctive phrase of the quoted passage ----------
+  const STOP = new Set('של את על אל עם כי לא גם אם או הוא היא הם הן זה זו זאת אלו אלה כל כמו יש אין אשר שהוא שהיא היה היתה היו יהיה כן לו לה להם בו בה בהם מה מי וכו וגו וכו\' וגו\' כו\' עד אך רק אבל ולא וזה וזהו והוא והנה הנה ועל ואם כמו כאשר לפי אחר אחד אחת ביותר מאד מאוד אז עוד כבר ידי על-ידי עי שם ושם זהו פירוש כלומר דהיינו היינו ובזה בזה לזה מזה לכן ולכן כך וכך כדי ז"ל זצ"ל ע"ה ית\' יתברך ה\' השם ד\' שכתוב שנאמר כמו"ש וכמ"ש'.split(' '));
+  function phrasesFrom(text, n = 2) {
+    const clean = NIK(text).replace(/<[^>]+>/g, ' ').replace(/\([^)]*\)|\[[^\]]*\]/g, ' | ').replace(/["״“”„׳`’]/g, m => m === '"' || m === '״' ? '"' : "'");
+    // break at ellipses / sentence punctuation so a phrase never spans an omission
+    const segs = clean.split(/\.\.\.|…|[.:;!?|]|\s[-–—]\s|,/).map(x => x.replace(/[^א-ת"'\s]/g, ' ').replace(/(^|\s)['"]+|['"]+(?=\s|$)/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+    const cands = [];
+    for (const sg of segs) {
+      const w = sg.split(' ').filter(x => x.length > 0);
+      if (w.length < 4) continue;
+      for (let len = Math.min(7, w.length); len >= 4; len--) for (let i = 0; i + len <= w.length; i++) {
+        const win = w.slice(i, i + len); const dist = win.filter(x => x.replace(/['"]/g, '').length >= 3 && !STOP.has(x)).length;
+        if (dist < 3 || STOP.has(win[0]) || STOP.has(win[len - 1])) continue;
+        cands.push({ p: win.join(' '), score: dist * 2 + len + win.reduce((a, x) => a + Math.min(x.length, 7), 0) / 10 });
+      }
+    }
+    cands.sort((a, b) => b.score - a.score);
+    const out = []; for (const c of cands) { if (out.some(o => o.split(' ').some(x => x.length > 3 && c.p.includes(x)))) continue; out.push(c.p); if (out.length >= n) break }
+    return out;
+  }
+  let lastNet = 0; const gap = async () => { const w = lastNet + 350 - Date.now(); lastNet = Math.max(Date.now(), lastNet + 350); if (w > 0) await new Promise(r => setTimeout(r, w)) };
+  const PK = 'sefphr1', pcache = (() => { try { return JSON.parse(localStorage.getItem(PK) || '{}') } catch (e) { return {} } })();
+  const saveP = () => { try { const k = Object.keys(pcache); if (k.length > 600) k.slice(0, k.length - 600).forEach(x => delete pcache[x]); localStorage.setItem(PK, JSON.stringify(pcache)) } catch (e) { } };
+  async function sefPhrase(ph) {
+    const k = 's|' + ph; if (k in pcache) return pcache[k];
+    await gap();
+    // text/plain keeps this a CORS "simple" request (no preflight); Sefaria parses the JSON body
+    const body = JSON.stringify({ query: ph, type: 'text', field: 'exact', slop: 0, size: 12, source_proj: ['ref', 'heRef', 'path'] });
+    const d = await fetch('https://www.sefaria.org/api/search-wrapper', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body }).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (!d) return null;
+    const hits = ((d.hits && d.hits.hits) || []).map(x => x._source || {}).filter(x => x.ref);
+    const seen = new Set(), v = hits.filter(x => !seen.has(x.ref) && seen.add(x.ref)).map(x => ({ ref: x.ref, he: x.heRef, path: x.path }));
+    pcache[k] = v; saveP(); return v;
+  }
+  async function wsPhrase(ph) {
+    const k = 'w|' + ph; if (k in pcache) return pcache[k];
+    await gap();
+    const d = await fetch('https://he.wikisource.org/w/api.php?action=query&list=search&format=json&origin=*&srlimit=5&srsearch=' + encodeURIComponent('"' + ph + '"')).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (!d) return null;
+    const v = ((d.query && d.query.search) || []).map(x => ({ title: x.title }));
+    pcache[k] = v; saveP(); return v;
+  }
+  const refUrl = ref => ref.replace(/ (\d[\d:a-b]*)$/, '.$1').replace(/:/g, '.').replace(/ /g, '_');
+  const bookOfRef = ref => String(ref || '').replace(/[ ,]+\d[\d:ab\-]*$/, '').split(',')[0].trim();
+  // e: listed entry (head, text); r: resolveListed result. Returns {url, he, how, phrase} or {phrase} or null
+  async function phraseResolve(e, r) {
+    const text = e.text || '';
+    const phs = phrasesFrom(text, 3);
+    if (!phs.length) return null;
+    const a = analyze(e.head);
+    const wantRef = r && r.ref ? r.ref : null, wantBook = wantRef ? bookOfRef(wantRef) : null;
+    const heBook = (ALIAS[a.book] || a.book || '').replace(/"/g, '');
+    const okBook = x => wantBook ? (x.ref.startsWith(wantBook) || (x.path || '').endsWith('/' + wantBook)) : (heBook && (x.he || '').replace(/["״]/g, '').startsWith(heBook));
+    const inSection = x => wantRef && r.level >= 2 ? x.ref.startsWith(wantRef) : true;
+    let quoted = null; const wsOk = [];
+    const tanakhOk = candidates(e.head).some(c => c.pos < 6) || /^[א-ת ]{2,20}\s[א-ת]{1,3}['"]?[א-ת]?,\s*[א-ת]{1,3}['"]?[א-ת]?$/.test(e.head);
+    for (const ph of phs) {
+      const hits = await sefPhrase(ph);
+      if (!hits || !hits.length) { wsOk.push(ph); continue }
+      const m = hits.find(x => okBook(x) && inSection(x)) || hits.find(okBook);
+      if (m) return { url: refUrl(m.ref), he: m.he || m.ref, how: 'exact', phrase: ph };
+      const tk = hits.filter(x => /^Tanakh\//.test(x.path || ''));
+      if (tk.length) { if (tanakhOk && !quoted) quoted = { url: refUrl(tk[0].ref), he: tk[0].he || tk[0].ref, how: 'quoted', phrase: ph }; continue } // a verse quoted inside the passage
+      wsOk.push(ph);
+      if (!quoted && hits.length <= 6) quoted = { url: refUrl(hits[0].ref), he: hits[0].he || hits[0].ref, how: 'quoted', phrase: ph };
+    }
+    for (const ph of wsOk.slice(0, 1)) {
+      const ws = await wsPhrase(ph);
+      if (ws && ws.length && !quoted) return { ws: 'https://he.wikisource.org/wiki/' + encodeURIComponent(ws[0].title.replace(/ /g, '_')), wsTitle: ws[0].title, how: 'wikisource', phrase: ph, quoted };
+    }
+    return quoted || { phrase: wsOk[0] || phs[0] };
+  }
 
   async function render(host, text, opts = {}) {
     const segments = opts.segments || null;
@@ -441,22 +521,30 @@
     const seek = c => c.t != null ? `<a class="ts" data-t="${c.t}" href="#">${fmtT(c.t)}</a> ` : '';
     const seen = new Set(); let hit = 0, soft = 0, part = 0;
     const L = host.querySelector('#srcListed');
+    let viaPh = 0;
+    const sefA = (url, label) => `<a href="https://www.sefaria.org.il/${encodeURI(url)}?lang=he" target="_blank" rel="noopener">${h(label)} · ספריא ↗</a>`;
     for (let i = 0; i < lts.length; i += 3) {
-      const rs = await Promise.all(lts.slice(i, i + 3).map(e => resolveListed(e.head).then(r => [e, r])));
-      for (const [e, r] of rs) {
+      const rs = await Promise.all(lts.slice(i, i + 3).map(async e => { const r = await resolveListed(e.head); let ph = null; if (!r || !(r.level >= 3)) { try { ph = await phraseResolve(e, r) } catch (x) { } } return [e, r, ph] }));
+      for (const [e, r, ph] of rs) {
         const bk = (r && r.book) || analyze(e.head).book || e.head;
-        const look = `<a href="${sefSearch(e.head)}" target="_blank" rel="noopener">חיפוש בספריא</a> · <a href="${gSearch(e.head)}" target="_blank" rel="noopener">גוגל</a> · <a href="${hbSearch(bk)}" target="_blank" rel="noopener">HebrewBooks</a> · <a href="${otzSearch(e.head)}" target="_blank" rel="noopener">אוצר החכמה</a>`;
-        const ctx = e.snip ? `<span class="srcprev">${seek(e)}${h(e.snip)}</span>` : (e.t != null ? `<span class="srcprev">${seek(e)}</span>` : '');
+        const gq = ph && ph.phrase ? `"${ph.phrase}"` : e.head;
+        const look = `<a href="${gSearch(gq)}" target="_blank" rel="noopener">גוגל${ph && ph.phrase ? ' (ביטוי מדויק)' : ''}</a> · <a href="${sefSearch(ph && ph.phrase ? ph.phrase : e.head)}" target="_blank" rel="noopener">חיפוש בספריא</a> · <a href="${hbSearch(bk)}" target="_blank" rel="noopener">HebrewBooks</a> · <a href="${otzSearch(e.head)}" target="_blank" rel="noopener">אוצר החכמה</a>`;
         const src = e.from === 'tr' ? 'מהתמלול' : 'מדף המקורות';
-        if (r && r.url && r.level >= 2) {
+        const top = `<b>${h(e.head)}</b> <span class="muted">· ${src}</span><br>`;
+        if (r && r.url && r.level >= 3) {
           hit++; seen.add(r.url);
-          L.insertAdjacentHTML('beforeend', `<div class="srcl ent"><b>${h(e.head)}</b> <span class="muted">· ${src}</span><br><a href="https://www.sefaria.org.il/${encodeURI(r.url)}?lang=he" target="_blank" rel="noopener">${h(r.he)} · ספריא ↗</a>${r.level === 2 ? ' <span class="muted">(פרשה/פרק)</span>' : ''}${r.prev ? `<span class="srcprev">${h(r.prev)}…</span>` : ''}${ctx}</div>`);
-        } else if (r && r.url) {
-          part++; seen.add(r.url);
-          L.insertAdjacentHTML('beforeend', `<div class="srcl ent soft"><b>${h(e.head)}</b> <span class="muted">· ${src}</span><br><a href="https://www.sefaria.org.il/${encodeURI(r.url)}?lang=he" target="_blank" rel="noopener">הספר ${h(r.he)} בספריא ↗</a> · ${look}${ctx}</div>`);
+          L.insertAdjacentHTML('beforeend', `<div class="srcl ent">${top}${sefA(r.url, r.he)}${r.prev ? `<span class="srcprev">${h(r.prev)}…</span>` : ''}</div>`);
+        } else if (ph && ph.url && ph.how === 'exact') {
+          hit++; viaPh++; seen.add(ph.url);
+          L.insertAdjacentHTML('beforeend', `<div class="srcl ent">${top}${sefA(ph.url, ph.he)} <span class="muted">(אותר לפי הנוסח)</span></div>`);
         } else {
-          soft++;
-          L.insertAdjacentHTML('beforeend', `<div class="srcl ent soft"><b>${h(e.head)}</b> <span class="muted">· ${src}</span><br>${look}${ctx}</div>`);
+          const parts = [];
+          if (r && r.url) parts.push(r.level === 2 ? sefA(r.url, r.he) + ' <span class="muted">(פרשה/פרק)</span>' : `<a href="https://www.sefaria.org.il/${encodeURI(r.url)}?lang=he" target="_blank" rel="noopener">הספר ${h(r.he)} בספריא ↗</a>`);
+          const q = ph && (ph.how === 'quoted' ? ph : ph.quoted);
+          if (q && q.url) parts.push(`<span class="muted">מובא ב־</span>${sefA(q.url, q.he)}`);
+          if (ph && ph.ws) parts.push(`<a href="${ph.ws}" target="_blank" rel="noopener">${h(ph.wsTitle)} · ויקיטקסט ↗</a>`);
+          if (r && r.url) { part++; seen.add(r.url) } else if ((q && q.url) || (ph && ph.ws)) part++; else soft++;
+          L.insertAdjacentHTML('beforeend', `<div class="srcl ent soft">${top}${parts.length ? parts.join(' · ') + '<br>' : ''}${look}</div>`);
         }
       }
       const p = host.querySelector('#srcProg'); if (p) p.textContent = `מאתר מקורות… (${Math.min(i + 3, lts.length)}/${lts.length})`;
@@ -482,9 +570,9 @@
     if (more) host.querySelector('#srcMoreH').hidden = false;
     host.querySelectorAll('a.ts').forEach(a => a.onclick = e => { e.preventDefault(); e.stopPropagation(); const t = +a.dataset.t; if (window.Study && Study._seek) Study._seek(t); else { const au = document.querySelector('#au'); if (au) { au.currentTime = t; au.play() } else if (typeof seek === 'function') seek(t) } });
     const p = host.querySelector('#srcProg');
-    if (p) p.textContent = [hit ? `${hit} מקורות מקושרים לספריא` : '', part ? `${part} עם קישור לספר` : '', soft ? `${soft} עם קישורי חיפוש` : ''].filter(Boolean).join(' · ') || 'לא נמצאו מקורות';
-    return { total: lts.length + cs.length, listed: lts.length, hit, part, soft };
+    if (p) p.textContent = [hit ? `${hit} מקורות מקושרים לספריא` : '', part ? `${part} עם קישור חלקי` : '', soft ? `${soft} עם קישורי חיפוש` : ''].filter(Boolean).join(' · ') || 'לא נמצאו מקורות';
+    return { total: lts.length + cs.length, listed: lts.length, hit, viaPhrase: viaPh, part, soft };
   }
 
-  window.SrcLink = { candidates, render, queriesFor, resolve, entryHead, analyze, resolveEntry, resolveListed, listedEntries, listedFromHtml };
+  window.SrcLink = { phrasesFrom, phraseResolve, candidates, render, queriesFor, resolve, entryHead, analyze, resolveEntry, resolveListed, listedEntries, listedFromHtml };
 })();
