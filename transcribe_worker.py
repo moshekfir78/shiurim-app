@@ -8,6 +8,7 @@ Requests = open GitHub issues in REPO whose title starts with "[תמלול]" and
 Usage: python3 transcribe_worker.py [--once] [--uid UID]   (--uid: transcribe directly, no issue)
 """
 import json, os, re, subprocess, sys, time, hashlib, tempfile, datetime, shutil
+from tr_clean import clean_segments   # quick post-pass: stutters, filler sounds, needless repetition
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO = "moshekfir78/shiurim-app"
 SITE = "https://moshekfir78.github.io/shiurim-app/"
@@ -334,6 +335,7 @@ def process(uid, issue=None, mode="fast"):
         if not segs:
             if isinstance(busy, Busy): raise busy
             raise RuntimeError("לא נמצא שמע זמין לתמלול" if not have_audio else "אין מפתח Gemini")
+    segs = clean_segments(segs)
     rec = {"uid": uid, "model": used, "date": datetime.date.today().isoformat(), "audioSeconds": round(dur), "source": src,
            "segments": segs, "sources": EXTRA.get("sources", []), "stories": EXTRA.get("stories", [])}
     rec["mode"] = mode if raw is not None else ("fast" if mode == "fast" else "other")
@@ -355,7 +357,7 @@ def reformat_pending(limit=2):
         n += 1; s = index().get(r["uid"], {}); EXTRA.clear()
         try: segs, _ = gem_captions(key, whisper_caps(r["raw"]), s.get("title", ""), WHISPER_PRE)
         except Exception as e: log("reformat later", r["uid"], str(e)[:120]); return
-        r.update(segments=segs, sources=EXTRA.get("sources", []), stories=EXTRA.get("stories", []), model=r.get("model", MODEL) + " + " + gem_model(key))
+        r.update(segments=clean_segments(segs), sources=EXTRA.get("sources", []), stories=EXTRA.get("stories", []), model=r.get("model", MODEL) + " + " + gem_model(key))
         r.pop("needsFormat"); r.pop("raw"); save(fp, r); log("reformatted", r["uid"]); publish()
 
 def gh(*a): return subprocess.run(["gh", *a, "-R", REPO], capture_output=True, text=True)

@@ -7,6 +7,71 @@ const KEYK = 'gemini_key_personal', API = 'https://generativelanguage.googleapis
 const LABEL = 'Gemini · אישי (נשמר בדרייב שלך)';
 const cleanKey = v => (String(v || '').match(/AIza[0-9A-Za-z_\-]{30,}|AQ\.[0-9A-Za-z_.\-]{20,}/) || [String(v || '').replace(/[^0-9A-Za-z_.\-]/g, '')])[0];
 const key = () => cleanKey(localStorage.getItem(KEYK));
+// ---------- transcript cleanup (same rules as tr_clean.py): stutters, filler sounds, needless repetition ----------
+const trClean = (() => {
+  const KEEP = new Set(['לך לך', 'קדוש קדוש', 'קדוש קדוש קדוש', 'צדק צדק', 'אברהם אברהם', 'משה משה', 'יעקב יעקב', 'שמואל שמואל',
+    'נחמו נחמו', 'עורי עורי', 'אלי אלי', "ה' ה'", 'ה׳ ה׳', 'אבי אבי', 'בני בני', 'ארץ ארץ', 'ארץ ארץ ארץ', 'שלום שלום',
+    'איש איש', 'שנים שנים', 'שניים שניים', 'שבעה שבעה', 'מעט מעט', 'לאט לאט', 'אט אט', 'מאד מאד', 'מאוד מאוד',
+    'סוף סוף', 'בין בין', 'צעד צעד', 'אחד אחד', 'יום יום', 'שנה שנה', 'דור דור', 'טיפה טיפה', 'קמעא קמעא',
+    'עמוק עמוק', 'עמק עמק', 'רע רע', 'הוי הוי', 'אמן אמן', 'שבוע שבוע', 'חודש חודש', 'פעם פעם', 'למעלה למעלה',
+    'מטה מטה', 'יחד יחד', 'זוג זוג', 'איי איי איי', 'אוי אוי אוי', 'נורא נורא', 'המון המון', 'ממש ממש', 'הרבה הרבה',
+    'אותו אותו', 'אותה אותה', 'אותם אותם', 'אותן אותן']);
+  const FILLER = /^(?:א+ה+|א+מ+|ה+מ+|מ{2,}|אה+מ+|אֶה)$/, PUNCT = '.,;:!?()[]{}…–—"״«»-*', QCH = '"״«»“”';
+  const STUTTER = /(?<![\p{L}\p{N}_\-־])(([א-ת])-(?:\2-)*)(?=\2[א-ת])|(?<![\p{L}\p{N}_\-־])(([א-ת]{2,4})-(?:\4-)+)(?=\4[א-ת])/gu;
+  const strip = (s, ch) => { let a = 0, b = s.length; while (a < b && ch.includes(s[a])) a++; while (b > a && ch.includes(s[b - 1])) b--; return s.slice(a, b) };
+  const lstrip = (s, ch) => { let a = 0; while (a < s.length && ch.includes(s[a])) a++; return s.slice(a) };
+  const core = t => strip(t, PUNCT + '“”').replace(/[\u0591-\u05C7]/g, '');
+  const tail = t => { const c = core(t); return c ? t.slice(t.lastIndexOf(c) + c.length) : t };
+  const rstripP = s => { let b = s.length; while (b && '.,;:!?)…'.includes(s[b - 1])) b--; return s.slice(0, b) };
+  const quoted = toks => { const m = []; let inq = false;
+    for (const t of toks) { const start = QCH.includes(t[0] || '\0') || ['("', '(״'].includes(t.slice(0, 2));
+      const end = /["״»”][.,;:!?)\]…]*$/.test(t) && core(t).length > 0 && !/[א-ת]["״][א-ת]$/.test(rstripP(t));
+      if (start) inq = true; m.push(inq); if (end && inq && !(start && t.length < 2)) inq = false }
+    return m };
+  const eq = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+  function once(t) {
+    if (!t || !t.trim()) return t;
+    if (t.trimStart().startsWith('>')) return t;
+    const t2 = t.replace(STUTTER, '');
+    let toks = t2.split(' ').filter(x => x !== ''); let q = quoted(toks); const out = [];
+    toks.forEach((tok, i) => { const c = core(tok), nxt = i + 1 < toks.length ? core(toks[i + 1]) : '', last = tok.trimEnd().slice(-1);
+      if (c && FILLER.test(c) && !q[i] && !tok.includes('*') && !(last && '!?'.includes(last)) && !(c === 'אהה' && (nxt.startsWith('ה') || nxt.startsWith('אד') || nxt.startsWith('אל')))) {
+        if (last && '.:'.includes(last) && out.length && !'.?!:,'.includes(out[out.length - 1].slice(-1) || '\0')) out[out.length - 1] += last;
+        return }
+      out.push(tok) });
+    toks = out; let changed = true;
+    while (changed) { changed = false;
+      for (const n of [1, 2, 3, 4]) { q = quoted(toks); let i = 0; const res = [];
+        while (i < toks.length) {
+          const ph = toks.slice(i, i + n).map(core);
+          if (ph.length === n && ph.every(Boolean) && !q.slice(i, i + 2 * n).some(Boolean) && !toks.slice(i, i + 2 * n).some(x => x.includes('*'))) {
+            const inner = k => toks.slice(k, k + n - 1).every(x => tail(x) === '' && !(QCH + '([').includes(x[0]));
+            let j = i + n, reps = 1; const seps = [];
+            while (inner(i) && eq(toks.slice(j, j + n).map(core), ph) && inner(j) && !q.slice(j, j + n).some(Boolean) && !toks.slice(j, j + n).some(x => x.includes('*'))
+                   && /^(?:[,…\-–—]*|\.\.\.)$/.test(tail(toks[j - 1])) && !(QCH + '([').includes(toks[j][0])) { seps.push(tail(toks[j - 1])); j += n; reps++ }
+            const rep = k => Array(k).fill(ph).flat().join(' ');
+            let ok = reps > 1 && !KEEP.has(rep(reps)) && !KEEP.has(rep(2)) && !(n === 1 && /^\d+$/.test(ph[0]));
+            if (ok && n === 1 && reps === 2 && seps.some(Boolean)) ok = false;
+            if (ok && n > 1 && new Set(ph).size === 1) ok = false;
+            if (ok && ph[0].startsWith('ו') && i >= n) { const prev = toks.slice(i - n, i).map(core); if (eq(prev, [ph[0].slice(1), ...ph.slice(1)]) || eq(prev, ph)) ok = false }
+            if (ok && n === 1 && ph[0].length === 1) ok = false;
+            if (ok && n > 1) { const win = toks.slice(Math.max(0, i - n), i + n).map(core); if (ph.some(x => x.startsWith('ו') && win.includes(x.slice(1)))) ok = false }
+            if (reps > 1 && !ok) { res.push(...toks.slice(i, j)); i = j; continue }
+            if (ok) { const first = toks[i], last = toks.slice(j - n, j), lead = first.slice(0, first.length - lstrip(first, PUNCT).length);
+              res.push(lead + lstrip(last[0], PUNCT), ...last.slice(1)); i = j; changed = true; continue }
+          }
+          res.push(toks[i]); i++ }
+        toks = res } }
+    while (toks.length && !core(toks[0]) && /^[.,;:…]+$/.test(toks[0])) toks.shift();
+    toks = toks.filter((x, k) => !(k && /^[.,;:]+$/.test(x) && /[.,;:?!…]$/.test(toks[k - 1])));
+    const s = toks.join(' ');
+    if (s === t.trim() && t2 === t) return t;
+    return s.replace(/ {2,}/g, ' ').trim();
+  }
+  const text = t => { for (let k = 0; k < 4; k++) { const c = once(t); if (c === t) return t; t = c } return t };
+  const segs = a => { const o = (a || []).map(g => ({ ...g, t: text(g.t || '') })); const f = o.filter(g => (g.t || '').trim()); return f.length ? f : o };
+  return { text, segs };
+})();
 // ---------- IndexedDB ----------
 const db = () => new Promise((ok, no) => { const r = indexedDB.open('shiurim-ptr', 1);
   r.onupgradeneeded = () => r.result.createObjectStore('ptr', { keyPath: 'uid' }); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error) });
@@ -17,7 +82,8 @@ const put = (rec, fromSync) => tx('readwrite', st => st.put(rec)).then(() => { i
 async function content(s) {
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   const p = await get(s.uid).catch(() => null);
-  if (p && p.segments && p.segments.length) Object.assign(c, { transcript: p.segments, trSources: p.sources || [], trStories: p.stories || [],
+  if (c.transcript) c.transcript = trClean.segs(c.transcript);
+  if (p && p.segments && p.segments.length) Object.assign(c, { transcript: trClean.segs(p.segments), trSources: p.sources || [], trStories: p.stories || [],
     trSource: LABEL, trModel: p.model, trMode: 'personal', trRaw: false, personal: true, trAt: p.at ? new Date(p.at).toISOString() : null, publicTranscript: c.transcript || null });
   return c;
 }
@@ -106,6 +172,7 @@ async function transcribe(s, onStep) {
     }
   }
   if (!segs.length) throw new Error('Gemini החזיר תשובה ריקה');
+  segs = trClean.segs(segs);   // quick cleanup pass: stutters, filler sounds, needless repetition
   const rec = { uid: s.uid, segments: segs, sources: src, stories: st, model: used, at: Date.now(), seconds: Math.round((Date.now() - t0) / 1000) };
   await put2(rec); return rec;
 }
@@ -130,5 +197,5 @@ wrap();
 const PHAS = {}; all().then(rs => rs.forEach(r => { if (r.segments && r.segments.length) PHAS[r.uid] = 1 })).catch(() => {});
 const _put0 = put; 
 async function put2(rec, fromSync) { await _put0(rec, fromSync); if (rec.segments && rec.segments.length) PHAS[rec.uid] = 1; else delete PHAS[rec.uid]; if (!fromSync && window.render) try { render() } catch {} }
-window.PTR = { get, all, put: put2, content, transcribe, hasKey: () => !!key(), Busy, Cors, LABEL, _wrap: wrap, _has: uid => !!PHAS[uid] };
+window.PTR = { clean: trClean, get, all, put: put2, content, transcribe, hasKey: () => !!key(), Busy, Cors, LABEL, _wrap: wrap, _has: uid => !!PHAS[uid] };
 })();

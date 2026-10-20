@@ -179,6 +179,9 @@ for _p in sorted(glob.glob(os.path.join(ROOT, "data", "status", "*.json"))):
             if _u not in _st_all or (_v.get("at") or "") >= (_st_all[_u].get("at") or ""): _st_all[_u] = _v
     except Exception: pass
 TRANSCRIPTS = {os.path.basename(p)[:-5]: json.load(open(p, encoding="utf-8")) for p in glob.glob(os.path.join(TDIR, "*.json")) if not p.endswith("status.json")}
+from tr_clean import clean_segments as _clean_segs   # same cleanup the worker applies (stutters / fillers / repetition)
+for _t in TRANSCRIPTS.values():
+    if _t.get("segments"): _t["segments"] = _clean_segs(_t["segments"])
 shiurim = []
 for r in items:
     parent = r["path"][-1]["id"] if r["path"] else "rav:" + r["rav"]
