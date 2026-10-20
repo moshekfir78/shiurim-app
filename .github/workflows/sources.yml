@@ -1,0 +1,57 @@
+name: sources-on-demand
+# The app posts a shiur uid to the ntfy topic in data/ntfy_src_topic.txt when someone opens a shiur that has no saved
+# sources. This job reads those requests, searches the shiur's origin (title citation, description, linked source
+# sheet on Google Docs/Drive, publisher page, YouTube description), resolves the entries to Sefaria and commits the
+# result (data/srcfound, data/srclinks.json) so every later visitor gets it instantly.
+on:
+  schedule: [{cron: "*/10 * * * *"}]
+  workflow_dispatch:
+permissions: {contents: write, pages: write, id-token: write}
+concurrency: {group: sources-on-demand, cancel-in-progress: false}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      deploy: ${{ steps.go.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Any requests?
+        id: peek
+        run: node importers/srcreq.js --peek
+      - name: Tools
+        if: steps.peek.outputs.pending != '0'
+        run: (sudo apt-get install -y -qq poppler-utils >/dev/null || true) && pip install -q requests yt-dlp
+      - name: Source links cache
+        if: steps.peek.outputs.pending != '0'
+        uses: actions/cache@v4
+        with: {path: /tmp/srccache.json, key: "srclinks-${{ github.run_id }}", restore-keys: "srclinks-"}
+      - name: Search origins + resolve
+        id: go
+        if: steps.peek.outputs.pending != '0'
+        run: |
+          git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
+          python3 build.py >/dev/null
+          SRC_MINUTES=25 SRC_CACHE=/tmp/srccache.json node importers/srcreq.js
+          git add data/srcfound data/srclinks.json data/srcreq_state.json
+          git diff --cached --quiet || { git commit -qm "sources: on-demand search"
+            for i in 1 2 3 4 5; do git pull -q --rebase -X theirs && git push -q && break; sleep 10; done; }
+          [ -f .deploy-needed ] && echo "deploy=1" >> $GITHUB_OUTPUT || true
+  deploy:
+    needs: run
+    if: needs.run.outputs.deploy == '1'
+    runs-on: ubuntu-latest
+    concurrency: {group: pages-deploy, cancel-in-progress: false}
+    environment: {name: github-pages}
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - name: Build from latest main
+        run: |
+          git fetch -q origin main && git reset -q --hard origin/main && git log -1 --oneline
+          pip install -q requests && python3 build.py >/dev/null
+          SRC_MINUTES=6 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo 'source linking skipped'
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: public}
+      - uses: actions/deploy-pages@v4

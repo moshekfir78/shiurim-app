@@ -109,6 +109,21 @@ Study.insTime = id => { const t = nowT(); if (t == null) return; document.getEle
 let cur = null, curS = null;
 function pushVersion(list, html) { const last = list[0]; if (last && last.html === html) return; if (last && Date.now() - last.at < 60000) last.html = html, last.at = Date.now(); else list.unshift({ html, at: Date.now() }); list.length = Math.min(list.length, 10) }
 
+// Sources on demand: saved results (site sheet / srcFound from the worker) show instantly; otherwise the title,
+// the description and a linked Google Docs source sheet are read here, and the worker is asked once to search the
+// origin (Drive PDFs/Word, short links, YouTube descriptions) and save the result for every later visitor.
+async function srcOnDemand(s, c) {
+  const catT = (typeof DB !== 'undefined' && DB && DB.categories[s.cat] || {}).title || '';
+  if (Array.isArray(c.srcFound)) return { found: c.srcFound };
+  let found = [];
+  try { found = SrcLink.titleEntries(s.title, catT).concat(SrcLink.descEntries(c.excerpt || '')) } catch (e) { }
+  try { found = found.concat(await SrcLink.sheetEntries(c.excerpt || '')) } catch (e) { }
+  if (s.rav === 'sketches' || (c.srcRes && Object.keys(c.srcRes).length)) return { found };
+  const at = await SrcLink.requestSearch(s.uid);
+  const mins = at ? Math.max(0, Math.round((Date.now() - at) / 60000)) : null;
+  const note = at ? `🔎 מחפש מקורות נוספים בעמוד המקור של השיעור${SrcLink.sheetLinks(c.excerpt || '').length ? ' ובדף המקורות המקושר' : ''}… התוצאה תישמר כאן לכל הלומדים (בדרך כלל תוך 10–20 דקות${mins ? `; הבקשה נשלחה לפני ${mins} דק׳` : ''}).` : '';
+  return { found, note, pending: !!at && !found.length };
+}
 async function mount(s) {
   const box = $('#study'); if (!box) return; curS = s; cur = await getRec(s.uid);
   const c = window.PTR ? await PTR.content(s) : await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
@@ -154,7 +169,7 @@ async function mount(s) {
       const body = [s.title, c.excerpt || '', strip(c.html || ''), strip(tr ? tr.innerHTML : autoTr),
         segs.map(g => g.t).join('\n'), ...(cur.notes || []).map(n => n.text)].join('\n');
       // sources stay in מקורות only — never copied into הסיכום שלי
-      SrcLink.render($('#stRefs'), body, { segments: segs, extras, html: c.html || '', pre: c.srcRes || {} }) } });
+      srcOnDemand(s, c).then(o => SrcLink.render($('#stRefs'), body, { segments: segs, extras, html: c.html || '', pre: c.srcRes || {}, ...o })) } });
   Study._seek = t => { const au = $('#au'); if (au) { au.currentTime = t; au.play() } else { try { seek(t) } catch (e) {} } };
   // summary autosave
   const ed = $('#stEd'); let deb;

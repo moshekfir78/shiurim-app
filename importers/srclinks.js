@@ -190,7 +190,7 @@ async function sefatEmet(head, rest, shiurPar) {
   if (!best && shiurPar) { const k = nodeKey(shiurPar); const n = nodes.find(n => n.names.some(nm => nodeKey(nm) === k)); if (n) best = { n, sc: 0, fromShiur: 1 } }
   if (!best) return null;
   const year = seYear(rest);
-  const pm = rest.match(/קטע\s+([א-ת"']{1,4})(?=[\s,]|$)/);
+  const pm = rest.match(/קטע\s+([א-ת"']{1,6})(?=[\s,]|$)/);
   let piece = pm ? (ORD[pm[1]] || gv(pm[1]) || 0) : 0;
   const t = await textOf(best.n.en); if (!t) return null;
   const node = { ref: t.ref, he: t.he, lv: 2 };
@@ -298,7 +298,9 @@ function commTitle(heName, bookEn) { // "בעל הטורים" + Exodus -> "Kitzu
   return best;
 }
 async function resolveEntry(e, ctx) {
-  const head = prepHead(e.head);
+  let head = prepHead(e.head);
+  // Bar-Ilan style "רמב"ן במדבר פרשת בהעלותך פרק ט פסוק יט" / "בראשית רבה וילנא פרשת לך לך פרשה מז": the parasha is redundant
+  if (/^(?:\S+\s+){0,3}(?:בראשית|שמות|ויקרא|במדבר|דברים)(?:\s+רבה)?\s+(?:וילנא\s+)?פרשת\s/.test(head)) head = head.replace(/\s+וילנא(?=\s)/, '').replace(/\s+פרשת\s+[א-ת"' ]+?(?=\s+(?:פרק|פרשה)\s)/, '');
   const a = S.analyze(head); a.head = head;
   let book = a.book ? await bookOf(a.book) : null;
   // Sefat Emet in translation: "פרשת ואתחנן תרל"ג קטע ב", "חנוכה תרמ"ב" (year of the Sefat Emet, no book name)
@@ -330,6 +332,24 @@ async function resolveEntry(e, ctx) {
   if (!struct) {
     const cm = head.match(/^(רש"י|רמב"ן|אבן עזרא|ספורנו|אור החיים|כלי יקר|רשב"ם|בעל הטורים|דעת זקנים|העמק דבר|מלבי"ם|רד"ק)\s*,?\s+(?:על\s+)?(?:ספר\s+)?([א-ת' ]+?)\s*,?\s+(?:פרק\s+)?([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?:\s*[,:]?\s*(?:פסוק\s+|פס'\s*)?([א-ת]{1,3}["']?[א-ת]?|\d{1,3}))?(?:\s*[-–].*)?\s*$/);
     if (cm && okNum(cm[3])) { const d = await nameApi(cm[2].trim()); if (d && d.is_book && d.index && BOOKS[d.index] && /^Tanakh\//.test(BOOKS[d.index].path)) { const v = cm[4] && okNum(cm[4]) ? ':' + heNum(cm[4]) : ''; const t = await textOf(`${commTitle(cm[1], d.index) || CE[cm[1]] + ' on ' + d.index} ${heNum(cm[3])}${v}`); if (t && t.segs.some(x => x.t)) struct = { ref: t.ref, he: t.he, lv: 3, how: 'ref' } } }
+  }
+  // Talmud commentators on a daf: "תוס', בבא בתרא ב ע"א, ד"ה …" / "רש"י מסכת סנהדרין דף צז עמוד ב"
+  if (!struct) {
+    const TC = { "תוס'": 'תוספות', 'תוספות': 'תוספות', "תוס' ישנים": 'תוספות ישנים', 'תוספות ישנים': 'תוספות ישנים', 'רש"י': 'רש"י', 'רשב"ם': 'רשב"ם', 'ר"ן': 'ר"ן', 'ריטב"א': 'ריטב"א', 'חידושי הריטב"א': 'ריטב"א', 'רשב"א': 'רשב"א', 'חידושי הרשב"א': 'רשב"א', 'רמב"ן': 'רמב"ן', 'חידושי הרמב"ן': 'רמב"ן', 'מאירי': 'מאירי', 'רבינו חננאל': 'רבינו חננאל' };
+    const km = head.match(new RegExp(`^(${Object.keys(TC).sort((x, y) => y.length - x.length).join('|')})\\s*,?\\s*(?:על\\s+)?(?:מסכת\\s+|מס'\\s*)?(.*)$`));
+    const tms = [];
+    if (km) { const w = km[2].replace(/,/g, ' ').split(/\s+/).filter(Boolean); for (let k = 1; k <= 3 && k < w.length; k++) { let r = w.slice(k); if (r[0] === 'דף') r = r.slice(1); if (r[0] && okNum(r[0])) { const sm = (r.slice(1, 3).join(' ').match(/^(?:ע(?:מוד\s+|"|')?\s*([אב]))/) || []); tms.push([null, km[1], w.slice(0, k).join(' '), r[0], sm[1]]) } } }
+    for (const tm of tms) {
+      if (struct) break;
+    if (tm && okNum(tm[3])) {
+      const d = await nameApi(tm[2].trim());
+      if (d && d.is_book && d.index && BOOKS[d.index] && /^Talmud\/Bavli/.test(BOOKS[d.index].path)) {
+        const want = hk(TC[tm[1]]); const ct = Object.entries(BOOKS).filter(([t, b]) => t.endsWith(' on ' + d.index) && hk(b.he || '').startsWith(want)).sort((x, y) => x[0].length - y[0].length)[0];
+        const daf = heNum(tm[3]) + (tm[4] === 'ב' ? 'b' : 'a');
+        if (ct) { const t = await textOf(`${ct[0]} ${daf}`); if (t && t.segs.some(x => x.t)) struct = { ref: t.ref, he: t.he, lv: tm[4] ? 3 : 2, how: 'ref' } }
+      }
+    }
+  }
   }
   // Rambam: "רמב"ם, הלכות עבודה זרה, פרק א (הלכה ב)"
   if (!struct) {
@@ -414,6 +434,7 @@ if (require.main === module) (async () => {
   for (const c of files) {
     const d = JSON.parse(fs.readFileSync(path.join(CONTENT, c + '.json'), 'utf8'));
     const ents = S.listedEntries(d.html || '', (d.trSources || []).filter(Boolean));
+    { const have = new Set(ents.map(e => e.head)); for (const e of d.srcFound || []) if (e.head && !have.has(e.head)) { have.add(e.head); ents.push({ raw: e.raw || e.head, head: e.head, from: e.from, text: e.text || '' }) } }  // on-demand finds (importers/srcreq.js)
     if (!ents.length) { delete store.items[c]; continue }
     const have = store.items[c] || {};
     const todo = ents.filter(e => ALL || !(e.head in have));
