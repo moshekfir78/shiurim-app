@@ -7,7 +7,7 @@ run python3 importers/haravhendler.py update --content
 run python3 importers/podcast.py
 run python3 importers/kby.py
 run python3 importers/spotify.py
-run python3 importers/etzion.py
+T=3600 run python3 importers/etzion.py
 T=3600 run python3 importers/ostlv.py
 T=5400 run python3 importers/youtube.py
 T=3600 run python3 importers/siach.py
