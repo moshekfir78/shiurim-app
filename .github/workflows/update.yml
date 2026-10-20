@@ -17,6 +17,11 @@ jobs:
       - name: Import all sources + build
         run: |
           if [ "${{ inputs.quick }}" = "true" ]; then python3 build.py; else ./ci_update.sh; fi
+      - name: Source links cache
+        uses: actions/cache@v4
+        with: {path: /tmp/srccache.json, key: "srclinks-${{ github.run_id }}", restore-keys: "srclinks-"}
+      - name: Link every listed source to its exact place (Sefaria / Wikisource)
+        run: SRC_MINUTES=90 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo "::warning::source linking failed"
       - name: Commit data
         run: |
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
@@ -35,6 +40,7 @@ jobs:
         run: |
           git fetch -q origin main && git reset -q --hard origin/main && git log -1 --oneline
           pip install -q requests && python3 build.py >/dev/null
+          SRC_MINUTES=6 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo 'source linking skipped'
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: public}

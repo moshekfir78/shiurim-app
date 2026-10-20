@@ -182,6 +182,8 @@ TRANSCRIPTS = {os.path.basename(p)[:-5]: json.load(open(p, encoding="utf-8")) fo
 from tr_clean import clean_segments as _clean_segs   # same cleanup the worker applies (stutters / fillers / repetition)
 for _t in TRANSCRIPTS.values():
     if _t.get("segments"): _t["segments"] = _clean_segs(_t["segments"])
+try: SRCLINKS = json.load(open(os.path.join(ROOT, "data", "srclinks.json"), encoding="utf-8")).get("items", {})   # precomputed by importers/srclinks.js
+except Exception: SRCLINKS = {}
 shiurim = []
 for r in items:
     parent = r["path"][-1]["id"] if r["path"] else "rav:" + r["rav"]
@@ -190,7 +192,7 @@ for r in items:
     f = fname(r["uid"])
     tr = TRANSCRIPTS.get(f)
     with open(os.path.join(PUB, "content", f + ".json"), "w", encoding="utf-8") as fh:
-        json.dump({"html": r.get("contentHtml"), "excerpt": r.get("excerpt", ""), **({"transcript": tr["segments"], "trModel": tr.get("model"), "trMode": tr.get("mode"), "trRaw": bool(tr.get("needsFormat")), "trSource": tr.get("source") or ("Whisper" if "whisper" in (tr.get("model") or "") else "Gemini"), "trDate": tr.get("date"), "trAt": _tr_at(r["uid"], tr), "trSources": tr.get("sources", []), "trStories": tr.get("stories", [])} if tr else {})}, fh, ensure_ascii=False)
+        json.dump({"html": r.get("contentHtml"), "excerpt": r.get("excerpt", ""), **({"transcript": tr["segments"], "trModel": tr.get("model"), "trMode": tr.get("mode"), "trRaw": bool(tr.get("needsFormat")), "trSource": tr.get("source") or ("Whisper" if "whisper" in (tr.get("model") or "") else "Gemini"), "trDate": tr.get("date"), "trAt": _tr_at(r["uid"], tr), "trSources": tr.get("sources", []), "trStories": tr.get("stories", [])} if tr else {}), **({"srcRes": SRCLINKS[f]} if f in SRCLINKS else {})}, fh, ensure_ascii=False)
     s = {k: r[k] for k in ("uid", "source", "rav", "title", "tags", "date", "audio", "pageUrl")} | {"cat": parent, "c": f}
     if r["source"].startswith("spotify") and r.get("excerpt"): s["sub"] = r["excerpt"][:80]
     cat_titles = []; node = parent

@@ -93,7 +93,7 @@
       add(m.index, m.index + m[0].length, `שולחן ערוך ${Object.keys(SA).includes(sec) ? sec : m[1].replace(/\s+/g, ' ')} ${n}`, m[0], 'sa');
     }
     // Mishnah Berurah
-    for (const m of text.matchAll(new RegExp(`(?:משנה\\s+ברורה|מ["״]ב)\\s+(?:סימן\\s+)?(${NUM})`, 'g'))) {
+    for (const m of text.matchAll(new RegExp(`(?<![א-ת"״'])(?:משנה\\s+ברורה|מ["״]ב)\\s+(?:סימן\\s+)?(${NUM})(?![א-ת"״])`, 'g'))) {
       if (!okn(m[1])) continue; add(m.index, m.index + m[0].length, `משנה ברורה ${stripQ(m[1])}`, m[0], 'mb');
     }
     // Midrash Rabbah
@@ -167,7 +167,7 @@
     return [...new Set(qs)];
   }
 
-  const CK = 'sefcache3', cache = JSON.parse((typeof localStorage !== 'undefined' && localStorage.getItem(CK)) || '{}');
+  const CK = 'sefcache4', cache = JSON.parse((typeof localStorage !== 'undefined' && localStorage.getItem(CK)) || '{}');
   const saveC = () => { try { localStorage.setItem(CK, JSON.stringify(cache)) } catch (e) { } };
   const flat = t => { while (Array.isArray(t)) t = t.find(Boolean) || ''; return String(t || '').replace(/<[^>]+>/g, '').replace(/&[a-z#0-9]+;/gi, ' ') };
 
@@ -187,6 +187,7 @@
     try {
       for (const q of queriesFor(c)) {
         const res = await resolveOne(q);
+        if (res && c.kind === 'rambam' && !/^Mishneh Torah/.test(res.ref || '')) continue; // "רמב"ם הלכות עבודה זרה א" must not become Talmud Avodah Zarah
         if (res) { cache[key] = res; saveC(); return res }
       }
       // soft miss: still offer Sefaria search + Google
@@ -245,7 +246,7 @@
   const AUTHOR_RE = /^(?:ה?רמב"ם|ה?מהר"ל(?: מפראג)?|ה?רמח"ל|ה?רמב"ן|הרב קוק|הראי"ה(?: קוק)?|הרב אברהם יצחק הכהן קוק|בעל התניא|אדמו"ר הזקן|(?:ר'|רבי|רבינו|הרב|האדמו"ר)\s+[א-ת"']+(?:\s+(?:הכהן|מ[א-ת"']+|בן\s+[א-ת"']+|[א-ת"']+))?(?:\s+מ[א-ת"']+)?)(?=[\s,:]|$)[\s,:]*/;
 
   // Extract the entries explicitly listed in the site's source sheet (headings + trailing "(…)" citations)
-  const BOOK_HINT = new RegExp(`^(?:${alt(Object.keys(ALIAS).concat(['דגל מחנה אפרים', 'צוואת הריב"ש', 'כתר שם טוב', 'בן פורת יוסף', 'צפנת פענח', 'כתונת פסים', 'ליקוטי אמרים', 'מגיד דבריו ליעקב', 'אור תורה', 'קדושת לוי', 'תניא', 'נתיבות שלום', 'אורות', 'עולת ראיה', 'מסילת ישרים', 'נפש החיים', 'ערבי נחל', 'אוהב ישראל', 'באר מים חיים', 'אור המאיר', 'בני יששכר', 'שם משמואל', 'פרי צדיק', 'צדקת הצדיק', 'זוהר', 'תיקוני זוהר', 'ילקוט שמעוני', 'מדרש תנחומא', 'תנחומא', 'נצח ישראל', 'גבורות השם', 'תפארת ישראל', 'דרך חיים', 'באר הגולה', 'חובות הלבבות', 'עץ חיים', 'שני לוחות הברית', 'של"ה', 'ליקוטי הלכות', 'ליקוטי תורה', 'תורה אור', 'מאור עינים', 'נועם אלימלך', 'אגרא דכלה', 'עבודת ישראל', 'פרי הארץ', 'רסיסי לילה', 'ישמח משה', 'אור החיים']))})(?=[\\s,]|$)`);
+  const BOOK_HINT = new RegExp(`^(?:${alt(Object.keys(ALIAS).concat(['דגל מחנה אפרים', 'צוואת הריב"ש', 'כתר שם טוב', 'בן פורת יוסף', 'צפנת פענח', 'כתונת פסים', 'ליקוטי אמרים', 'מגיד דבריו ליעקב', 'אור תורה', 'קדושת לוי', 'תניא', 'נתיבות שלום', 'אורות', 'עולת ראיה', 'מסילת ישרים', 'נפש החיים', 'ערבי נחל', 'אוהב ישראל', 'באר מים חיים', 'אור המאיר', 'בני יששכר', 'שם משמואל', 'פרי צדיק', 'צדקת הצדיק', 'זוהר', 'תיקוני זוהר', 'ילקוט שמעוני', 'מדרש תנחומא', 'תנחומא', 'נצח ישראל', 'גבורות השם', 'תפארת ישראל', 'דרך חיים', 'באר הגולה', 'חובות הלבבות', 'עץ חיים', 'שני לוחות הברית', 'של"ה', 'ליקוטי הלכות', 'ליקוטי תורה', 'תורה אור', 'מאור עינים', 'נועם אלימלך', 'אגרא דכלה', 'עבודת ישראל', 'פרי הארץ', 'רסיסי לילה', 'ישמח משה', 'אור החיים', 'שפ"א', 'חיי מוהר"ן', 'שיחות הר"ן', 'שארית ישראל', 'צרור החיים', 'שמונה פרקים', 'רמזי תורה', 'וצוה הכהן', 'ספר יצירה', 'עמק המלך', 'אמרי אמת', 'שפתי צדיקים', 'קול מבשר', 'שיח שרפי קדש', 'אור יקרות', 'אגרא דפרקא', 'מבשר צדק', 'אוצר החיים', 'היכל הברכה', 'תורת המגיד', 'אור הגנוז לצדיקים', 'תשואות חן', 'ליקוטים יקרים', 'כתבי קודש', 'אורות התחיה', 'אורות הקודש', 'אורות האמונה', 'מגיד דבריו ליעקב', 'דעת זקנים', 'בעל הטורים', 'תרגום אונקלוס', 'תרגום יונתן']))})(?=[\\s,]|$)`);
   function entryHead(raw) {
     let s = normE(raw).replace(/^\d+\s*[.)]\s*/, '').replace(/^מפרשים על התנ"ך,?\s*/, '').replace(/^[-–•*]\s*/, '');
     let head = s;
@@ -293,7 +294,7 @@
     return a;
   }
 
-  const NK = 'sefname1', ncache = (() => { try { return JSON.parse(localStorage.getItem(NK) || '{}') } catch (e) { return {} } })();
+  const NK = 'sefname2', ncache = (() => { try { return JSON.parse(localStorage.getItem(NK) || '{}') } catch (e) { return {} } })();
   let nDirty = 0; const saveN = () => { if (nDirty) { try { localStorage.setItem(NK, JSON.stringify(ncache)) } catch (e) { } nDirty = 0 } };
   async function nameQ(q) {
     if (q in ncache) return ncache[q];
@@ -361,13 +362,40 @@
     void base; return best;
   }
 
-  const EK = 'sefent2', ecache = (() => { try { return JSON.parse(localStorage.getItem(EK) || '{}') } catch (e) { return {} } })();
+
+  // Sefat Emet: "שפת אמת <פרשה/מועד> <שנה> קטע <n>" -> section whose first line is the year, n-th piece (live fallback; build time does the same)
+  const SE_NODES = {"בראשית":"Sefat Emet, Genesis, Bereshit","נח":"Sefat Emet, Genesis, Noach","לך לך":"Sefat Emet, Genesis, Lech Lecha","וירא":"Sefat Emet, Genesis, Vayera","חיי שרה":"Sefat Emet, Genesis, Chayei Sara","תולדות":"Sefat Emet, Genesis, Toldot","ויצא":"Sefat Emet, Genesis, Vayetzei","וישלח":"Sefat Emet, Genesis, Vayishlach","וישב":"Sefat Emet, Genesis, Vayeshev","מקץ":"Sefat Emet, Genesis, Miketz","לחנוכה":"Sefat Emet, Genesis, For Chanuka","ויגש":"Sefat Emet, Genesis, Vayigash","ויחי":"Sefat Emet, Genesis, Vayechi","שמות":"Sefat Emet, Exodus, Shemot","וארא":"Sefat Emet, Exodus, Vaera","בא":"Sefat Emet, Exodus, Bo","בשלח":"Sefat Emet, Exodus, Beshalach","יתרו":"Sefat Emet, Exodus, Yitro","משפטים":"Sefat Emet, Exodus, Mishpatim","פרשת שקלים":"Sefat Emet, Exodus, Parashat Shekalim","תרומה":"Sefat Emet, Exodus, Terumah","תצוה":"Sefat Emet, Exodus, Tetzaveh","פרשת תצווה":"Sefat Emet, Exodus, Tetzaveh","פרשת זכור":"Sefat Emet, Exodus, Parashat Zachor","לפורים":"Sefat Emet, Exodus, For Purim","כי תשא":"Sefat Emet, Exodus, Ki Tisa","פרשת פרה":"Sefat Emet, Exodus, Parashat Parah","ויקהל":"Sefat Emet, Exodus, Vayakhel","פקודי":"Sefat Emet, Exodus, Pekudei","ויקרא":"Sefat Emet, Leviticus, Vayikra","פרשת החודש":"Sefat Emet, Leviticus, Parashat HaChodesh","צו":"Sefat Emet, Leviticus, Tzav","לשבת הגדול":"Sefat Emet, Leviticus, For Shabbat HaGadol","פסח":"Sefat Emet, Leviticus, Passover","שמיני":"Sefat Emet, Leviticus, Shmini","תזריע":"Sefat Emet, Leviticus, Tazria","מצורע":"Sefat Emet, Leviticus, Metzora","אחרי מות":"Sefat Emet, Leviticus, Achrei Mot","קדושים":"Sefat Emet, Leviticus, Kedoshim","אמור":"Sefat Emet, Leviticus, Emor","בהר":"Sefat Emet, Leviticus, Behar","בחוקתי":"Sefat Emet, Leviticus, Bechukotai","פרשת בחוקותי":"Sefat Emet, Leviticus, Bechukotai","בחקתי":"Sefat Emet, Leviticus, Bechukotai","במדבר":"Sefat Emet, Numbers, Bamidbar","שבועות":"Sefat Emet, Numbers, Shavuot","נשא":"Sefat Emet, Numbers, Nasso","בהעלותך":"Sefat Emet, Numbers, Beha'alotcha","שלח":"Sefat Emet, Numbers, Sh'lach","קרח":"Sefat Emet, Numbers, Korach","קורח":"Sefat Emet, Numbers, Korach","חקת":"Sefat Emet, Numbers, Chukat","פרשת חוקת":"Sefat Emet, Numbers, Chukat","בלק":"Sefat Emet, Numbers, Balak","פנחס":"Sefat Emet, Numbers, Pinchas","מטות":"Sefat Emet, Numbers, Matot","מסעי":"Sefat Emet, Numbers, Masei","דברים":"Sefat Emet, Deuteronomy, Devarim","ואתחנן":"Sefat Emet, Deuteronomy, Vaetchanan","עקב":"Sefat Emet, Deuteronomy, Eikev","ראה":"Sefat Emet, Deuteronomy, Re'eh","שופטים":"Sefat Emet, Deuteronomy, Shoftim","כי תצא":"Sefat Emet, Deuteronomy, Ki Teitzei","כי תבוא":"Sefat Emet, Deuteronomy, Ki Tavo","נצבים":"Sefat Emet, Deuteronomy, Nitzavim","וילך":"Sefat Emet, Deuteronomy, Vayeilech","לחודש אלול":"Sefat Emet, Deuteronomy, For the Month of Elul","ראש השנה":"Sefat Emet, Deuteronomy, Rosh HaShanah","שבת תשובה":"Sefat Emet, Deuteronomy, Shabbat Shuva","ליום כיפור":"Sefat Emet, Deuteronomy, For the Day of Atonement","האזינו":"Sefat Emet, Deuteronomy, Ha'Azinu","לסוכות":"Sefat Emet, Deuteronomy, Sukkot","וזאת הברכה":"Sefat Emet, Deuteronomy, V'Zot HaBerachah"};
+  const seK = x => NIK(x).replace(/["'״׳,]/g, ' ').replace(/(^|\s)פרשת\s+/g, '$1').replace(/(\S)[יו]+/g, '$1').replace(/\s+/g, ' ').trim();
+  const seL = x => x.replace(/(^|\s)ל(?=\S{2})/g, '$1');
+  const SE_ORD = { 'ראשון': 1, 'שני': 2, 'שלישי': 3, 'רביעי': 4, 'חמישי': 5, 'שישי': 6, 'ששי': 6, 'שביעי': 7, 'שמיני': 8, 'תשיעי': 9, 'עשירי': 10 };
+  async function seLive(head) {
+    const rest = head.replace(/^(?:ספר\s+)?(?:שפת אמת|שפ"א)[,\s]*/, ''); if (rest === head) return null;
+    const r1 = ' ' + seK(rest) + ' ', r2 = seL(r1); let best = null;
+    for (const [he, en] of Object.entries(SE_NODES)) {
+      const k = seK(he); let sc = r1.includes(' ' + k + ' ') ? k.length * 2 : (seL(k).length >= 2 && r2.includes(' ' + seL(k) + ' ') ? seL(k).length * 2 - 1 : -1);
+      if (sc < 0) continue; if (CHUMS.includes(he)) sc -= 20; if (!best || sc > best.sc) best = { en, sc };
+    }
+    if (!best) return null;
+    const t = await fetch('https://www.sefaria.org/api/v3/texts/' + encodeURIComponent(best.en) + '?version=hebrew&return_format=text_only').then(r => r.ok ? r.json() : null).catch(() => null);
+    const out = { level: 2, url: best.en.replace(/ /g, '_'), ref: best.en, he: (t && t.heRef) || best.en, book: 'שפת אמת' };
+    const ym = rest.match(/(?:^|[\s,])(?:שנת\s+|שנה\s+)?(תר[א-ת"']{0,4})(?=[\s,\-–]|$)/);
+    if (!t || !ym || !t.versions || !t.versions[0]) return out;
+    const yk = ym[1].replace(/["']/g, ''), secs = t.versions[0].text || [];
+    const si = secs.findIndex(a => Array.isArray(a) && NIK(String(a[0] || '')).replace(/["'״׳\s.]/g, '') === yk);
+    if (si < 0) return out;
+    const body = []; secs[si].forEach((x, j) => { if (j && !(/^ב"?ה(?=[\s.]|$)/.test(NIK(String(x)).replace(/״/g, '"')) && String(x).length < 20)) body.push(j + 1) });
+    const pm = rest.match(/קטע\s+([א-ת"']{1,4})(?=[\s,]|$)/), piece = pm ? (SE_ORD[pm[1]] || (okn(pm[1]) ? toArab(pm[1]) : 0)) : 0;
+    const ref = piece && body[piece - 1] ? `${best.en} ${si + 1}:${body[piece - 1]}` : `${best.en} ${si + 1}`;
+    return { level: 3, url: ref.replace(/ (\d+(?::\d+)?)$/, '.$1').replace(/:/g, '.').replace(/ /g, '_'), ref, he: (t.heRef || 'שפת אמת') + ` (${ym[1]}${piece ? ', קטע ' + pm[1] : ''})`, book: 'שפת אמת' };
+  }
+  const EK = 'sefent3', ecache = (() => { try { return JSON.parse(localStorage.getItem(EK) || '{}') } catch (e) { return {} } })();
   const saveE = () => { try { localStorage.setItem(EK, JSON.stringify(ecache)) } catch (e) { } };
   async function resolveListed(head) {
     if (head in ecache) return ecache[head];
     let out = null;
     try {
       const a = analyze(head);
+      if (/^(?:ספר\s+)?(?:שפת אמת|שפ"א)(?=[\s,]|$)/.test(head)) { const se = await seLive(head); if (se) { ecache[head] = se; saveE(); return se } }
       const knownBook = a.book && (ALIAS[a.book] || ALIAS[nb(a.book)]);
       // explicit Tanakh/Talmud/Rambam/… refs at the start of the entry
       const ch = head.replace(/(^|\s)פרק\s+/, '$1').replace(/,?\s+פס(?:וקים|וק|')\s+/, ', ').replace(/([א-ת"']+)\s*[-–]\s*[א-ת"']+$/, '$1');
@@ -393,7 +421,11 @@
   }
 
   const GEN_HINT = /^(?:מדרש|ספרי|מכילתא|רש"י|רמב"ן|רמב"ם|שולחן ערוך|משנה|תלמוד|גמרא|ילקוט|תרגום|ספר|ר' |רבי )/;
-  const looksRef = s => REFW.test(s) || BOOK_HINT.test(s) || GEN_HINT.test(s) || candidates(s).some(c => c.pos < 6);
+  // a heading counts as a source only with a real locator ("אות ה", "דף יז", "פרשת נח"), a known book, or a parsable ref;
+  // (bold Hebrew translations inside a Zohar passage are not sources)
+  const REFW2 = /(?:^|[\s,(])(?:(?:פרשת|פרשה|בפרשת|לפרשת)\s+[א-ת]|(?:פרק|אות|סימן|סי'|דף|חלק|שער|מאמר|הלכה|הלכות|תורה|הערה|משנה|פסקה|עמ'|עמוד|קטע)\s+(?:\d+|[א-ת]{1,3}["']?[א-ת]?)(?=[\s,.:;)\-–]|$)|(?:פרק|שער)\s+(?:ה[א-ת]{2,}|ראשון|שני|שלישי|רביעי|חמישי|שישי|ששי|שביעי|שמיני|תשיעי|עשירי)(?=[\s,]|$)|ח"[א-ד](?=[\s,]|$)|ע"[א-ד](?=[\s,]|$))/;
+  const refWord = s => { const m = s.match(/(?:^|[\s,(])(?:פרק|אות|סימן|סי'|דף|חלק|שער|מאמר|הלכה|תורה|הערה|משנה|פסקה|קטע)\s+([א-ת]{1,3}["']?[א-ת]?)(?=[\s,.:;)\-–]|$)/); return !m || okn(m[1]) || /^(?:ראשון|שני|שלישי|רביעי|חמישי|שישי|ששי|שביעי|שמיני|תשיעי|עשירי)$/.test(m[1]) };
+  const looksRef = s => (REFW2.test(s) && refWord(s)) || /(?:^|\s)תר[א-ת"']{1,4}(?=[\s,]|$)/.test(s) && (s.match(/(?:^|\s)(תר[א-ת"']{1,4})(?=[\s,]|$)/g) || []).some(w => okn(w.trim())) || BOOK_HINT.test(s) || GEN_HINT.test(s) || candidates(s).some(c => c.pos < 6);
   const BAD = /^(?:ו?עיין|ועי'|עי'|ו?נתבאר|כנ"ל|כדלעיל|לעיל|לקמן|ו?שם|ראה|כמבואר|כמו ש|היינו|כלומר|פירוש)/;
   function splitList(s) {
     return s.split(/\s\/\s|\s+ו?גם\s+(?=בעל שם טוב)/).flatMap(p => p.split(/,\s+(?=[^,]{3,}\sדף\s)|;\s+(?=[א-ת][^;]{6,}\s(?:דף|פרשת)\s)/)).map(x => x.trim()).filter(Boolean);
@@ -445,7 +477,7 @@
     return out;
   }
   let lastNet = 0; const gap = async () => { const w = lastNet + 350 - Date.now(); lastNet = Math.max(Date.now(), lastNet + 350); if (w > 0) await new Promise(r => setTimeout(r, w)) };
-  const PK = 'sefphr1', pcache = (() => { try { return JSON.parse(localStorage.getItem(PK) || '{}') } catch (e) { return {} } })();
+  const PK = 'sefphr2', pcache = (() => { try { return JSON.parse(localStorage.getItem(PK) || '{}') } catch (e) { return {} } })();
   const saveP = () => { try { const k = Object.keys(pcache); if (k.length > 600) k.slice(0, k.length - 600).forEach(x => delete pcache[x]); localStorage.setItem(PK, JSON.stringify(pcache)) } catch (e) { } };
   async function sefPhrase(ph) {
     const k = 's|' + ph; if (k in pcache) return pcache[k];
@@ -500,6 +532,7 @@
   async function render(host, text, opts = {}) {
     const segments = opts.segments || null;
     const extras = opts.extras || []; // trSources strings
+    const pre = opts.pre || {}; // precomputed links {head: {u, he, lv}}
     const listed = listedEntries(opts.html || '', extras);
     let raw = String(text || '');
     if (extras.length) raw += '\n' + extras.join('\n');
@@ -524,8 +557,16 @@
     let viaPh = 0;
     const sefA = (url, label) => `<a href="https://www.sefaria.org.il/${encodeURI(url)}?lang=he" target="_blank" rel="noopener">${h(label)} · ספריא ↗</a>`;
     for (let i = 0; i < lts.length; i += 3) {
-      const rs = await Promise.all(lts.slice(i, i + 3).map(async e => { const r = await resolveListed(e.head); let ph = null; if (!r || !(r.level >= 3)) { try { ph = await phraseResolve(e, r) } catch (x) { } } return [e, r, ph] }));
-      for (const [e, r, ph] of rs) {
+      const rs = await Promise.all(lts.slice(i, i + 3).map(async e => { const pr = pre[e.head]; if (pr) return [e, null, null, pr]; const r = await resolveListed(e.head); let ph = null; if (!r || !(r.level >= 3)) { try { ph = await phraseResolve(e, r) } catch (x) { } } return [e, r, ph] }));
+      for (const [e, r, ph, pr] of rs) {
+        if (pr && pr.u && pr.lv >= 1) { // resolved and verified at build time (importers/srclinks.js)
+          const top = `<b>${h(e.head)}</b> <span class="muted">· ${e.from === 'tr' ? 'מהתמלול' : 'מדף המקורות'}</span><br>`;
+          const ext = /^https?:/.test(pr.u), href = ext ? pr.u : `https://www.sefaria.org.il/${encodeURI(pr.u)}?lang=he`;
+          const lab = `${h(pr.he || pr.u)} · ${ext ? 'ויקיטקסט' : 'ספריא'} ↗`;
+          if (pr.lv >= 3) { hit++; seen.add(pr.u); L.insertAdjacentHTML('beforeend', `<div class="srcl ent">${top}${pr.x ? '<span class="muted">הנוסח נמצא ב־</span>' : ''}<a href="${href}" target="_blank" rel="noopener">${lab}</a>${pr.alt && pr.alt.u ? ` · <a href="https://www.sefaria.org.il/${encodeURI(pr.alt.u)}?lang=he" target="_blank" rel="noopener">${h(pr.alt.he || pr.alt.u)} · ספריא ↗</a> <span class="muted">(פרשה/פרק)</span>` : ''}</div>`) }
+          else { part++; seen.add(pr.u); L.insertAdjacentHTML('beforeend', `<div class="srcl ent soft">${top}<a href="${href}" target="_blank" rel="noopener">${pr.lv === 2 ? lab + '</a> <span class="muted">(פרשה/פרק)</span>' : `הספר ${h(pr.he || '')} בספריא ↗</a>`}</div>`) }
+          continue;
+        }
         const bk = (r && r.book) || analyze(e.head).book || e.head;
         const gq = ph && ph.phrase ? `"${ph.phrase}"` : e.head;
         const look = `<a href="${gSearch(gq)}" target="_blank" rel="noopener">גוגל${ph && ph.phrase ? ' (ביטוי מדויק)' : ''}</a> · <a href="${sefSearch(ph && ph.phrase ? ph.phrase : e.head)}" target="_blank" rel="noopener">חיפוש בספריא</a> · <a href="${hbSearch(bk)}" target="_blank" rel="noopener">HebrewBooks</a> · <a href="${otzSearch(e.head)}" target="_blank" rel="noopener">אוצר החכמה</a>`;

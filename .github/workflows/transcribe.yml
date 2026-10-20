@@ -40,6 +40,7 @@ jobs:
         run: |
           git fetch -q origin main && git reset -q --hard origin/main && git log -1 --oneline
           pip install -q requests && python3 build.py >/dev/null
+          SRC_MINUTES=6 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo 'source linking skipped'
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: public}

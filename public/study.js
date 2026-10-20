@@ -154,7 +154,7 @@ async function mount(s) {
       const body = [s.title, c.excerpt || '', strip(c.html || ''), strip(tr ? tr.innerHTML : autoTr),
         segs.map(g => g.t).join('\n'), ...(cur.notes || []).map(n => n.text)].join('\n');
       // sources stay in מקורות only — never copied into הסיכום שלי
-      SrcLink.render($('#stRefs'), body, { segments: segs, extras, html: c.html || '' }) } });
+      SrcLink.render($('#stRefs'), body, { segments: segs, extras, html: c.html || '', pre: c.srcRes || {} }) } });
   Study._seek = t => { const au = $('#au'); if (au) { au.currentTime = t; au.play() } else { try { seek(t) } catch (e) {} } };
   // summary autosave
   const ed = $('#stEd'); let deb;
