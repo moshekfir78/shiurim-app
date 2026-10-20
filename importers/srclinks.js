@@ -351,6 +351,19 @@ async function resolveEntry(e, ctx) {
     }
   }
   }
+  // Tosefta / Rosh / Rif by chapter: "תוספתא מסכת עדויות (צוקרמאנדל) פרק א הלכה ד", "רא"ש מסכת ביצה פרק א סימן ג"
+  if (!struct) {
+    const tf = head.match(/^(תוספתא|רא"ש|רי"ף)\s+(?:מסכת\s+|מס'\s*)?(.+?)\s+(?:\(?(?:ליברמן|צוקרמאנדל|וילנא)\)?\s+)?פרק\s+([א-ת]{1,3}["']?[א-ת]?)(?:\s*,?\s*(?:הלכה|סימן|סי')\s+([א-ת]{1,3}["']?[א-ת]?))?(?=[\s,.]|$)/);
+    if (tf && okNum(tf[3])) {
+      const mas = tf[2].replace(/\s+(?:ליברמן|צוקרמאנדל|וילנא)$/, '').trim(), d = await nameApi(mas);
+      const en = d && d.is_book && d.index && BOOKS[d.index] && /^(?:Talmud|Mishnah)\//.test(BOOKS[d.index].path) ? d.index.replace(/^Mishnah /, '') : null;
+      if (en) {
+        const pre = { 'תוספתא': 'Tosefta ', 'רא"ש': 'Rosh on ', 'רי"ף': 'Rif ' }[tf[1]];
+        const ct = Object.keys(BOOKS).filter(t => t === pre + en || t.startsWith(pre + en + ' (')).sort((x, y) => x.length - y.length)[0];
+        if (ct) { const t = await textOf(`${ct} ${heNum(tf[3])}${tf[4] && okNum(tf[4]) ? ':' + heNum(tf[4]) : ''}`); if (t && t.segs.some(x => x.t)) struct = { ref: t.ref, he: t.he, lv: tf[4] ? 3 : 2, how: 'ref' } }
+      }
+    }
+  }
   // Rambam: "רמב"ם, הלכות עבודה זרה, פרק א (הלכה ב)"
   if (!struct) {
     const rm = head.match(/^(?:ה?רמב"ם|משנה תורה)\s*,?\s*(?:ספר\s+\S+\s*,?\s*)?(?:הלכות|הל')\s+([^,]+?)\s*,?\s*(?:פרק|פ')\s*([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?:\s*,?\s*(?:הלכה|ה')\s*([א-ת]{1,3}["']?[א-ת]?|\d{1,3}))?/);

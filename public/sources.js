@@ -76,9 +76,9 @@
       add(m.index, m.index + m[0].length, `ירושלמי ${normBook(m[1])} ${stripQ(m[2])}:${stripQ(m[3])}`, m[0], 'yer');
     }
     // Bavli: (תלמוד בבלי,)? MAS דף? NUM ע"?[אב]?
-    for (const m of text.matchAll(new RegExp(`(?:תלמוד\\s+בבלי\\s*,?\\s*)?(?:מסכת\\s+)?(${mas})\\s*,?\\s+(?:דף\\s+)?(${NUM})\\s*(?:ע(?:מוד\\s+|["'״]?)([אב])["'״׳]?)?`, 'g'))) {
+    for (const m of text.matchAll(new RegExp(`(?:תלמוד\\s+בבלי\\s*,?\\s*)?(?:מסכת\\s+)?(${mas})\\s*,?\\s+(?:דף\\s+)?(${NUM})\\s*(?:ע(?:מוד\\s+|["'״]?)([אב])["'״׳]?|(?<=\\s)([אב])['׳]?(?=[\\s,.:;)]|$))?`, 'g'))) {
       const ms = normBook(m[1]), d = stripQ(m[2]); if (!okn(d)) continue;
-      const side = m[3] || '';
+      const side = m[3] || m[4] || '';
       add(m.index, m.index + m[0].length, side ? `${ms} ${d} ${side}` : `${ms} ${d}`, m[0], 'bavli');
     }
     // Rambam: רמב"ם / משנה תורה, הלכות X פרק? N הלכה? M
