@@ -214,7 +214,7 @@
         for (const j of joined) if (pos >= j.a && pos < j.b) { best = j.s; break }
         if (best == null) { for (let i = joined.length - 1; i >= 0; i--) if (joined[i].a <= pos) { best = joined[i].s; break } }
       }
-      return { ...c, t: best, snip: snippetAt(full, pos, c.label), pos: pos >= 0 ? pos : c.pos };
+      return { ...c, pos: pos >= 0 ? pos : c.pos };  // no in-shiur quote/timestamp (user preference)
     });
   }
 
@@ -433,7 +433,7 @@
       const a = analyze(e.head); const keys = [];
       const q = (e.raw.match(/"([^"]{8,})/) || [])[1]; if (q) keys.push(q.split(' ').slice(0, 4).join(' '));
       if (a.book && a.book.length > 3) keys.push(a.book);
-      for (const k of keys) { const pos = full.indexOf(k); if (pos >= 0) { const [w] = withTimes([{ label: k, pos }], segments); return { ...e, t: w.t, snip: w.snip } } }
+      for (const k of keys) { const pos = full.indexOf(k); if (pos >= 0) { const [w] = withTimes([{ label: k, pos }], segments); return e } }
       return e;
     });
     if (!cs.length && !lts.length) { host.innerHTML = '<p class="muted">לא זוהו מראי מקומות בטקסט של השיעור, בסיכום, בתמלול ובהערות.</p>'; return { total: 0, hit: 0 } }
