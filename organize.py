@@ -208,6 +208,12 @@ def organize(items, ravnames, srcnames, parashot, group_of):
                 t, n = collections.Counter(next((t for t in NEST_ORDER if t in (r.get("tp") or [])), None) for r in its).most_common(1)[0]
                 if t and n >= 0.5 * len(its):
                     buckets[(node("t", TOPIC_NAME[t]),) + p] = buckets.pop(p)
+        # --- series of classic mussar works always go under מוסר ומידות (organize by content) ---
+        for p in [p for p in list(buckets) if len(p) == 1 and p[0][0].split("/")[-1].startswith("s:")]:
+            its = buckets[p]
+            t, n = collections.Counter(next((t for t in NEST_ORDER if t in (r.get("tp") or [])), None) for r in its).most_common(1)[0]
+            if t == "musar" and n >= 0.5 * len(its):
+                buckets[(node("t", TOPIC_NAME[t]),) + p] = buckets.pop(p)
         # --- split giant leaves ---
         for p, its in list(buckets.items()):
             if len(its) <= MAX: continue
