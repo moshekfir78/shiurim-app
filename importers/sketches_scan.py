@@ -182,7 +182,11 @@ def main():
                               for v in results[a["id"]]["videos"]]} for a in ARTISTS]
     json.dump({"_note": "Auto-rescanned. Review before commit.", "performers": performers},
               open(os.path.join(ROOT, "data", "sketches.json"), "w"), ensure_ascii=False, indent=1)
-    print("DONE — wrote data/sketches.json; run importers/sketches.py next", flush=True)
+    # embeddability: check every new video in a real embedded player (data/yt_embed.json); importers/sketches.py
+    # then drops deleted/private ones and marks owner-disabled embeds (app shows "watch on YouTube")
+    subprocess.run(["python3", os.path.join(ROOT, "importers", "sketches.py")], cwd=ROOT)
+    subprocess.run(["node", os.path.join(ROOT, "importers", "yt_embed_check.js")], cwd=ROOT, env=dict(os.environ, YT_MINUTES="30"))
+    print("DONE — wrote data/sketches.json + data/yt_embed.json; run importers/sketches.py next", flush=True)
 
 if __name__ == "__main__":
     main()

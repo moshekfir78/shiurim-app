@@ -73,10 +73,9 @@ async function fileToHtml(f) {
 }
 
 // ---------- player bridge (audio element or YouTube iframe) ----------
-let ytTime = 0;
-window.addEventListener('message', e => { if (!/youtube/.test(e.origin)) return; try { const d = JSON.parse(e.data); if (d.info && typeof d.info.currentTime === 'number') ytTime = d.info.currentTime } catch {} });
+// current YouTube time comes from the page's single YouTube bridge in app.js (window.ytTime)
 const ytCmd = (func, args = []) => { const f = $('#ytf'); f && f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*') };
-const nowT = () => { const au = $('#au'); if (au) return au.currentTime; if ($('#ytf')) return ytTime; return null };
+const nowT = () => { const au = $('#au'); if (au) return au.currentTime; if ($('#ytf')) return window.ytTime || 0; return null };
 function seek(t) { const au = $('#au'); if (au) { au.currentTime = t; au.play() } else if ($('#ytf')) { ytCmd('seekTo', [t, true]); ytCmd('playVideo') } }
 document.addEventListener('click', e => { const a = e.target.closest('#study .ts[data-t], #trbox .ts[data-t]'); if (a) { e.preventDefault(); seek(+a.dataset.t) } });
 
@@ -197,8 +196,6 @@ async function mount(s) {
   $('#stWa').href = 'https://wa.me/?text=' + encodeURIComponent(plain(s).slice(0, 3500));
   // deep link ?t=123 from "my notes"
   const qt = new URLSearchParams(location.hash.split('?')[1] || '').get('t'); if (qt) setTimeout(() => seek(+qt), 1200);
-  // YouTube: ask iframe for time updates
-  const yf = $('#ytf'); if (yf) { const hello = () => yf.contentWindow && yf.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1 }), '*'); yf.addEventListener('load', hello); setTimeout(hello, 1500) }
 }
 function showEditedTr() { // show the corrected transcript (if any) in the transcript box, with a toggle to the original
   const trb = $('#trbox'); if (!trb || !cur || !cur.trEdit) return; const orig = trb.querySelector('.text.tr'); if (!orig) return;

@@ -22,6 +22,11 @@ jobs:
         with: {path: /tmp/srccache.json, key: "srclinks-${{ github.run_id }}", restore-keys: "srclinks-"}
       - name: Link every listed source to its exact place (Sefaria / Wikisource)
         run: SRC_MINUTES=90 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo "::warning::source linking failed"
+      - name: YouTube playability check (real embedded player; ~1000 videos a day, sketches and new videos first)
+        if: ${{ inputs.quick != true }}
+        run: |
+          npm i --silent --no-save --prefix /tmp/ytc puppeteer-core@23 >/dev/null 2>&1 || true
+          YT_MINUTES=20 node importers/yt_embed_check.js || echo "::warning::youtube check failed"
       - name: Commit data
         run: |
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com

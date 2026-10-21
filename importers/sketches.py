@@ -10,12 +10,16 @@ sys.path.insert(0, os.path.dirname(__file__))
 from common import save_json
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 cfg = json.load(open(os.path.join(ROOT, "data", "sketches.json"), encoding="utf-8"))
+# data/yt_embed.json (importers/yt_embed_check.js): deleted/private videos are dropped; no-embed ones are kept
+# (build.py marks them ytNoEmbed -> "watch on YouTube" card)
+_ye = os.path.join(ROOT, "data", "yt_embed.json")
+GONE = {k for k, e in (json.load(open(_ye, encoding="utf-8")) if os.path.exists(_ye) else {}).items() if e["s"] == "gone"}
 S, seen = {}, set()
 for p in cfg["performers"]:
     n = 0
     for v in p["videos"]:
         t = v["title"]
-        if v["id"] in seen or (v.get("duration") or 0) <= 60 or not re.search(r"[\u0590-\u05FF]", t):
+        if v["id"] in seen or v["id"] in GONE or (v.get("duration") or 0) <= 60 or not re.search(r"[\u0590-\u05FF]", t):
             continue
         seen.add(v["id"]); n += 1
         uid = f"yt-sk:{v['id']}"

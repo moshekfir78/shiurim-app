@@ -59,6 +59,10 @@ h1.page{font-size:1.4rem;line-height:1.35;margin:4px 2px 8px;color:var(--pri);wh
 .item .play.yt{background:#c4302b}
 .yt-wrap{position:relative;padding-top:56.25%;margin:12px 0;border-radius:var(--r);overflow:hidden;background:#000;box-shadow:0 4px 14px #0002}
 .yt-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.yt-fb{position:absolute;inset:0;background:#1d2a30 center/cover no-repeat;display:flex}
+.yt-fb-in{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:14px;background:#0f1a1fcc;color:#fff}
+.yt-fb-in p{margin:4px 0;max-width:34em;line-height:1.5}
+.yt-hint{margin:-6px 2px 8px;font-size:.85rem}.yt-hint a{color:var(--pri)}
 
 .item .sub,.sub{color:var(--pri);font-size:.85rem;margin-top:2px}.sub.big{font-size:1rem;margin:4px 2px}
 .item .play.sp{background:#1db954}

@@ -94,6 +94,20 @@ def _dedupe(raw):
 items, merged = _dedupe(raw)
 
 
+# YouTube playability (data/yt_embed.json, refreshed daily by importers/yt_embed_check.js in a real embedded player):
+# deleted/private videos (seen twice in a row) lose their YouTube media; owner-disabled embeds are marked ytNoEmbed so the
+# app shows "watch on YouTube" instead of a dead player. Region/copyright verdicts come from a non-Israeli runner -> ignored.
+_YTE = json.load(open(os.path.join(ROOT, "data", "yt_embed.json"), encoding="utf-8")) if os.path.exists(os.path.join(ROOT, "data", "yt_embed.json")) else {}
+_ytg = collections.Counter()
+for r in items:
+    e = _YTE.get(r.get("youtube") or "")
+    if not e: continue
+    if e["s"] == "gone" and e.get("n", 1) >= 2:
+        _ytg["gone"] += 1; r.pop("youtube", None)
+        if (r.get("pageUrl") or "").startswith("https://www.youtube.com/watch") and not r.get("audio"): r["pageUrl"] = ""
+    elif e["s"] in ("noembed", "age"): _ytg["noembed"] += 1; r["ytNoEmbed"] = 1
+print("youtube not playable:", dict(_ytg) or 0)
+
 # GLOBAL RULE: only shiurim with playable media (audio file / YouTube / Spotify / podcast player). Text-only items are dropped.
 has_media = lambda r: bool(r.get("audio") or r.get("youtube") or r.get("spotify") or r.get("spotifyVideo") or r.get("soundcloud"))
 dropped = {}
@@ -208,7 +222,7 @@ for r in items:
     if r.get("o") is not None: s["o"] = r["o"]
     if tp: s["tp"] = tp
     if f in TRANSCRIPTS: s["tr"] = 1
-    for k in ("youtube", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
+    for k in ("youtube", "ytNoEmbed", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
         if r.get(k): s[k] = r[k]
     shiurim.append(s)
 shiurim.sort(key=lambda s: s["date"] or "", reverse=True)

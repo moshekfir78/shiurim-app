@@ -44,6 +44,23 @@ function ravChips() {
     DB.ravs.filter(x => x.count).map(x => `<a class="chip rc ${r === x.id ? 'sel' : ''}" style="--c:${ravColor(x.id)}" onclick="setRav('${x.id}')">${av(x.id)}${esc(x.name)}<b>${x.count}</b></a>`).join('') + '</div>';
 }
 
+// ---------- YouTube embed ----------
+// The embed always carries origin + widget_referrer (YouTube refuses embeds without a referrer - error 153) and
+// playsinline (iOS PWA). Videos whose owner disabled embedding (checked daily: data/yt_embed.json -> ytNoEmbed),
+// and any video that reports an error in the player, show a clear card with "watch on YouTube" instead of a dead player.
+const ytUrl = id => 'https://www.youtube.com/watch?v=' + encodeURIComponent(id);
+const YT_ERR = { 100: 'הסרטון הוסר מיוטיוב או שהוגדר כפרטי.', 101: 'בעל הסרטון לא מאפשר לנגן אותו מחוץ ליוטיוב.', 150: 'בעל הסרטון לא מאפשר לנגן אותו מחוץ ליוטיוב, או שהוא חסום באזור שלך.',
+  152: 'יוטיוב לא מאפשר לנגן את הסרטון כאן.', 153: 'יוטיוב לא מאפשר לנגן את הסרטון כאן.', 2: 'נגן יוטיוב לא הצליח לטעון את הסרטון.', 5: 'נגן יוטיוב לא הצליח לנגן את הסרטון בדפדפן הזה.', noembed: 'בעל הסרטון לא מאפשר לנגן אותו מחוץ ליוטיוב.', stuck: 'הנגן לא נטען.' };
+function ytFallback(id, why, retry) {
+  return `<div class="yt-fb" style="background-image:url('https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg')"><div class="yt-fb-in">
+    <p>${esc(YT_ERR[why] || YT_ERR[2])}</p><p class="prow" style="justify-content:center"><a class="btn pri" href="${ytUrl(id)}" target="_blank" rel="noopener">▶ צפייה ביוטיוב ↗</a>${retry ? '<button class="btn" id="ytRetry">נסו שוב</button>' : ''}</p></div></div>`;
+}
+function ytSrc(s, uid) {
+  const o = encodeURIComponent(location.origin), ref = encodeURIComponent(location.href.split('#')[0]);
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1&playsinline=1&origin=${o}&widget_referrer=${ref}${ytStart(uid)}`;
+}
+const ytBlock = (s, uid) => s.ytNoEmbed && !s.audio.length ? `<div class="yt-wrap fb" id="ytw">${ytFallback(s.youtube, 'noembed')}</div>` :
+  `<div class="yt-wrap" id="ytw"><iframe id="ytf" src="${ytSrc(s, uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="muted yt-hint" id="ytHint" hidden>הסרטון לא נטען? <a href="${ytUrl(s.youtube)}" target="_blank" rel="noopener">צפייה ביוטיוב ↗</a></div>`;
 function ytStart(uid) { const p = positions()[uid]; return p && p.t > 5 && (!p.d || p.t < p.d - 10) ? '&start=' + Math.floor(p.t) : '' }
 function item(s) {
   const p = positions()[s.uid], c = catPath(s.cat).slice(curRav() ? 1 : 0).map(x => x.title).join(' › ');
@@ -252,7 +269,7 @@ const views = {
       ${s.sub ? `<div class="sub big">${esc(s.sub)}</div>` : ''}
       ${s.spotify && !s.youtube ? `<div class="sp-wrap ${s.spotifyVideo ? 'vid' : ''}"><iframe id="spf" src="https://open.spotify.com/embed/episode/${encodeURIComponent(s.spotify)}${s.spotifyVideo ? '/video' : ''}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify"></iframe></div>` : ''}
       ${s.soundcloud && !s.youtube && !s.spotify && !s.audio.length ? `<div class="sc-wrap"><iframe id="scf" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" loading="lazy" title="SoundCloud" src="https://w.soundcloud.com/player/?url=${encodeURIComponent('https://soundcloud.com/' + s.soundcloud)}&color=%235b7a99&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&visual=false"></iframe></div>` : ''}
-      ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1${ytStart(uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
+      ${s.youtube ? ytBlock(s, uid) : ''}
       ${s.tags.length ? `<div class="tags">${s.tags.map(t => `<a class="tag" href="#/search/${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>` : ''}
       ${s.audio.length ? `<div class="player"><audio id="au" controls preload="metadata"></audio>
         <div class="prow"><button class="btn" id="b15">↻ 15 שנ׳</button><button class="btn" id="f15">30 שנ׳ ↺</button>
@@ -270,25 +287,52 @@ const views = {
 function crumbs(path) {
   return `<nav class="crumbs"><a href="#/">בית</a>${path.map(c => `<span class="sep">›</span><a href="#/cat/${encodeURIComponent(c.id)}">${esc(c.title)}</a>`).join('')}</nav>`;
 }
-let ytSave = null;
-window.addEventListener('message', e => { if (!/youtube/.test(e.origin) || !ytSave) return; try { const d = JSON.parse(e.data); if (d.info) ytSave(d.info) } catch {} });
+// One YouTube bridge for the page: handshake (retried until the player answers - a single early 'listening'
+// message is sometimes lost, which broke resume/position saving), error -> fallback card, position saving.
+let YTB = null;
+window.addEventListener('message', e => {
+  if (!YTB || !/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin)) return;
+  const f = $('#ytf'); if (!f || e.source !== f.contentWindow) return;
+  let d; try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data } catch { return }
+  if (!d || !d.event) return; YTB.alive = true;
+  if (d.event === 'onError') return YTB.fail(+d.info);
+  YTB.info(d.info && typeof d.info === 'object' ? d.info : {});
+});
+document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && YTB && YTB.save());
+window.addEventListener('pagehide', () => YTB && YTB.save());
+window.addEventListener('hashchange', () => { if (!YTB) return; YTB.save(); setTimeout(() => { if (YTB && !$('#ytf')) { YTB.stop(); YTB = null } }, 0) });
+function ytWire(s, yf) {
+  if (YTB) { YTB.save(); YTB.stop() }
+  window.ytTime = 0;
+  const own = !s.audio.length, pos = { t: 0, d: 0 }; let last = 0, tries = 0, ready = false;
+  const hello = () => { if (ready || !yf.isConnected) return; yf.contentWindow && yf.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*') };
+  const tick = setInterval(() => { if (ready || ++tries > 15 || !yf.isConnected) { clearInterval(tick); if (!ready && yf.isConnected) { const h = $('#ytHint'); h && (h.hidden = false) } return } hello() }, 1000);
+  yf.addEventListener('load', hello);
+  const me = YTB = {
+    save() { if (!own || !(pos.t > 0)) return; const p = positions(); p[s.uid] = { t: pos.t, d: pos.d, at: Date.now() }; LS.set('pos', p) },
+    stop() { clearInterval(tick) },
+    info(i) {
+      if (!ready) { ready = true; const h = $('#ytHint'); h && (h.hidden = true) }
+      if (typeof i.currentTime === 'number') { pos.t = i.currentTime; window.ytTime = i.currentTime }
+      if (i.duration) pos.d = i.duration;
+      if (i.playerState === 1) touch(s.uid);
+      if (i.playerState === 2 || i.playerState === 0 || (pos.t > 0 && Date.now() - last > 5000 && i.playerState !== -1)) { last = Date.now(); me.save() }
+    },
+    fail(code) {
+      me.stop(); const w = $('#ytw'); if (!w) return;
+      w.classList.add('fb'); w.innerHTML = ytFallback(s.youtube, code, code === 2 || code === 5);
+      const h = $('#ytHint'); h && (h.hidden = true);
+      const r = $('#ytRetry'); r && (r.onclick = () => { w.classList.remove('fb'); w.innerHTML = `<iframe id="ytf" src="${ytSrc(s, s.uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`; ytWire(s, $('#ytf')) });
+    }
+  };
+  hello();
+}
 async function setupShiur(s) {
   touch(s.uid);
   app.onclick = e => { if (e.target.closest('button,a,[data-p],select,.ts')) touch(s.uid) };
   app.oninput = () => touch(s.uid);
   const yf = $('#ytf');
-  if (yf && !s.audio.length) {
-    let yt = { t: 0, d: 0 }, last = 0;
-    const save = () => { if (!(yt.t > 0)) return; const p = positions(); p[s.uid] = { t: yt.t, d: yt.d, at: Date.now() }; LS.set('pos', p) };
-    ytSave = i => { if (typeof i.currentTime === 'number') yt.t = i.currentTime; if (i.duration) yt.d = i.duration;
-      if (i.playerState === 1) touch(s.uid);
-      if (i.playerState === 2 || i.playerState === 0 || (i.playerState === 1 && Date.now() - last > 5000) || (typeof i.currentTime === 'number' && Date.now() - last > 5000 && yt.t > 0 && i.playerState !== -1)) { last = Date.now(); if (yt.t > 0) save() } };
-    const hello = () => yf.contentWindow && yf.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 2 }), '*');
-    yf.addEventListener('load', hello); setTimeout(hello, 1500);
-    const off = () => { save(); window.removeEventListener('pagehide', off); window.removeEventListener('hashchange', off); ytSave = null };
-    window.addEventListener('pagehide', off); window.addEventListener('hashchange', off);
-    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && ytSave && save());
-  }
+  if (yf) ytWire(s, yf);
   const fb = $('#fav');
   fb && (fb.onclick = () => { let f = favs(); const on = f.includes(s.uid); f = on ? f.filter(u => u !== s.uid) : [s.uid, ...f]; LS.set('favs', f); fb.classList.toggle('on', !on); fb.textContent = on ? '☆ למועדפים' : '★ במועדפים' });
   const au = $('#au');
