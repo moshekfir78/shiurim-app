@@ -67,6 +67,7 @@ def _dedupe(raw):
                 if ok and join(j, i, same): why[label] += 1
     link(lambda r: [r["youtube"]] if r.get("youtube") else [], "youtube")
     link(lambda r: [r["spotify"]] if r.get("spotify") else [], "spotify")
+    link(lambda r: [r["soundcloud"]] if r.get("soundcloud") else [], "soundcloud")
     link(lambda r: sorted({nau(u) for u in r.get("audio") or []}), "audio")
     link(lambda r: [nt(r["title"])], "title")
     groups = collections.defaultdict(list)
@@ -77,7 +78,7 @@ def _dedupe(raw):
         tgt = dict(raw[g[0]])  # canonical: site metadata/categories + verbatim title
         for i in g[1:]:
             r = raw[i]
-            for k in ("youtube", "spotify", "spotifyVideo", "duration"):
+            for k in ("youtube", "spotify", "spotifyVideo", "soundcloud", "duration"):
                 if r.get(k) and not tgt.get(k): tgt[k] = r[k]
             if r.get("audio") and not tgt.get("audio"): tgt["audio"] = r["audio"]
             if r.get("pageUrl") and r["pageUrl"] != tgt.get("pageUrl"): tgt["alsoAt"] = tgt.get("alsoAt", []) + [r["pageUrl"]]
@@ -94,7 +95,7 @@ items, merged = _dedupe(raw)
 
 
 # GLOBAL RULE: only shiurim with playable media (audio file / YouTube / Spotify / podcast player). Text-only items are dropped.
-has_media = lambda r: bool(r.get("audio") or r.get("youtube") or r.get("spotify") or r.get("spotifyVideo"))
+has_media = lambda r: bool(r.get("audio") or r.get("youtube") or r.get("spotify") or r.get("spotifyVideo") or r.get("soundcloud"))
 dropped = {}
 for r in items:
     if not has_media(r): k = f'{r["rav"]}/{r["source"]}'; dropped[k] = dropped.get(k, 0) + 1
@@ -207,7 +208,7 @@ for r in items:
     if r.get("o") is not None: s["o"] = r["o"]
     if tp: s["tp"] = tp
     if f in TRANSCRIPTS: s["tr"] = 1
-    for k in ("youtube", "spotify", "spotifyVideo", "alsoAt", "duration"):
+    for k in ("youtube", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
         if r.get(k): s[k] = r[k]
     shiurim.append(s)
 shiurim.sort(key=lambda s: s["date"] or "", reverse=True)

@@ -14,9 +14,12 @@ MIN_DUR = 900
 PRUNE_ONLY = "--prune" in sys.argv  # 15 minutes
 YTDLP = os.environ.get("YTDLP", os.path.expanduser("~/.local/bin/yt-dlp"))
 
+_FLAT = {}
 def flat(url):
+    if url in _FLAT: return _FLAT[url]     # channels scanned for several ravs are listed once per run
     out = subprocess.run([YTDLP, "--flat-playlist", "-j", url], capture_output=True, text=True).stdout
-    return [json.loads(l) for l in out.splitlines() if l.strip()]
+    _FLAT[url] = [json.loads(l) for l in out.splitlines() if l.strip()]
+    return _FLAT[url]
 
 def details(vid):
     out = subprocess.run([YTDLP, "-j", "--skip-download", "--no-warnings", f"https://www.youtube.com/watch?v={vid}"],
@@ -31,13 +34,20 @@ def run(slug, cfg):
     store["source"] = {"id": f"youtube-{slug}", "name": "YouTube", "site": "https://www.youtube.com", "rav": slug}
     S = store["shiurim"]
     # prune anything that the current filters reject (filters may have been tightened)
-    for uid in [u for u, v in S.items() if any(k in v["title"] for k in cfg.get("excludeTitle", [])) or (v.get("duration") or 0) <= 60]:
+    keep = set(cfg.get("videos", []))   # hand-checked videos are exempt from the title filters
+    for uid in [u for u, v in S.items() if (v["sourceId"] not in keep and any(k in v["title"] for k in cfg.get("excludeTitle", []))) or (v.get("duration") or 0) <= 60]:
         del S[uid]
-    for uid, v in S.items():   # repair items stored without a channel id
-        if v["path"][0]["id"].endswith(":None"):
+    for uid, v in S.items():   # repair items stored without a channel id / details (e.g. YouTube answered 429 at import time)
+        if v["path"][0]["id"].endswith(":None") or v["path"][0]["title"].strip() == "יוטיוב ·":
             d = details(v["sourceId"]) or {}
-            if d.get("channel_id"): v["path"] = [{"id": f"yt:{slug}:{d['channel_id']}", "title": "יוטיוב · " + d.get("channel", "").strip()}]
+            if d.get("channel_id"):
+                v["path"] = [{"id": f"yt:{slug}:{d['channel_id']}", "title": "יוטיוב · " + d.get("channel", "").strip()}]
+                if d.get("title"): v["title"] = d["title"]
+                if d.get("description") and not v.get("excerpt"): v["excerpt"] = d["description"][:1500]
+                if d.get("upload_date") and not v.get("date"): v["date"] = datetime.datetime.strptime(d["upload_date"], "%Y%m%d").replace(tzinfo=datetime.timezone.utc).isoformat()
+                if d.get("duration"): v["duration"] = d["duration"]
     if PRUNE_ONLY: save_json(path, store); print(f"{slug}: pruned -> {len(S)}"); return
+    min_dur = cfg.get("minDur", MIN_DUR)   # per-rav minimum length (e.g. 8 min for short but real shiurim; never Shorts)
     has_kw = lambda t: any(k in t for k in cfg["keywords"])
     bad_t = lambda t: any(k in t for k in cfg.get("excludeTitle", []))
     cand = {}
@@ -45,7 +55,7 @@ def run(slug, cfg):
         for e in flat(f"https://www.youtube.com/channel/{ch}/videos") + flat(f"https://www.youtube.com/channel/{ch}/streams"):
             t = e.get("title") or ""
             if not __import__("re").search(r"[\u0590-\u05FF]", t): continue   # Hebrew only (user rule)
-            if is_short(e) or (e.get("duration") or 0) < MIN_DUR or bad_t(t) or any(k in t for k in cfg.get("ownExclude", [])): continue
+            if is_short(e) or (e.get("duration") or 0) < min_dur or bad_t(t) or any(k in t for k in cfg.get("ownExclude", [])): continue
             cand[e["id"]] = e
     third = []
     for ch in cfg.get("scanChannels", []): third += flat(f"https://www.youtube.com/channel/{ch}/videos")
@@ -54,14 +64,19 @@ def run(slug, cfg):
         t = e.get("title") or ""
         if not __import__("re").search(r"[\u0590-\u05FF]", t): continue   # Hebrew only (user rule)
         if e.get("channel_id") in cfg.get("excludeChannels", []) or is_short(e): continue
-        if not has_kw(t) or bad_t(t) or (e.get("duration") or 0) < MIN_DUR: continue
+        if not has_kw(t) or bad_t(t) or (e.get("duration") or 0) < min_dur: continue
         cand.setdefault(e["id"], e)
+    # hand-checked videos BY the rav whose titles don't name him (e.g. from his official site); still never Shorts/clips
+    for vid in cfg.get("videos", []):
+        if f"youtube:{vid}" not in S: cand.setdefault(vid, {"id": vid, "title": "", "_explicit": True})
     print(f"{slug}: {len(cand)} candidates")
     for i, (vid, e) in enumerate(cand.items(), 1):
         uid = f"youtube:{vid}"
         if uid in S: continue
         d = details(vid) or {}
+        if not d: continue    # details unavailable (e.g. HTTP 429): retried next run instead of storing a half item
         if d.get("duration", e.get("duration") or 0) <= 60: continue
+        if e.get("_explicit") and (not d or (d.get("duration") or 0) < min_dur): continue
         ud = d.get("upload_date")
         S[uid] = {
             "uid": uid, "source": f"youtube-{slug}", "sourceId": vid, "rav": slug,

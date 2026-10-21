@@ -10,6 +10,8 @@ run python3 importers/spotify.py
 T=3600 run python3 importers/etzion.py
 T=3600 run python3 importers/ostlv.py
 T=5400 run python3 importers/youtube.py
+T=2400 run python3 importers/elsamet.py
+T=3600 run python3 importers/hatanakh.py
 T=3600 run python3 importers/siach.py
 run python3 importers/sketches.py
 python3 build.py

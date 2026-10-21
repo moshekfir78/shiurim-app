@@ -7,6 +7,8 @@ python3 importers/kby.py || echo "kby import failed"
 python3 importers/spotify.py || echo "spotify import failed"
 [ "$SKIP_YOUTUBE" = 1 ] || python3 importers/youtube.py || echo "youtube import failed"
 python3 importers/ostlv.py || echo "ostlv import failed"
+python3 importers/elsamet.py || echo "elsamet import failed"
+python3 importers/hatanakh.py || echo "hatanakh import failed"
 python3 importers/siach.py $( [ "$SKIP_YOUTUBE" = 1 ] && echo site ) || echo "siach import failed"
 python3 importers/sketches.py || echo "sketches failed"
 python3 build.py && ./redeploy.sh

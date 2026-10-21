@@ -591,12 +591,39 @@
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
   "search": [
    "הרב יעקב מדן",
-   "הרב יעקב מדן שיעור",
+   "הרב יעקב מדן ימי עיון בתנ\"ך",
    "הרב יעקב מדן פרשת",
+   "הרב יעקב מדן שיעור",
    "הרב יעקב מדן תנ\"ך",
    "הרב מדן שיעור"
   ],
@@ -728,9 +755,21 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "also importers/etzion.py (Tanach/machshava/chagim only, no Gemara/halacha)"
+  "note": "also importers/etzion.py (Tanach/machshava/chagim only, no Gemara/halacha)",
+  "minDur": 480
  },
  "grossman": {
   "ownChannels": [],
@@ -751,14 +790,42 @@
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
   "search": [
-   "יונתן גרוסמן",
-   "יוני גרוסמן",
    "הרב יוני גרוסמן",
-   "פרופ' יונתן גרוסמן פרשת",
-   "יונתן גרוסמן תנ\"ך"
+   "יוני גרוסמן",
+   "יוני גרוסמן שיעור",
+   "יונתן גרוסמן",
+   "יונתן גרוסמן ימי עיון בתנ\"ך",
+   "יונתן גרוסמן תנ\"ך",
+   "פרופ' יונתן גרוסמן פרשת"
   ],
   "excludeTitle": [
    "גמרא",
@@ -891,9 +958,21 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "also importers/etzion.py"
+  "note": "also importers/etzion.py",
+  "minDur": 480
  },
  "lichtenstein": {
   "ownChannels": [],
@@ -912,9 +991,37 @@
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
-  "search": [],
+  "search": [
+   "הרב אהרן ליכטנשטיין שיחה"
+  ],
   "excludeTitle": [
    "גמרא",
    "גמ'",
@@ -1048,9 +1155,21 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "YouTube: Har Etzion channels only (third-party titles naming him are mostly about him). Also importers/etzion.py"
+  "note": "YouTube: Har Etzion channels only (third-party titles naming him are mostly about him). Also importers/etzion.py",
+  "minDur": 480
  },
  "amital": {
   "ownChannels": [],
@@ -1069,9 +1188,37 @@
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
-  "search": [],
+  "search": [
+   "הרב יהודה עמיטל שיחה"
+  ],
   "excludeTitle": [
    "גמרא",
    "גמ'",
@@ -1205,9 +1352,21 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "YouTube: Har Etzion channels only. Also importers/etzion.py"
+  "note": "YouTube: Har Etzion channels only. Also importers/etzion.py",
+  "minDur": 480
  },
  "spiegelman": {
   "ownChannels": [],
@@ -1226,7 +1385,33 @@
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
   "search": [
    "הרב מאיר שפיגלמן"
@@ -1360,9 +1545,21 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "Rav Meir Spiegelman (Har Etzion). YouTube: Har Etzion channels + search. Also importers/etzion.py"
+  "note": "Rav Meir Spiegelman (Har Etzion). YouTube: Har Etzion channels + search. Also importers/etzion.py",
+  "minDur": 480
  },
  "samet": {
   "ownChannels": [],
@@ -1383,13 +1580,39 @@
    "UCaiIxK4aUxaokQMMfkTcj6Q",
    "UCV18JFvi4La8NP9YnmriUbA",
    "UCS6OvEopzPGEEwYbAG4ismA",
-   "UCk6jP2aeXhGdh4sOfVbfhdw"
+   "UCk6jP2aeXhGdh4sOfVbfhdw",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg"
   ],
   "search": [
    "הרב אלחנן סמט",
+   "הרב אלחנן סמט ימי עיון בתנ\"ך",
    "הרב אלחנן סמט פרשת",
+   "הרב אלחנן סמט תהלים",
    "הרב אלחנן סמט תנ\"ך",
-   "הרב אלחנן סמט תהלים"
+   "הרב סמט בישיבת שבות ישראל"
   ],
   "excludeTitle": [
    "גמרא",
@@ -1520,12 +1743,26 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "also importers/etzion.py"
+  "note": "also importers/etzion.py",
+  "minDur": 480
  },
  "fargeon": {
-  "ownChannels": [],
+  "ownChannels": [
+   "UCilDPsF1J-Sz8WW5G1fiTEw"
+  ],
   "ownExclude": [],
   "excludeChannels": [
    "UCqjqODwQi4AUED79UTxAiFw",
@@ -1535,17 +1772,51 @@
   ],
   "name": "ד\"ר יושי פרגון",
   "keywords": [
-   "יושי פרגון",
-   "יוסף פרגון"
+   "ד\"ר יוסף פרג",
+   "יוסף פרג'ון",
+   "יוסף פרגון",
+   "יושי פרג",
+   "יושי פרגון"
   ],
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
   "search": [
-   "יושי פרגון",
-   "ד\"ר יושי פרגון"
+   "ד\"ר יושי פרג'ון",
+   "ד\"ר יושי פרגון",
+   "יושי פרג'ון",
+   "יושי פרג'ון פרשת השבוע",
+   "יושי פרג'ון תהלים",
+   "יושי פרג'ון תנ\"ך",
+   "יושי פרגון"
   ],
   "excludeTitle": [
    "גמרא",
@@ -1674,9 +1945,27 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "רועי פרג",
+   "עמי פרג",
+   "אליהו פרג",
+   "אריאל פרג",
+   "שלי פרג",
+   "אורי פרג",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "מתורת",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "also importers/etzion.py (most of his YouTube clips are under 15 min and are skipped)"
+  "note": "also importers/etzion.py (most of his YouTube clips are under 15 min and are skipped)",
+  "minDur": 480
  },
  "rosenberg": {
   "ownChannels": [],
@@ -1694,12 +1983,43 @@
   "scanChannels": [
    "UCpEUk0Kpt07ms4zHWFsXxhg",
    "UCaiIxK4aUxaokQMMfkTcj6Q",
-   "UCV18JFvi4La8NP9YnmriUbA"
+   "UCV18JFvi4La8NP9YnmriUbA",
+   "UCdEoaRgaYtX2u_a-jl3W6nw",
+   "UCd8irkkdaBkqR-L9GyTPQ9Q",
+   "UCdzZ7fgDfmq6ABek6FU2S9A",
+   "UCJcSJDcjNjoiE3kGbAMfosw",
+   "UC9xQ2LuOWT__uWZ80YPVjEQ",
+   "UC7012vgMyTmjhY3PyO7VFYA",
+   "UC0SUhqlVul9GOeQeMuSDtwg",
+   "UC1exvjCkQX2e4cvS-LqiGkg",
+   "UCzWMG-r8FbwDUyiAD9cvnDg",
+   "UC2g9B52uuAIiDJy_eI2klow",
+   "UCjazC-ZG_ob-cRR16ZljaxQ",
+   "UCcddaJS8bnNI3olXbCxNrRA",
+   "UCrYlhjNUOAPhb5fO-l6OBPQ",
+   "UCJIYYTiyEnm2gIKKclajHIQ",
+   "UCTHoBIVuwE_H_BeStlKEBpQ",
+   "UCDWOUPJPKbJv_Le4vpKEvOQ",
+   "UC0O713x6m5YvGglCa4VzIQA",
+   "UCoqzhxjJIPoJbeuAsVnvM5Q",
+   "UCHAH2_wID4cq2bzSdRw36ag",
+   "UCwTRrGM2mTXAU2BMMMpdBVg",
+   "UCYrBUZLONlxm4PMF0_NQfNg",
+   "UC0b52aDc7f8VTtxT-Ktfb6Q",
+   "UCk_NK7ZMXm2WtlGRdDSWQMg",
+   "UCVakcSBYfeib1NxinwDXLCg",
+   "UCS6OvEopzPGEEwYbAG4ismA",
+   "UCk6jP2aeXhGdh4sOfVbfhdw"
   ],
   "search": [
    "הרב שלום רוזנברג",
+   "כנס נחלים שלום רוזנברג",
    "פרופ' שלום רוזנברג",
-   "שלום רוזנברג מחשבת ישראל"
+   "פרופסור שלום רוזנברג",
+   "שלום רוזנברג הרמב\"ם",
+   "שלום רוזנברג הרצאה",
+   "שלום רוזנברג מחשבת ישראל",
+   "שלום רוזנברג רבי נחמן"
   ],
   "excludeTitle": [
    "גמרא",
@@ -1837,8 +2157,28 @@
    "בריחת המוחות",
    "שבועיים ראשונים חינם",
    "Yonatan Grosman",
-   "Dr. Jonathan Grossman"
+   "Dr. Jonathan Grossman",
+   "לאורו של",
+   "לאור תורת",
+   "תורתו של",
+   "מתורתו",
+   "שיעור לזכרו",
+   "במחשבת הרב",
+   "בהגות הרב",
+   "מספר על",
+   "על רבו",
+   "בהשראת"
   ],
-  "note": "Prof. Shalom Rosenberg (machshava). Also importers/etzion.py"
+  "note": "Prof. Shalom Rosenberg (machshava). Also importers/etzion.py",
+  "minDur": 480,
+  "videos": [
+   "s1PtovhJPwE",
+   "ofzNYOy4G_4",
+   "KlBCz2wGg8Y",
+   "Ag8y7mJPGqU",
+   "0I-u0eaDwWc",
+   "2FjV3ZWTF1k",
+   "4V4J457iVl0"
+  ]
  }
 }

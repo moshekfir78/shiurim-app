@@ -50,7 +50,7 @@ function item(s) {
   const pct = p && p.d ? Math.min(100, p.t / p.d * 100) : 0;
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
-    <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify ? '▶' : '📄'}</div>
+    <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify || s.soundcloud ? '▶' : '📄'}</div>
     <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${badges(s)}${p && p.at ? `<div class="sub heard">${esc(lastHeard(s.uid))}</div>` : ''}
     <div class="meta">${s.duration ? fmtTime(s.duration).replace(/:\d\d$/, '') + (s.duration >= 3600 ? ' שע׳' : ' דק׳') + ' · ' : ''}${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
@@ -84,7 +84,7 @@ function parCard() {
 // ---------- filters (persisted in URL query: #/view/arg?r=&t=&m=&len=&from=&to=&src=&sort=) ----------
 const LEN = [['0', 'עד 15 דק׳', 0, 900], ['1', '15–30 דק׳', 900, 1800], ['2', '30–60 דק׳', 1800, 3600], ['3', 'מעל שעה', 3600, 1e9]];
 const topicName = id => (DB.topics.find(t => t.id === id) || {}).name || id;
-const isVideo = s => !!(s.youtube || s.spotifyVideo), isAudio = s => !!(s.audio.length || (s.spotify && !s.spotifyVideo));
+const isVideo = s => !!(s.youtube || s.spotifyVideo), isAudio = s => !!(s.audio.length || s.soundcloud || (s.spotify && !s.spotifyVideo));
 const year = s => (s.date || '').slice(0, 4);
 function setF(k, v) {
   if (v === '' || v == null) Q.delete(k); else Q.set(k, v);
@@ -251,6 +251,7 @@ const views = {
       <div class="muted">${esc(ravName(s.rav))}${s.date ? ' · ' + esc(fmtDate(s.date)) : ''}</div>${badges(s)}
       ${s.sub ? `<div class="sub big">${esc(s.sub)}</div>` : ''}
       ${s.spotify && !s.youtube ? `<div class="sp-wrap ${s.spotifyVideo ? 'vid' : ''}"><iframe id="spf" src="https://open.spotify.com/embed/episode/${encodeURIComponent(s.spotify)}${s.spotifyVideo ? '/video' : ''}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Spotify"></iframe></div>` : ''}
+      ${s.soundcloud && !s.youtube && !s.spotify && !s.audio.length ? `<div class="sc-wrap"><iframe id="scf" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" loading="lazy" title="SoundCloud" src="https://w.soundcloud.com/player/?url=${encodeURIComponent('https://soundcloud.com/' + s.soundcloud)}&color=%235b7a99&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&visual=false"></iframe></div>` : ''}
       ${s.youtube ? `<div class="yt-wrap"><iframe id="ytf" src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1${ytStart(uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : ''}
       ${s.tags.length ? `<div class="tags">${s.tags.map(t => `<a class="tag" href="#/search/${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>` : ''}
       ${s.audio.length ? `<div class="player"><audio id="au" controls preload="metadata"></audio>

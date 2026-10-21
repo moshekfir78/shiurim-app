@@ -67,7 +67,7 @@ def run(slug):
                 if page: checked.add(str(x["nid"]))   # a failed fetch is retried next run
                 continue   # media only (user rule)
             d = x.get("field_lesson_date"); iso = None
-            if d and re.match(r"\d+/\d+/\d{4}", d): m, dd, y = d.split("/"); iso = f"{y}-{int(m):02d}-{int(dd):02d}T00:00:00+00:00"
+            if d and re.match(r"\d+/\d+/\d{4}", d): dd, m, y = d.split("/"); iso = f"{y}-{int(m):02d}-{int(dd):02d}T00:00:00+00:00"
             ser = html.unescape(x.get("field_series") or "שיעורים")
             S[uid] = {"uid": uid, "source": f"etzion-{slug}", "sourceId": x["nid"], "rav": slug, "title": t,
                       "excerpt": re.sub(r"\s+", " ", plain)[:1500], "contentHtml": sanitize_html(body) if len(plain) >= 500 else None,
