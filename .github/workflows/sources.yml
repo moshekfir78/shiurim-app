@@ -33,9 +33,7 @@ jobs:
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
           python3 build.py >/dev/null
           SRC_MINUTES=25 SRC_CACHE=/tmp/srccache.json node importers/srcreq.js
-          git add data/srcfound data/srclinks.json data/srcreq_state.json
-          git diff --cached --quiet || { git commit -qm "sources: on-demand search"
-            for i in 1 2 3 4 5; do git pull -q --rebase -X theirs && git push -q && break; sleep 10; done; }
+          python3 ci_commit.py "sources: on-demand search" data/srcfound data/srclinks.json data/srcreq_state.json
           [ -f .deploy-needed ] && echo "deploy=1" >> $GITHUB_OUTPUT || true
   deploy:
     needs: run

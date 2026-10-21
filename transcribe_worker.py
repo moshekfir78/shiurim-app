@@ -39,13 +39,8 @@ def publish():
     subprocess.run([sys.executable, "build.py"], cwd=ROOT, check=True, capture_output=True)
     if not CI:
         subprocess.run(["./redeploy.sh"], cwd=ROOT, check=True, capture_output=True); return
-    subprocess.run(["git", "add", "data"], cwd=ROOT, check=True)
-    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT).returncode == 0: return
-    subprocess.run(["git", "commit", "-qm", "transcripts: update"], cwd=ROOT, check=True)
-    for _ in range(5):
-        subprocess.run(["git", "pull", "-q", "--rebase", "-X", "theirs"], cwd=ROOT)
-        if subprocess.run(["git", "push", "-q"], cwd=ROOT).returncode == 0: break
-        time.sleep(10)
+    # 3-way merge onto latest main (ci_commit.py): never overwrites data pushed while this job ran
+    if subprocess.run([sys.executable, "ci_commit.py", "transcripts: update", "data"], cwd=ROOT).returncode: return
     open(os.path.join(ROOT, ".deploy-needed"), "w").close()
 
 def index():

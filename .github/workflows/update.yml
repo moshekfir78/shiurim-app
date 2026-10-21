@@ -25,9 +25,7 @@ jobs:
       - name: Commit data
         run: |
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
-          git add data
-          git diff --cached --quiet || { git commit -qm "daily update $(date -u +%F)"
-            for i in 1 2 3 4 5; do git pull -q --rebase -X theirs && git push -q && break; sleep 10; done; }
+          python3 ci_commit.py "daily update $(date -u +%F)" data   # 3-way merge onto latest main; never overwrites newer pushes
   deploy:
     needs: run
     runs-on: ubuntu-latest
