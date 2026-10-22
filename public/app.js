@@ -13,7 +13,7 @@ const whenStr = ts => new Date(ts).toLocaleString('he-IL', { timeZone: 'Asia/Jer
 const lastHeard = uid => { const p = positions()[uid]; return p && p.at ? 'נשמע לאחרונה: ' + whenStr(p.at) + (p.t > 5 ? ' · נעצר ב־' + fmtTime(p.t) : '') : '' };
 const trWhen = iso => { if (!iso) return ''; const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(iso) ? iso + 'T12:00:00Z' : iso); if (isNaN(d)) return '';
   return d.toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) };
-const hasMine = uid => !!(window.Study && Study.mine && Study.mine(uid)) || !!(window.PTR && PTR._has && PTR._has(uid));
+const hasMine = uid => !!(window.Study && Study.mine && Study.mine(uid));
 const badges = s => { const b = []; if (s.tr || (window.PTR && PTR._has && PTR._has(s.uid))) b.push('<span class="badge trb">📝 תמלול</span>');
   if (hasMine(s.uid)) b.push('<span class="badge mineb">📎 שלי</span>'); return b.length ? `<div class="badges">${b.join('')}</div>` : '' };
 window.touchShiur = touch;

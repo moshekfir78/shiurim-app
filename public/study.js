@@ -18,7 +18,7 @@ const putRec = async rec => { rec.updated = Date.now(); window.touchShiur && tou
 const strip = h => { const d = document.createElement('div'); d.innerHTML = h || ''; return d.textContent || '' };
 const textOf = r => [strip(r.summary), strip(r.trEdit), ...(r.notes || []).map(n => n.text)].join(' ');
 const INDEX = {}, MINE = {};
-const isMine = r => !!(strip(r.summary).trim() || r.trEdit || (r.notes || []).length || r.fileName);
+const isMine = r => !!(strip(r.summary).trim() || (r.notes || []).some(n => n && (n.text || '').trim()) || r.fileName);
 allRecs().then(rs => { rs.forEach(r => { INDEX[r.uid] = textOf(r); if (isMine(r)) MINE[r.uid] = 1 }); if (/^#\/(search|cat|topics|home|par)?/.test(location.hash)) window.render && render() }).catch(() => {});
 
 // ---------- sanitizing (whitelist) ----------
