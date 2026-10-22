@@ -1,1 +1,1 @@
-{"etzion:51301": {"status": "working", "at": "2026-10-22T06:10:58.542544+00:00", "issue": null}}
+{"etzion:51301": {"status": "done", "at": "2026-10-22T06:17:29.395883+00:00", "issue": null, "seconds": 383, "audioSeconds": 0, "model": "gemini-flash-lite-latest", "source": "Gemini · מהיר", "mode": "fast"}}
