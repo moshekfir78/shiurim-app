@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v4
         with: {path: /tmp/srccache.json, key: "srclinks-${{ github.run_id }}", restore-keys: "srclinks-"}
       - name: Link every listed source to its exact place (Sefaria / Wikisource)
-        run: SRC_MINUTES=90 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo "::warning::source linking failed"
+        run: SRC_MINUTES=90 SRC_CONC=6 SRC_POOL=6 SRC_GAP=80 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo "::warning::source linking failed"
       - name: YouTube playability check (real embedded player; ~1000 videos a day, sketches and new videos first)
         if: ${{ inputs.quick != true }}
         run: |

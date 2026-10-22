@@ -22,7 +22,7 @@ let hc = {}; try { hc = JSON.parse(fs.readFileSync(CACHE, 'utf8')) } catch (e) {
 let dirty = 0; const saveCache = () => { if (dirty) { fs.writeFileSync(CACHE, JSON.stringify(hc)); dirty = 0 } };
 process.on('SIGTERM', () => { try { saveCache() } catch (e) { } process.exit(1) });
 const realFetch = global.fetch;
-let last = 0, active = 0; const MAXC = 3, GAP = 150; const waiters = [];
+let last = 0, active = 0; const MAXC = +(process.env.SRC_CONC || 3), GAP = +(process.env.SRC_GAP || 150); const waiters = [];
 async function slot() { while (active >= MAXC) await new Promise(r => waiters.push(r)); active++; const w = last + GAP - Date.now(); last = Math.max(Date.now(), last + GAP); if (w > 0) await new Promise(r => setTimeout(r, w)) }
 function release() { active--; const w = waiters.shift(); if (w) w() }
 async function http(url, opt = {}) {
@@ -86,8 +86,10 @@ async function loadToc() {
 }
 const HEMAP = {};
 const ABBR = [[/^שפ"א(?=[\s,]|$)/, 'שפת אמת'], [/^אסת"ר/, 'אסתר רבה'], [/^במדב"ר/, 'במדבר רבה'], [/^שמו"ר/, 'שמות רבה'], [/^ב"ר(?=\s)/, 'בראשית רבה'], [/^ויק"ר/, 'ויקרא רבה'], [/^דב"ר/, 'דברים רבה'], [/^דבר"ר/, 'דברים רבה'], [/^ילקו"ש/, 'ילקוט שמעוני'], [/^זח"([אבג])/, 'זוהר ח"$1'],
-  [/^(?:ספר\s+)?ה?(?:זהר|זוהר)(?:\s+הקדוש)?(?=[\s,]|$)/, 'זוהר'], [/^ת(?:י)?קוני\s+ה?(?:זהר|זוהר)/, 'תיקוני זוהר'], [/^ליקוטי מוהר"ן\s+קמא/, 'ליקוטי מוהר"ן']];
-const BOOK_ALIAS = { 'זוהר': 'Zohar', 'תיקוני זוהר': 'Tikkunei Zohar', 'בעל שם טוב': "Ba'al Shem Tov", 'מקור מים חיים': 'Mekor Mayim Chayim on Baal Shem Tov', 'שפת אמת': 'Sefat Emet', 'מאור עינים': "Me'or Einayim", 'מאור עיניים': "Me'or Einayim", 'תניא': 'Tanya' };
+  [/^(?:ספר\s+)?ה?(?:זהר|זוהר)(?:\s+הקדוש)?(?=[\s,]|$)/, 'זוהר'], [/^ת(?:י)?קוני\s+ה?(?:זהר|זוהר)/, 'תיקוני זוהר'], [/^ליקוטי מוהר"ן\s+קמא/, 'ליקוטי מוהר"ן'], [/^פר"צ(?=[\s,]|$)/, 'פרי צדיק'], [/^פרי הצדיק(?=[\s,]|$)/, 'פרי צדיק']];
+const BOOK_ALIAS = { 'זוהר': 'Zohar', 'תיקוני זוהר': 'Tikkunei Zohar', 'בעל שם טוב': "Ba'al Shem Tov", 'מקור מים חיים': 'Mekor Mayim Chayim on Baal Shem Tov', 'שפת אמת': 'Sefat Emet', 'מאור עינים': "Me'or Einayim", 'מאור עיניים': "Me'or Einayim", 'תניא': 'Tanya',
+  // R' Tzadok HaKohen of Lublin
+  'פרי צדיק': 'Peri Tzadik', 'פר"צ': 'Peri Tzadik', 'צדקת הצדיק': 'Tzidkat HaTzadik', 'רסיסי לילה': 'Resisei Layla', 'דובר צדק': 'Dover Tzedek', 'ישראל קדושים': 'Yisrael Kedoshim', 'תקנת השבין': 'Takanat HaShavin', 'מחשבות חרוץ': 'Machshavot Charutz', 'ליקוטי מאמרים': 'Likkutei Maamarim', 'לקוטי מאמרים': 'Likkutei Maamarim', 'ספר ליקוטי מאמרים': 'Likkutei Maamarim', 'קומץ המנחה': 'Kometz HaMinchah', 'פוקד עקרים': 'Poked Akarim', 'שיחת מלאכי השרת': 'Sichat Malakhei HaSharet', 'משיב צדק': 'Meshiv Tzedek', 'אור זרוע לצדיק': 'Ohr Zarua LaTzadik', 'דברי סופרים': 'Divrei Soferim', 'דברי חלומות': 'Divrei Chalomot', 'עת האוכל': 'Et HaOchel', 'קונטרס עת האוכל': 'Et HaOchel', 'משיב הטענה': "Meshiv HaTa'anah", 'שיחת שדים': 'Sichat Shedim' };
 const NOT_ON_SEFARIA = /^(?:תורת המגיד|כתבי קודש|ליקוטים יקרים|אור הגנוז לצדיקים|שיח שרפי קדש|אוצר החיים|זוהר חי)/;
 const bookCache = {};
 async function bookOf(name) {
@@ -179,7 +181,7 @@ async function sefatEmet(head, rest, shiurPar) {
   let best = null;
   for (const n of nodes) for (const nm of n.names) {
     const k = nodeKey(nm); if (!k) continue;
-    const isChum = ['בראשית', 'שמות', 'ויקרא', 'במדבר', 'דברים'].includes(nm);
+    const isChum = ['בראשית', 'שמות', 'ויקרא', 'במדבר', 'דברים'].includes(String(nm).replace(/^(?:פרשת|ספר)\s+/, ''));
     const has = (hay, key) => hay.includes(' ' + key + ' ');
     let sc = -1;
     if (has(r1, k)) sc = k.length * 2; else if (has(r2, unL(k)) && unL(k).length >= 2) sc = unL(k).length * 2 - 1;
@@ -235,7 +237,7 @@ async function byText(passage, book, opts = {}) {
     const t = await textOf(ref); if (!t) continue;
     const ov = overlap(passage, t.segs.map(s => s.t).join(' '));
     const inBook = book && (h.path || '').startsWith(book.path);
-    if (ov.n >= 6 || ov.r >= 0.3 || (inBook && (ov.n >= 3 || votes[ref] >= 4)) || votes[ref] >= 5) return { ref: t.ref, he: t.he, lv: 3, how: 'text', ov: ov.n, inBook, path: h.path };
+    if (ov.n >= 6 || ov.r >= 0.3 || (inBook && ov.n >= 3) || (votes[ref] >= 5 && ov.n >= 2)) return { ref: t.ref, he: t.he, lv: 3, how: 'text', ov: ov.n, inBook, path: h.path };
   }
   return null;
 }
@@ -256,7 +258,8 @@ function matchNode(nodes, rest) {
     const k = nodeKey(String(nm).replace(/^(?:ספר|הלכות)\s+/, '')); if (!k) continue;
     let sc = r1.includes(' ' + k + ' ') ? k.length * 2 : (unL(k).length >= 2 && r2.includes(' ' + unL(k) + ' ') ? unL(k).length * 2 - 1 : -1);
     if (sc < 0) continue;
-    if (['בראשית', 'שמות', 'ויקרא', 'במדבר', 'דברים'].includes(nm)) sc -= 20;
+    if (['בראשית', 'שמות', 'ויקרא', 'במדבר', 'דברים'].includes(String(nm).replace(/^(?:פרשת|ספר)\s+/, ''))) sc -= 20; // "פרי צדיק ויקרא פרשת בהר": the chumash is only a division
+    if (r1.includes(' ' + k + ' ' + 'פרשת ') || new RegExp(' ' + k + ' (?:' + PARASHOT.map(nodeKey).join('|') + ') ').test(r1.replace(/ פרשת /g, ' '))) sc -= 10;
     sc += n.he.slice(0, -1).filter(p => r1.includes(' ' + nodeKey(p) + ' ')).length * 3; // parent names present too
     if (!best || sc > best.sc) best = { n, sc, k };
   }
@@ -390,7 +393,7 @@ async function resolveEntry(e, ctx) {
     const pc = head.match(/(?:חלק|ח")\s*([א-ד])'?\s*,?\s*(?:פרק|פ')\s*([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?=[\s,.]|$)/);
     if (pc && okNum(pc[2])) for (const q of [`${book.title} ${heNum(pc[1])}:${heNum(pc[2])}`, `${book.title}, Part ${heNum(pc[1])} ${heNum(pc[2])}`, `${book.title}, Part ${['I', 'II', 'III', 'IV'][heNum(pc[1]) - 1]} ${heNum(pc[2])}`]) { const t = await textOf(q); if (t && t.segs.some(x => x.t)) { struct = { ref: t.ref, he: t.he, lv: 3, how: 'ref' }; break } }
   }
-  if (book && (!struct || struct.lv < 3)) { const n = await nodeResolve(book, head); if (n && (!struct || n.lv > struct.lv)) struct = n }
+  if (book && (!struct || struct.lv < 3)) { const n = await nodeResolve(book, head); if (n && (!struct || n.lv > struct.lv || (n.lv === struct.lv && n.segs && !struct.segs))) struct = n }
   if (struct && struct.he && !/[א-ת]/.test(struct.he) && struct.ref) { const t = await textOf(struct.ref); if (t && t.he) struct.he = t.he }
   if (struct && struct.lv === 2) alt = { u: urlOf(struct.ref || struct.url), he: struct.he };
   // verify structural exact refs against the quoted text when we have one
@@ -411,7 +414,7 @@ async function resolveEntry(e, ctx) {
       if (best && best.o >= 4) { const sg = await textOf(best.s.ref); return pack({ ref: best.s.ref, he: sg ? sg.he : best.s.ref, lv: 3 }, 'text') }
     }
     txt = await byText(P, book, { noTanakh: !!book && !/^Tanakh\//.test(book.path) });
-    if (txt) txt.x = crossBook(txt.he, a) ? 1 : 0;
+    if (txt) txt.x = crossBook(txt.he, a) || (book && !txt.inBook && !/^Tanakh\//.test(book.path)) ? 1 : 0;
     // the passage found elsewhere in the same book beats a structural guess; an explicit ref in another book does not
     if (txt && (!struct || struct.lv < 3 || (txt.inBook && (txt.ov >= 8 || struct.unverified)))) { if (txt.x && alt) txt.alt = alt; return pack(txt, 'text') }
   }
@@ -422,6 +425,29 @@ async function resolveEntry(e, ctx) {
   // not on Sefaria: try Wikisource with the quoted text
   if (P) for (const ph of S.phrasesFrom(P, 2)) { const ws = await wsSearch(ph); if (ws.length) return { u: 'https://he.wikisource.org/wiki/' + encodeURIComponent(ws[0].replace(/ /g, '_')), he: ws[0], lv: 3, how: 'wikisource' } }
   return null;
+}
+// a passage the lecturer reads ("> …" in the transcript) or words he says after naming a book: found by its wording only
+async function resolveSpoken(e) {
+  let book = null;
+  if (e.book) book = /צדוק/.test(e.book) ? { path: "Chasidut/R' Tzadok HaKohen", title: null, he: "ר' צדוק הכהן" } : await bookOf(e.book);
+  // the same search the app runs (sources.js spokenResolve): best verified candidate, primary text preferred
+  const phs = S.phrasesFrom(e.text, 4); if (!phs.length) return null;
+  const votes = {}, meta = {};
+  for (const ph of phs) {
+    let hits = await search(ph, book ? book.path : null);
+    if (book && !hits.length) hits = await search(ph, book.path, true);
+    if (!hits.length || (!book && hits.length > 8)) continue;
+    hits.slice(0, 3).forEach((h, i) => { votes[h.ref] = (votes[h.ref] || 0) + (i ? 1 : 2); meta[h.ref] = h });
+  }
+  let best = null;
+  for (const ref of Object.keys(votes).sort((a, b) => votes[b] - votes[a]).slice(0, 4)) {
+    const t = await textOf(ref); if (!t) continue;
+    const o = overlap(e.text, t.segs.map(x => x.t).join(' ')).n; if (!(o >= 4 || (o >= 3 && votes[ref] >= 3))) continue;
+    const pth = (meta[ref] && meta[ref].path) || '';
+    const sc = o * (/^Tanakh\/(?:Torah|Prophets|Writings)\//.test(pth) ? 1.6 : /Rishonim|Talmud|Midrash|Mishnah/.test(pth) ? 1.25 : /Liturgy|Siddur|Machzor|Antholog|Ba'al Shem Tov|Ba'al_Shem_Tov/i.test(pth + ' ' + ref) ? 0.45 : /Modern|Contemporary|Notes|Sermons/i.test(pth + ' ' + ref) ? 0.7 : 1);
+    if (!best || sc > best.sc) best = { sc, ref: t.ref, he: t.he, lv: 3 };
+  }
+  return best ? pack(best, 'spoken') : null;
 }
 function noteTk(ctx, r) { const m = r && r.u && r.u.match(/^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I_Samuel|II_Samuel|I_Kings|II_Kings|Isaiah|Jeremiah|Ezekiel|Psalms|Proverbs|Job|Esther|Ruth|Song_of_Songs|Lamentations|Ecclesiastes|Daniel|Ezra|Nehemiah|Hosea|Jonah|Micah|Habakkuk|Zechariah|Malachi)\.(\d+)(?:\.(\d+))?/); if (m) ctx.lastTk = { book: m[1].replace(/_/g, ' '), ch: m[2], v: m[3] || null } }
 function pack(r, how) {
@@ -434,7 +460,7 @@ function pack(r, how) {
 }
 
 // ---------- Main ----------
-module.exports = { resolveEntry, zoharParse, zoharRef, bookOf, loadToc, saveCache };
+module.exports = { resolveSpoken, resolveEntry, zoharParse, zoharRef, bookOf, loadToc, saveCache };
 if (require.main === module) (async () => {
   await loadToc();
   let store = { version: VERSION, items: {} }; try { const o = JSON.parse(fs.readFileSync(OUT, 'utf8')); if (o.version === VERSION) store = o } catch (e) { }
@@ -448,6 +474,7 @@ if (require.main === module) (async () => {
     const d = JSON.parse(fs.readFileSync(path.join(CONTENT, c + '.json'), 'utf8'));
     const ents = S.listedEntries(d.html || '', (d.trSources || []).filter(Boolean));
     { const have = new Set(ents.map(e => e.head)); for (const e of d.srcFound || []) if (e.head && !have.has(e.head)) { have.add(e.head); ents.push({ raw: e.raw || e.head, head: e.head, from: e.from, text: e.text || '' }) } }  // on-demand finds (importers/srcreq.js)
+    if (d.transcript && d.transcript.length) for (const e of S.spokenEntries(d.transcript)) ents.push(e);  // what the lecturer reads / names
     if (!ents.length) { delete store.items[c]; continue }
     const have = store.items[c] || {};
     const todo = ents.filter(e => ALL || !(e.head in have));
@@ -455,12 +482,12 @@ if (require.main === module) (async () => {
     jobs.push({ c, ents, todo, have });
   }
   console.log(`shiurim with sources: ${jobs.length} to process`);
-  const POOL = 3; let ji = 0;
+  const POOL = +(process.env.SRC_POOL || 3); let ji = 0;
   async function worker() {
     while (ji < jobs.length && newE < LIMIT && Date.now() < DEADLINE) {
       const j = jobs[ji++]; const ctx = { books: new Set(), par: parOf[j.c] || null };
       const res = ALL ? {} : { ...j.have };
-      for (const e of j.ents) { if (!ALL && e.head in res) { continue } try { const r = await resolveEntry(e, ctx); res[e.head] = r || { lv: 0 }; noteTk(ctx, r) } catch (x) { console.error('ERR', j.c, e.head, x.message); res[e.head] = { lv: 0 } } newE++ }
+      for (const e of j.ents) { if (!ALL && e.head in res) { continue } try { const r = e.from === 'trq' || e.from === 'trb' ? await resolveSpoken(e) : await resolveEntry(e, ctx); res[e.head] = r || { lv: 0 }; if (e.from !== 'trq' && e.from !== 'trb') noteTk(ctx, r) } catch (x) { console.error('ERR', j.c, e.head, x.message); res[e.head] = { lv: 0 } } newE++ }
       // drop entries the app no longer lists
       const keep = new Set(j.ents.map(e => e.head)); for (const k of Object.keys(res)) if (!keep.has(k)) delete res[k];
       store.items[j.c] = res; done++;

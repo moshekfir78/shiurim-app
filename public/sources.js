@@ -236,29 +236,53 @@
     'מורה הנבוכים': 'מורה נבוכים', 'דרך השם': "דרך ה'", 'דרך ה': "דרך ה'", 'נועם אלימלך': 'נועם אלימלך', 'שפת אמת': 'שפת אמת', 'צוואת הריבש': 'צוואת הריב"ש',
     'ליקוטי מוהרן': 'ליקוטי מוהר"ן', 'לקוטי מוהר"ן': 'ליקוטי מוהר"ן', 'לקוטי מוהרן': 'ליקוטי מוהר"ן', 'לקוטי הלכות': 'ליקוטי הלכות', 'לקוטי תורה': 'ליקוטי תורה',
     'מסלת ישרים': 'מסילת ישרים', 'בית יעקב': 'בית יעקב על התורה', 'גור אריה': 'גור אריה', 'מאור ושמש': 'מאור ושמש', 'אור החיים הקדוש': 'אור החיים',
-    'מהר"ל': 'מהר"ל', 'אורות הקדש': 'אורות הקודש', 'תולדות יעקב יוסף': 'תולדות יעקב יוסף', 'עין איה': 'עין איה', 'הזהר': 'זוהר', 'הזוהר': 'זוהר', 'זהר': 'זוהר', 'תקוני הזהר': 'תיקוני זוהר', 'תקוני זהר': 'תיקוני זוהר', 'תיקוני הזוהר': 'תיקוני זוהר', 'שמו"ר': 'שמות רבה', 'דבר"ר': 'דברים רבה', 'ב"ר': 'בראשית רבה', 'ויק"ר': 'ויקרא רבה', 'במ"ר': 'במדבר רבה'
+    'מהר"ל': 'מהר"ל', 'אורות הקדש': 'אורות הקודש', 'תולדות יעקב יוסף': 'תולדות יעקב יוסף', 'עין איה': 'עין איה', 'הזהר': 'זוהר', 'הזוהר': 'זוהר', 'זהר': 'זוהר', 'תקוני הזהר': 'תיקוני זוהר', 'תקוני זהר': 'תיקוני זוהר', 'תיקוני הזוהר': 'תיקוני זוהר', 'שמו"ר': 'שמות רבה', 'דבר"ר': 'דברים רבה', 'ב"ר': 'בראשית רבה', 'ויק"ר': 'ויקרא רבה', 'במ"ר': 'במדבר רבה',
+    'פר"צ': 'פרי צדיק', 'פרי הצדיק': 'פרי צדיק', 'צדקת צדיק': 'צדקת הצדיק', 'ליקוטי מאמרים': 'ספר ליקוטי מאמרים', 'לקוטי מאמרים': 'ספר ליקוטי מאמרים'
   };
+  // R' Tzadok HaKohen of Lublin: his books (on Sefaria under Chasidut/R' Tzadok HaKohen)
+  const TZADOK_BOOKS = ['פרי צדיק', 'צדקת הצדיק', 'רסיסי לילה', 'דובר צדק', 'ישראל קדושים', 'תקנת השבין', 'מחשבות חרוץ', 'ליקוטי מאמרים', 'לקוטי מאמרים', 'קומץ המנחה', 'פוקד עקרים', 'שיחת מלאכי השרת', 'משיב צדק', 'אור זרוע לצדיק', 'לבושי צדקה', 'ספר הזכרונות', 'יקרת שבת', 'מגילת סתרים', 'דברי סופרים', 'דברי חלומות', 'קונטרס עת האוכל', 'עת האוכל', 'משיב הטענה', 'שיחת שדים'];
+  const TZ_BOOK_RE = new RegExp('(?:^|[\\s,])((?:ספר\\s+)?(?:' + TZADOK_BOOKS.map(x => x.replace(/"/g, '"')).join('|') + ')(?=[\\s,]|$).*)$');
+  const TZADOK_RE = /(?:ספרי\s+)?(?:ל|של\s+)?(?:ה?ר['׳]|רבי|רבינו|הרב|האדמו"ר)\s*צדוק(?:\s+הכהן)?(?:\s+מלובלין)?(?:\s+זצ"ל|\s+זי"ע)?/;
+  // "ר' צדוק הכהן מלובלין - פרי צדיק…", "ספרי ר' צדוק, צדקת הצדיק…", "מחשבות חרוץ לר' צדוק הכהן מלובלין פרק יא", "פר"צ בשלח אות ח"
+  function tzadokNorm(s) {
+    if (!/צדוק|פר"צ|פרי הצדיק/.test(s)) return s;
+    let t = s.replace(/(^|[\s,(])פר"צ(?=[\s,]|$)/g, '$1פרי צדיק').replace(/(^|[\s,(])פרי הצדיק(?=[\s,]|$)/g, '$1פרי צדיק');
+    const m = t.match(TZADOK_RE);
+    if (m) {
+      const rest = (t.slice(0, m.index) + ' ' + t.slice(m.index + m[0].length)).replace(/^[\s,:–—-]+|[\s,:–—-]+$/g, '').replace(/\s*,\s*(?=,)/g, '').replace(/\s+/g, ' ').trim();
+      const bm = rest.match(TZ_BOOK_RE);
+      if (bm) t = bm[1].replace(/^\s*,\s*/, '').replace(/\s*,\s*,/g, ',');
+      else if (/^(?:ספר\s+)?ל(?:י)?קוטי אמרים/.test(rest)) t = rest;
+      t = t.replace(/^(?:ספר\s+)?ל(?:י)?קוטי אמרים/, 'ליקוטי מאמרים'); // his "ליקוטי אמרים" is Sefaria's "ספר ליקוטי מאמרים", not the Tanya
+    }
+    return t;
+  }
   const MARK = `(?:פרשת|פרשה|פרק|פרקים|אות|אותיות|סימן|סי'|דף|עמ'|עמוד|הערה|חלק|ח"[א-ד]|שער|מאמר|תורה|הלכה|הלכות|ד"ה|בהקדמה|הקדמה|סוף|ריש|בסופו|תנינא|תניינא|קמא|בליקוטים|ליקוטים|בהפטרת|הפטרת|לפרשת|לימי|לסוכות|לשבת|לפסח|לשבועות|לראש|דרוש|ח'|פס'|${CHUMS.join('|')})`;
   const MARK_RE = new RegExp(`(?:,|\\s${MARK}(?=[\\s,]|$))`);
   const REFW = /(פרשת|פרק|אות|סימן|דף|חלק|ח"[א-ד]|שער|מאמר|הלכה|תורה|הערה|ע"[א-ד])/;
   const PAR_RE = new RegExp(`(?:^|\\s)(?:פרשת\\s+|פרשה\\s+|לפרשת\\s+)?(${alt(PARASHOT.concat(Object.keys(PAR_ALIAS)))})(?=[\\s,.:;)]|$)`, 'g');
   const gem = t => stripQ(t).replace(/[^א-ת0-9]/g, '');
-  const AUTHOR_RE = /^(?:ה?רמב"ם|ה?מהר"ל(?: מפראג)?|ה?רמח"ל|ה?רמב"ן|הרב קוק|הראי"ה(?: קוק)?|הרב אברהם יצחק הכהן קוק|בעל התניא|אדמו"ר הזקן|(?:ר'|רבי|רבינו|הרב|האדמו"ר)\s+[א-ת"']+(?:\s+(?:הכהן|מ[א-ת"']+|בן\s+[א-ת"']+|[א-ת"']+))?(?:\s+מ[א-ת"']+)?)(?=[\s,:]|$)[\s,:]*/;
+  const AUTHOR_RE = /^(?:ה?רמב"ם|ה?מהר"ל(?: מפראג)?|ה?רמח"ל|ה?רמב"ן|הרב קוק|הראי"ה(?: קוק)?|הרב אברהם יצחק הכהן קוק|בעל התניא|אדמו"ר הזקן|(?:ה?ר'|רבי|רבינו|הרב|האדמו"ר)\s+[א-ת"']+(?:\s+(?:הכהן|מ[א-ת"']+|בן\s+[א-ת"']+|[א-ת"']+))?(?:\s+מ[א-ת"']+)?)(?=[\s,:]|$)[\s,:]*/;
 
   // Extract the entries explicitly listed in the site's source sheet (headings + trailing "(…)" citations)
-  const HINT_LIST = Object.keys(ALIAS).concat(['דגל מחנה אפרים', 'צוואת הריב"ש', 'כתר שם טוב', 'בן פורת יוסף', 'צפנת פענח', 'כתונת פסים', 'ליקוטי אמרים', 'מגיד דבריו ליעקב', 'אור תורה', 'קדושת לוי', 'תניא', 'נתיבות שלום', 'אורות', 'עולת ראיה', 'מסילת ישרים', 'נפש החיים', 'ערבי נחל', 'אוהב ישראל', 'באר מים חיים', 'אור המאיר', 'בני יששכר', 'שם משמואל', 'פרי צדיק', 'צדקת הצדיק', 'זוהר', 'תיקוני זוהר', 'ילקוט שמעוני', 'מדרש תנחומא', 'תנחומא', 'נצח ישראל', 'גבורות השם', 'תפארת ישראל', 'דרך חיים', 'באר הגולה', 'חובות הלבבות', 'עץ חיים', 'שני לוחות הברית', 'של"ה', 'ליקוטי הלכות', 'ליקוטי תורה', 'תורה אור', 'מאור עינים', 'נועם אלימלך', 'אגרא דכלה', 'עבודת ישראל', 'פרי הארץ', 'רסיסי לילה', 'ישמח משה', 'אור החיים', 'שפ"א', 'חיי מוהר"ן', 'שיחות הר"ן', 'שארית ישראל', 'צרור החיים', 'שמונה פרקים', 'רמזי תורה', 'וצוה הכהן', 'ספר יצירה', 'עמק המלך', 'אמרי אמת', 'שפתי צדיקים', 'קול מבשר', 'שיח שרפי קדש', 'אור יקרות', 'אגרא דפרקא', 'מבשר צדק', 'אוצר החיים', 'היכל הברכה', 'תורת המגיד', 'אור הגנוז לצדיקים', 'תשואות חן', 'ליקוטים יקרים', 'כתבי קודש', 'אורות התחיה', 'אורות הקודש', 'אורות האמונה', 'מגיד דבריו ליעקב', 'דעת זקנים', 'בעל הטורים', 'תרגום אונקלוס', 'תרגום יונתן']);
+  const HINT_LIST = Object.keys(ALIAS).concat(['דגל מחנה אפרים', 'צוואת הריב"ש', 'כתר שם טוב', 'בן פורת יוסף', 'צפנת פענח', 'כתונת פסים', 'ליקוטי אמרים', 'מגיד דבריו ליעקב', 'אור תורה', 'קדושת לוי', 'תניא', 'נתיבות שלום', 'אורות', 'עולת ראיה', 'מסילת ישרים', 'נפש החיים', 'ערבי נחל', 'אוהב ישראל', 'באר מים חיים', 'אור המאיר', 'בני יששכר', 'שם משמואל', 'פרי צדיק', 'צדקת הצדיק', 'זוהר', 'תיקוני זוהר', 'ילקוט שמעוני', 'מדרש תנחומא', 'תנחומא', 'נצח ישראל', 'גבורות השם', 'תפארת ישראל', 'דרך חיים', 'באר הגולה', 'חובות הלבבות', 'עץ חיים', 'שני לוחות הברית', 'של"ה', 'ליקוטי הלכות', 'ליקוטי תורה', 'תורה אור', 'מאור עינים', 'נועם אלימלך', 'אגרא דכלה', 'עבודת ישראל', 'פרי הארץ', 'רסיסי לילה', 'ישמח משה', 'אור החיים', 'שפ"א', 'חיי מוהר"ן', 'שיחות הר"ן', 'שארית ישראל', 'צרור החיים', 'שמונה פרקים', 'רמזי תורה', 'וצוה הכהן', 'ספר יצירה', 'עמק המלך', 'אמרי אמת', 'שפתי צדיקים', 'קול מבשר', 'שיח שרפי קדש', 'אור יקרות', 'אגרא דפרקא', 'מבשר צדק', 'אוצר החיים', 'היכל הברכה', 'תורת המגיד', 'אור הגנוז לצדיקים', 'תשואות חן', 'ליקוטים יקרים', 'כתבי קודש', 'אורות התחיה', 'אורות הקודש', 'אורות האמונה', 'מגיד דבריו ליעקב', ...TZADOK_BOOKS, 'ספר ליקוטי מאמרים', 'דעת זקנים', 'בעל הטורים', 'תרגום אונקלוס', 'תרגום יונתן']);
   const BOOK_HINT = new RegExp(`^(?:${alt(HINT_LIST)})(?=[\\s,]|$)`);
   function entryHead(raw) {
-    let s = normE(raw).replace(/^\d+\s*[.)]\s*/, '').replace(/^מפרשים על התנ"ך,?\s*/, '').replace(/^[-–•*]\s*/, '');
+    let s = tzadokNorm(normE(raw).replace(/^\d+\s*[.)]\s*/, '').replace(/^מפרשים על התנ"ך,?\s*/, '').replace(/^[-–•*]\s*/, ''));
     let head = s;
     const qi = head.search(/:\s*"/);
     if (qi > 0) head = head.slice(0, qi);
     else { const ci = head.indexOf(':'); if (ci > 0) { const after = head.slice(ci + 1).split(/[,;]/)[0]; head = head.slice(0, ci) + (REFW.test(after) && after.length < 45 ? ' ' + after : '') } }
-    { const parts = head.split(/\s[–—-]\s/); head = parts.length > 1 && AUTHOR_RE.test(parts[0] + ' ') && new RegExp(AUTHOR_RE.source + '$').test(parts[0].trim() + ' ') ? parts[1] : parts[0] }
+    { const parts = head.split(/\s[–—-]\s/); head = parts.length > 1 && AUTHOR_RE.test(parts[0] + ' ') && new RegExp(AUTHOR_RE.source + '$').test(parts[0].trim() + ' ') ? parts[1] : parts[0];
+      // "ספר פרי צדיק פרשת תצוה - אות יא": the locator after the dash belongs to the entry
+      const i = parts.indexOf(head); if (i >= 0 && parts[i + 1] && !/(?:^|\s)(?:אות|אותיות|סימן|סי'|פרק|דף|עמ'|עמוד|מאמר|הלכה|קטע|פסקה)\s+\S+$/.test(head) && /^(?:אות|אותיות|סימן|סי'|פרק|דף|עמ'|עמוד|מאמר|הלכה|קטע|פסקה|ד"ה)\s/.test(parts[i + 1].trim()) && parts[i + 1].length < 40) head = head + ' ' + parts[i + 1].trim() }
+    head = tzadokNorm(head);
     head = head.replace(/\s*\.\.\..*$/, '').replace(/[()[\]]/g, ' ').replace(/\s+/g, ' ').replace(/[.,;:\s]+$/, '').trim();
     return head;
   }
 
+  // holidays and named sections of parasha-ordered works ("פרי צדיק בראשית לחנוכה אות ח", "פרי צדיק קדושת שבת מאמר ו")
+  const HOL_RE = /(?:^|[\s,])((?:ל|ב)?(?:חג\s+ה?)?(?:חנוכה|פורים|שושן פורים|פסח שני|פסח|שבועות|סוכות|סכות|ראש השנה|יום הכפורים|יום כיפור|יום הכיפורים|ערב יום הכפורים|שמיני עצרת|שמחת תורה|שבת הגדול|שבת תשובה|שבת שובה|ל"ג בעומר|ט"ו בשבט|ט"ו באב|חמשה עשר באב|חמישה עשר באב|קדושת שבת|שביתת שבת|ראש חודש(?:\s+(?:מנחם\s+)?[א-ת]+(?:\s+שני)?)?|חודש אלול|פרשת שקלים|פרשת זכור|פרשת פרה|פרשת החודש|סעודת פדיון הבן|קונטרס\s+[א-ת"' ]{3,30}?))(?=\s+(?:אות|סימן|מאמר|פרק|קטע|תר)|[\s,]*$|,)/;
   function analyze(head) {
     let t = head.replace(/^ספר\s+/, '').replace(/\s+ז"ל/g, '').replace(/\s+זצ"ל|\s+זי"ע|\s+זלה"ה/g, '').trim();
     const a = { head, book: '', par: null, n: null, part: null, daf: null, bst: false };
@@ -285,6 +309,7 @@
     let par = pm ? pm[1] : null;
     if (!par) { const all = [...rest.matchAll(PAR_RE)].map(m => m[1]); par = all.find(x => !CHUMS.includes(x)) || all[0] || null }
     if (par) { par = par.replace(/\s+/g, ' '); a.par = PAR_ALIAS[par] || par }
+    { const hm = rest.match(HOL_RE); if (hm && !/^פרשת\s/.test(hm[1]) || hm && !pm) { a.hol = hm[1].trim(); if (!pm || CHUMS.includes(a.par)) a.par = null } }
     const nm = rest.match(/(?:^|\s)(?:אות|אותיות|סימן|סי'|פרק|הערה|תורה|הלכה|מאמר|ס"ק|סעיף|פסקה)\s+([א-ת]{1,4}["']?[א-ת]?|\d{1,4})(?=[\s,.:;)\-–]|$)/);
     if (nm && okn(nm[1])) a.n = gem(nm[1]);
     { const pk = rest.match(/(?:^|\s)פרק\s+([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?=[\s,]|$)/), ot = rest.match(/(?:^|\s)(?:אות|הלכה|משנה)\s+([א-ת]{1,3}["']?[א-ת]?|\d{1,3})(?=[\s,.]|$)/); if (pk && ot && okn(pk[1]) && okn(ot[1])) { a.sec = a.sec || gem(pk[1]); a.n = gem(ot[1]) } }
@@ -349,6 +374,17 @@
         }
       }
     }
+    if (!S && a.hol) {
+      const h0 = a.hol.replace(/^ב(?=חג|ראש|שבת|ל"ג|ט"ו)/, ''), core = h0.replace(/^ל(?=[א-ת]{3})/, '').replace(/^חג\s+ה?/, '');
+      const sp = core.replace(/חמישה/, 'חמשה').replace(/^ט"ו באב$/, 'חמשה עשר באב').replace(/סוכות/, 'סכות').replace(/^יום (?:ה)?כי?פורים$|^יום כיפור$/, 'יום הכפורים').replace(/^שבת שובה$/, 'שבת תשובה');
+      const vs = [...new Set([h0, core, 'ל' + core, 'לחג ה' + core, 'חג ה' + core, sp, 'ל' + sp, 'חג ה' + sp, 'לחג ה' + sp, 'ספר ' + core])];
+      outerH: for (const v of vs) {
+        const q = `${T}, ${v}`, r = await nameQ(q);
+        if (r.r && !/\d/.test(r.ref || '')) { S = q; take(q, r, 2); break }
+        const comp = r.c.find(c => c.startsWith(T + ',') && (nb(c).includes(nb(core)) || nb(c).includes(nb(sp))));
+        if (comp) { const r2 = await nameQ(comp); if (r2.r) { S = comp; take(comp, r2, 2); break outerH } }
+      }
+    }
     const base = S || T;
     if (a.n) {
       const qs = [];
@@ -389,7 +425,7 @@
     const ref = piece && body[piece - 1] ? `${best.en} ${si + 1}:${body[piece - 1]}` : `${best.en} ${si + 1}`;
     return { level: 3, url: ref.replace(/ (\d+(?::\d+)?)$/, '.$1').replace(/:/g, '.').replace(/ /g, '_'), ref, he: (t.heRef || 'שפת אמת') + ` (${ym[1]}${piece ? ', קטע ' + pm[1] : ''})`, book: 'שפת אמת' };
   }
-  const EK = 'sefent3', ecache = (() => { try { return JSON.parse(localStorage.getItem(EK) || '{}') } catch (e) { return {} } })();
+  const EK = 'sefent4', ecache = (() => { try { return JSON.parse(localStorage.getItem(EK) || '{}') } catch (e) { return {} } })();
   const saveE = () => { try { localStorage.setItem(EK, JSON.stringify(ecache)) } catch (e) { } };
   async function resolveListed(head) {
     if (head in ecache) return ecache[head];
@@ -435,12 +471,27 @@
     html = String(html || ''); const out = [];
     const push = (s, from, text) => { for (const p of splitList(s)) { const hd = entryHead(p); const w = hd.split(' ').length; if (hd.length < 4 || w > 16 || BAD.test(hd)) continue; if (!looksRef(hd)) continue; out.push({ raw: p, head: hd, from, text: text || '' }) } };
     // walk blocks in order so a heading gets the passage that follows it
-    const blocks = [...html.matchAll(/<(h[1-6]|p)[^>]*>([\s\S]*?)<\/\1>/gi)].map(m => ({ tag: m[1].toLowerCase(), html: m[2], t: normE(m[2]) }));
-    const isHead = b => b.tag[0] === 'h' || /^\s*<(?:strong|b)>[^<]{4,140}<\/(?:strong|b)>\s*$/i.test(b.html);
+    // inline wrappers (<span><span><strong>…</strong></span></span>, <font>, <u>) do not change what a block is
+    const bare = x => String(x).replace(/<\/?(?:span|font|u|em|i|a|sup|sub)\b[^>]*>/gi, '').replace(/&nbsp;|\u00a0/g, ' ').replace(/<(strong|b)\b[^>]*>\s*<\/\1>/gi, '').replace(/<\/(strong|b)>(\s*)<(?:strong|b)\b[^>]*>/gi, '$2').trim();
+    html = html.replace(/<p\b([^>]*)>([\s\S]*?)<\/p>/gi, (m, at, inner) => /<br\s*\/?>/i.test(inner) ? inner.split(/<br\s*\/?>/i).map(x => `<p${at}>${x}</p>`).join('') : m);
+    const blocks = [...html.matchAll(/<(h[1-6]|p)[^>]*>([\s\S]*?)<\/\1>/gi)].map(m => ({ tag: m[1].toLowerCase(), html: bare(m[2]), t: normE(m[2]) })).filter(b => b.t);
+    const isHead0 = b => b.tag[0] === 'h' || /^\s*<(?:strong|b)\b[^>]*>[^<]{4,140}<\/(?:strong|b)>\s*$/i.test(b.html);
+    // a plain (not bold) short reference line right before a longer passage: "ר' צדוק הכהן מלובלין - דובר צדק עמוד כג"
+    const plainRef = (b, nx) => { if (b.tag !== 'p' || b.t.length > 100 || /[.!?:;]$/.test(b.t) || !nx || nx.t.length < 80) return false; const t = tzadokNorm(b.t.replace(/^\d+\s*[.)]\s*/, '')); const hd = entryHead(t); return (/\s[–—-]\s/.test(b.t) && AUTHOR_RE.test(b.t) || BOOK_HINT.test(hd.replace(/^ספר\s+/, ''))) && REFW2.test(hd) && refWord(hd) };
+    const isHead = b => isHead0(b) || plainRef(b, blocks[blocks.indexOf(b) + 1]);
+    // "מקורות נוספים – יערות דבש …; של"ה …; …" (bold, any length): every item is a source
+    const moreList = b => { const m = b.t.match(/^(?:מקורות נוספים|מקורות|ראה עוד|עיין עוד|לעיון נוסף|להרחבה)\s*[:–—-]\s*(.{6,})$/); return m && /^\s*<(?:strong|b)\b/i.test(b.html) ? m[1].split(/\s*;\s*/) : null };
+    // the sheet's own title ("רבי צדוק הכהן לפרשת כי תצא - חטא משפט מות") is not a source
+    const isTitle = (b, i) => i < 3 && /\s[–—-]\s/.test(b.t) && AUTHOR_RE.test(b.t) && /^ל(?:פרשת|חג|חנוכה|פורים|פסח|שבועות|סוכות|ראש|יום|ל"ג|ט"ו|שבת|שמחת|שקלים|זכור)/.test(b.t.replace(AUTHOR_RE, '').trim());
     blocks.forEach((b, i) => {
+      const ml = moreList(b); if (ml) { for (const x of ml) push(x, 'site', ''); return }
+      if (isTitle(b, i)) return;
       if (isHead(b)) {
         let txt = ''; for (let j = i + 1; j < blocks.length && !isHead(blocks[j]) && txt.length < 900; j++) txt += ' ' + blocks[j].t;
-        push(b.t, 'site', txt.trim());
+        // "בעל שם טוב בראשית פרשת בראשית (צוואת הריב"ש דף יט ע"ב)": both are sources
+        const pm2 = b.t.match(/^(.{4,}?)\s*\(([^()]{4,90})\)\s*$/);
+        if (pm2 && looksRef(entryHead(pm2[2])) && looksRef(entryHead(pm2[1]))) { push(pm2[1], 'site', txt.trim()); push(pm2[2], 'site', txt.trim()) }
+        else push(b.t, 'site', txt.trim());
       } else {
         const pm = b.t.match(/\(([^()]{4,140})\)\s*[:.]?\s*$/);
         if (pm && pm[1].split(' ').length <= 14) push(pm[1], 'site', b.t.slice(0, pm.index));
@@ -625,6 +676,89 @@
     return quoted || { phrase: wsOk[0] || phs[0] };
   }
 
+  // ---------- What the lecturer says: passages he reads ("> …" lines of the transcript) and books he names ----------
+  // Each becomes an entry whose wording is searched in Sefaria; it is shown only when found and verified.
+  const SPOKEN_BOOKS = [...new Set(TZADOK_BOOKS.concat(['שפת אמת', 'מי השילוח', 'שם משמואל', 'נתיבות שלום', 'קדושת לוי', 'נועם אלימלך', 'מאור עינים', 'אור החיים', 'אוהב ישראל', 'באר מים חיים', 'דגל מחנה אפרים', 'בני יששכר', 'תולדות יעקב יוסף', 'מאור ושמש', 'ליקוטי מוהר"ן', 'תניא', 'מסילת ישרים', 'נפש החיים', 'כוזרי', 'מורה נבוכים', 'אורות הקודש', 'אורות התשובה', 'עין איה', 'זוהר', 'מדרש רבה', 'בראשית רבה', 'שמות רבה', 'ויקרא רבה', 'במדבר רבה', 'דברים רבה', 'מדרש תנחומא', 'ילקוט שמעוני', 'נצח ישראל', 'גבורות ה\'', 'תפארת ישראל', 'מכילתא', 'ספרא']))].filter(b => b.length >= 4);
+  const SPOKEN_RE = new RegExp(`(?:^|[\\s"'(])(?:ה|ב|ל|ש|מ|וה|וב|שב|שה|כ)?(${SPOKEN_BOOKS.map(esc).join('|')}|(?:ה?ר['׳]|רבי|רב)\\s*צדוק(?:\\s+הכהן)?(?:\\s+מלובלין)?)(?=[\\s,.:"']|$)`, 'g');
+  const qKey = t => '«' + NIK(t).replace(/[^א-ת\s]/g, ' ').replace(/\s+/g, ' ').trim().split(' ').slice(0, 7).join(' ') + '…»';
+  function spokenEntries(segments) {
+    const sg = (segments || []).map(g => ({ s: g.s, t: String(g.t || ''), q: /^\s*>/.test(g.t || '') }));
+    const out = [], seen = new Set(); let nq = 0, nb2 = 0;
+    const words = t => NIK(t).replace(/[^א-ת"'\s]/g, ' ').trim().split(/\s+/).filter(Boolean).length;
+    sg.forEach((g, i) => {
+      if (g.q) {
+        const t = g.t.replace(/^\s*>\s*/, '').replace(/\*\*/g, '').replace(/\s*\([^()]{2,40}\)\s*$/, '');
+        // the preceding sentence may name the book ("כותב הפרי צדיק:") — then search inside that book
+        const prev = sg[i - 1] && !sg[i - 1].q ? sg[i - 1].t.slice(-160) : '';
+        const bm = [...prev.matchAll(SPOKEN_RE)].pop();
+        if (words(t) >= 9 && nq < 25) { const k = qKey(t); if (!seen.has(k)) { seen.add(k); nq++; out.push({ head: k, raw: k, from: 'trq', text: t.slice(0, 700), book: bm ? bm[1] : '', t: g.s }) } }
+        return;
+      }
+      for (const m of g.t.matchAll(SPOKEN_RE)) {
+        if (nb2 >= 12) break;
+        const nx = sg[i + 1];
+        let text = '';
+        const after = g.t.slice(m.index + m[0].length).replace(/^[\s,:]+(?:כותב|אומר|מביא|מסביר|שם|ש)?[\s,:]*/, '');
+        if (nx && nx.q && words(after) < 6) text = nx.t.replace(/^\s*>\s*/, ''); else text = after.split(/\s+/).slice(0, 60).join(' ');
+        if (words(text) < 10) continue;
+        const book = m[1].replace(/\s+/g, ' ');
+        const k = (/צדוק/.test(book) ? "ר' צדוק הכהן" : book) + ' ' + qKey(text);
+        if (seen.has(k) || (nx && nx.q && seen.has(qKey(nx.t.replace(/^\s*>\s*/, ''))))) continue;
+        seen.add(k); nb2++; out.push({ head: k, raw: k, from: 'trb', text: text.slice(0, 700), book, t: g.s });
+      }
+    });
+    return out;
+  }
+  // overlap of word trigrams (spelling-insensitive), used to verify a found text really contains the passage
+  const FINL = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+  const tokz = s => NIK(s).replace(/<[^>]+>/g, ' ').replace(/\([^)]{0,80}\)|\[[^\]]{0,80}\]/g, ' ').replace(/['"״׳]/g, '').replace(/[^א-ת\s]/g, ' ').split(/\s+/).filter(w => w.length > 1).map(w => w.replace(/[ךםןףץ]/g, c => FINL[c]).replace(/^ו(?=..)/, '').replace(/[יו]/g, ''));
+  const tri = s => { const t = tokz(s), g = new Set(); for (let i = 0; i + 3 <= t.length; i++) g.add(t.slice(i, i + 3).join(' ')); return g };
+  const ovl = (p, t) => { const P = [...tri(String(p).split(/\s+/).slice(0, 90).join(' '))], T = tri(t); return P.filter(g => T.has(g)).length };
+  const flatAll = t => Array.isArray(t) ? t.map(flatAll).join(' ') : String(t || '');
+  const tmem = {};
+  async function textAt(ref) { if (ref in tmem) return tmem[ref]; const d = await fetch('https://www.sefaria.org/api/v3/texts/' + encodeURIComponent(ref) + '?version=hebrew&return_format=text_only').then(r => r.ok ? r.json() : null).catch(() => null); const v = d && d.versions && d.versions[0] ? { ref: d.ref, he: d.heRef, t: flatAll(d.versions[0].text).slice(0, 20000) } : null; return tmem[ref] = v }
+  const PATHK = 'sefpath1', pathc = (() => { try { return JSON.parse(localStorage.getItem(PATHK) || '{}') } catch (e) { return {} } })();
+  async function bookPath(name) { // Sefaria category path of a book named in Hebrew ("פרי צדיק" -> "Chasidut/R' Tzadok HaKohen/Peri Tzadik")
+    if (/צדוק/.test(name)) return "Chasidut/R' Tzadok HaKohen";
+    if (name in pathc) return pathc[name];
+    let p = null; try { const r = await nameQ(ALIAS[name] || name); const title = r.r && r.ref ? r.ref.replace(/[ ,]+\d.*$/, '') : null; if (title) { const d = await fetch('https://www.sefaria.org/api/v2/index/' + encodeURIComponent(title)).then(r => r.ok ? r.json() : null).catch(() => null); if (d && d.categories) p = d.categories.concat(d.title).join('/') } } catch (e) { }
+    pathc[name] = p; try { localStorage.setItem(PATHK, JSON.stringify(pathc)) } catch (e) { } return p;
+  }
+  async function sefSearchQ(q, path, loose) {
+    const k = (loose ? 'l|' : 'x|') + (path || '') + '|' + q; if (k in pcache) return pcache[k];
+    await gap();
+    const b = { query: q, type: 'text', field: loose ? 'naive_lemmatizer' : 'exact', slop: loose ? 3 : 0, size: 10, source_proj: ['ref', 'heRef', 'path'] };
+    if (path) Object.assign(b, { filters: [path], filter_fields: ['path'] });
+    const d = await fetch('https://www.sefaria.org/api/search-wrapper', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(b) }).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (!d) return null;
+    const seen = new Set(), v = ((d.hits && d.hits.hits) || []).map(x => x._source || {}).filter(x => x.ref && !seen.has(x.ref) && seen.add(x.ref)).map(x => ({ ref: x.ref, he: x.heRef, path: x.path }));
+    pcache[k] = v; saveP(); return v;
+  }
+  // find the exact place of a spoken/quoted passage; verified by word overlap with the found text
+  async function spokenResolve(e) {
+    const phs = phrasesFrom(e.text, 4); if (!phs.length) return null;
+    const path = e.book ? await bookPath(e.book) : null;
+    const votes = {}, meta = {};
+    for (const ph of phs) {
+      let hits = path ? await sefSearchQ(ph, path, false) : await sefSearchQ(ph, null, false);
+      if (path && (!hits || !hits.length)) hits = await sefSearchQ(ph, path, true);
+      if (!hits || !hits.length || (!path && hits.length > 8)) continue;
+      hits.slice(0, 3).forEach((h, i) => { votes[h.ref] = (votes[h.ref] || 0) + (i ? 1 : 2); meta[h.ref] = h });
+    }
+    // check the best candidates and keep the one that really contains most of the passage; the primary text (Tanakh,
+    // then classical works) wins over a later book that merely quotes it
+    const ranked = Object.keys(votes).sort((a, b) => votes[b] - votes[a]).slice(0, 4);
+    let best = null;
+    for (const ref of ranked) {
+      const t = await textAt(ref); if (!t) continue;
+      const o = ovl(e.text, t.t); if (!(o >= 4 || (o >= 3 && votes[ref] >= 3))) continue;
+      const pth = (meta[ref] && meta[ref].path) || '';
+      const sc = o * (/^Tanakh\/(?:Torah|Prophets|Writings)\//.test(pth) ? 1.6 : /Rishonim|Talmud|Midrash|Mishnah/.test(pth) ? 1.25 : /Liturgy|Siddur|Machzor|Antholog|Ba'al Shem Tov|Ba'al_Shem_Tov/i.test(pth + ' ' + ref) ? 0.45 : /Modern|Contemporary|Notes|Sermons/i.test(pth + ' ' + ref) ? 0.7 : 1);
+      if (!best || sc > best.sc) best = { sc, url: refUrl(t.ref), he: t.he || ref, how: 'spoken', ov: o };
+    }
+    return best;
+  }
+
   async function render(host, text, opts = {}) {
     const segments = opts.segments || null;
     const extras = opts.extras || []; // trSources strings
@@ -648,8 +782,8 @@
       for (const k of keys) { const pos = full.indexOf(k); if (pos >= 0) { const [w] = withTimes([{ label: k, pos }], segments); return e } }
       return e;
     });
-    if (!cs.length && !lts.length) { host.innerHTML = note + (opts.pending ? '' : '<p class="muted">לא זוהו מראי מקומות בטקסט של השיעור, בסיכום, בתמלול ובהערות.</p>'); return { total: 0, hit: 0 } }
-    host.innerHTML = `${note}<p class="muted" id="srcProg">מאתר מקורות בספריא…</p>${lts.length ? `<h4 class="sub-h">מקורות השיעור (<span id="srcN">${lts.length}</span>)</h4><div class="list srclist" id="srcListed"></div>` : ''}<h4 class="sub-h" id="srcMoreH" hidden>מראי מקומות נוספים בטקסט ובתמלול</h4><div class="list srclist" id="srcMore"></div>`;
+    if (!cs.length && !lts.length && !(segments && segments.length && spokenEntries(segments).length)) { host.innerHTML = note + (opts.pending ? '' : '<p class="muted">לא זוהו מראי מקומות בטקסט של השיעור, בסיכום, בתמלול ובהערות.</p>'); return { total: 0, hit: 0 } }
+    host.innerHTML = `${note}<p class="muted" id="srcProg">מאתר מקורות בספריא…</p>${lts.length ? `<h4 class="sub-h">מקורות השיעור (<span id="srcN">${lts.length}</span>)</h4><div class="list srclist" id="srcListed"></div>` : ''}<h4 class="sub-h" id="srcSpokenH" hidden>מקורות שהמרצה מצטט (אותרו לפי הנוסח)</h4><div class="list srclist" id="srcSpoken"></div><h4 class="sub-h" id="srcMoreH" hidden>מראי מקומות נוספים בטקסט ובתמלול</h4><div class="list srclist" id="srcMore"></div>`;
     const seek = c => c.t != null ? `<a class="ts" data-t="${c.t}" href="#">${fmtT(c.t)}</a> ` : '';
     const seen = new Set(); let hit = 0, soft = 0, part = 0;
     const L = host.querySelector('#srcListed');
@@ -674,7 +808,7 @@
         const top = `<b>${h(e.head)}</b> <span class="muted">· ${src}</span><br>`;
         if (r && r.url && r.level >= 3) {
           hit++; seen.add(r.url);
-          L.insertAdjacentHTML('beforeend', `<div class="srcl ent">${top}${sefA(r.url, r.he)}${r.prev ? `<span class="srcprev">${h(r.prev)}…</span>` : ''}</div>`);
+          L.insertAdjacentHTML('beforeend', `<div class="srcl ent">${top}${sefA(r.url, r.he)}</div>`);
         } else if (ph && ph.url && ph.how === 'exact') {
           hit++; viaPh++; seen.add(ph.url);
           L.insertAdjacentHTML('beforeend', `<div class="srcl ent">${top}${sefA(ph.url, ph.he)} <span class="muted">(אותר לפי הנוסח)</span></div>`);
@@ -690,20 +824,35 @@
       }
       const p = host.querySelector('#srcProg'); if (p) p.textContent = `מאתר מקורות… (${Math.min(i + 3, lts.length)}/${lts.length})`;
     }
+    // what the lecturer reads / names in the transcript: searched by its wording, shown only when found
+    const spoken = segments && segments.length ? spokenEntries(segments) : [];
+    if (spoken.length) {
+      const SH = host.querySelector('#srcSpokenH'), SL = host.querySelector('#srcSpoken'); let ns = 0;
+      for (let i = 0; i < spoken.length; i += 3) {
+        const rs = await Promise.all(spoken.slice(i, i + 3).map(async e => { const pr = pre[e.head]; if (pr) return [e, pr.u && pr.lv >= 3 ? { url: pr.u, he: pr.he } : null]; try { return [e, await spokenResolve(e)] } catch (x) { return [e, null] } }));
+        for (const [e, r] of rs) {
+          if (!r || !r.url || [...seen].some(u => u === r.url || r.url.startsWith(u + '.') || String(u).startsWith(r.url + '.'))) continue; seen.add(r.url); hit++; ns++;
+          const ext = /^https?:/.test(r.url);
+          SL.insertAdjacentHTML('beforeend', `<div class="srcl ent">${ext ? `<a href="${r.url}" target="_blank" rel="noopener">${h(r.he)} ↗</a>` : sefA(r.url, r.he)}</div>`);
+        }
+        const p = host.querySelector('#srcProg'); if (p) p.textContent = `מחפש בספריא לפי דברי המרצה… (${Math.min(i + 3, spoken.length)}/${spoken.length})`;
+      }
+      if (ns) SH.hidden = false;
+    }
     const list = host.querySelector('#srcMore'); let more = 0;
     const listedQ = new Set(lts.map(e => nb(e.head)));
     for (let i = 0; i < cs.length; i += 3) {
       const rs = await Promise.all(cs.slice(i, i + 3).map(c => resolve(c).then(r => [c, r])));
       for (const [c, r] of rs) {
-        if (r === undefined) { more++; list.insertAdjacentHTML('beforeend', `<div class="srcl miss"><b>${h(c.label)}</b> <a href="${gSearch(c.q)}" target="_blank" rel="noopener">חיפוש בגוגל ↗</a>${c.snip ? `<span class="srcprev">${h(c.snip)}</span>` : ''}</div>`); continue }
+        if (r === undefined) { more++; list.insertAdjacentHTML('beforeend', `<div class="srcl miss"><b>${h(c.label)}</b> <a href="${gSearch(c.q)}" target="_blank" rel="noopener">חיפוש בגוגל ↗</a></div>`); continue }
         const key = r.url || c.q; if (seen.has(key) || listedQ.has(nb(c.label))) continue; seen.add(key);
         more++;
         if (r.url && !r.search) {
           hit++;
-          list.insertAdjacentHTML('beforeend', `<a class="srcl" href="https://www.sefaria.org.il/${encodeURI(r.url)}?lang=he" target="_blank" rel="noopener"><b>${h(r.he)}</b> <span class="muted">ספריא ↗</span>${r.prev ? `<span class="srcprev">${h(r.prev)}…</span>` : ''}${c.snip ? `<span class="srcprev">${seek(c)}${h(c.snip)}</span>` : ''}</a>`);
+          list.insertAdjacentHTML('beforeend', `<a class="srcl" href="https://www.sefaria.org.il/${encodeURI(r.url)}?lang=he" target="_blank" rel="noopener"><b>${h(r.he)}</b> <span class="muted">ספריא ↗</span></a>`);
         } else {
           soft++;
-          list.insertAdjacentHTML('beforeend', `<div class="srcl soft"><b>${h(c.label)}</b> <a href="${sefSearch(c.q)}" target="_blank" rel="noopener">חיפוש בספריא ↗</a> · <a href="${gSearch(c.q)}" target="_blank" rel="noopener">גוגל ↗</a>${c.snip ? `<span class="srcprev">${seek(c)}${h(c.snip)}</span>` : ''}</div>`);
+          list.insertAdjacentHTML('beforeend', `<div class="srcl soft"><b>${h(c.label)}</b> <a href="${sefSearch(c.q)}" target="_blank" rel="noopener">חיפוש בספריא ↗</a> · <a href="${gSearch(c.q)}" target="_blank" rel="noopener">גוגל ↗</a></div>`);
         }
       }
       const p = host.querySelector('#srcProg'); if (p) p.textContent = `מאתר מראי מקומות… (${Math.min(i + 3, cs.length)}/${cs.length})`;
@@ -715,5 +864,5 @@
     return { total: lts.length + cs.length, listed: lts.length, hit, viaPhrase: viaPh, part, soft };
   }
 
-  window.SrcLink = { requestSearch, titleEntries, descEntries, listedFromText, sheetLinks, sheetEntries, phrasesFrom, phraseResolve, candidates, render, queriesFor, resolve, entryHead, analyze, resolveEntry, resolveListed, listedEntries, listedFromHtml };
+  window.SrcLink = { spokenEntries, spokenResolve, tzadokNorm, requestSearch, titleEntries, descEntries, listedFromText, sheetLinks, sheetEntries, phrasesFrom, phraseResolve, candidates, render, queriesFor, resolve, entryHead, analyze, resolveEntry, resolveListed, listedEntries, listedFromHtml };
 })();

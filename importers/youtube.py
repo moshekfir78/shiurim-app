@@ -37,9 +37,13 @@ def run(slug, cfg):
     keep = set(cfg.get("videos", []))   # hand-checked videos are exempt from the title filters
     for uid in [u for u, v in S.items() if (v["sourceId"] not in keep and any(k in v["title"] for k in cfg.get("excludeTitle", []))) or (v.get("duration") or 0) <= 60]:
         del S[uid]
-    for uid, v in S.items():   # repair items stored without a channel id / details (e.g. YouTube answered 429 at import time)
-        if v["path"][0]["id"].endswith(":None") or v["path"][0]["title"].strip() == "יוטיוב ·":
+    tries = 0
+    for uid, v in S.items():   # repair items stored without a channel id / date (e.g. YouTube answered 429 at import time); a few per run
+        if v["path"][0]["id"].endswith(":None") or v["path"][0]["title"].strip() == "יוטיוב ·" or not v.get("date"):
+            tries += 1
+            if tries > int(os.environ.get("YT_REPAIR_MAX", "60")): break
             d = details(v["sourceId"]) or {}
+            if d.get("upload_date") and not v.get("date"): v["date"] = datetime.datetime.strptime(d["upload_date"], "%Y%m%d").replace(tzinfo=datetime.timezone.utc).isoformat()
             if d.get("channel_id"):
                 v["path"] = [{"id": f"yt:{slug}:{d['channel_id']}", "title": "יוטיוב · " + d.get("channel", "").strip()}]
                 if d.get("title"): v["title"] = d["title"]
