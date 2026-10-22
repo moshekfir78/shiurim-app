@@ -78,7 +78,12 @@ def run(slug, cfg):
         uid = f"youtube:{vid}"
         if uid in S: continue
         d = details(vid) or {}
-        if not d: continue    # details unavailable (e.g. HTTP 429): retried next run instead of storing a half item
+        if not d:
+            # details unavailable (HTTP 429 / YouTube blocks GitHub runners): store from the listing itself when it carries a verbatim
+            # title and a real duration (channel/search listings do); the repair loop above fills date/channel later. Explicit ids retry.
+            if e.get("_explicit") or not e.get("title") or (e.get("duration") or 0) < min_dur: continue
+            d = {"title": e["title"], "duration": e["duration"], "channel": e.get("channel") or e.get("uploader"), "channel_id": e.get("channel_id"),
+                 "description": e.get("description") or ""}
         if d.get("duration", e.get("duration") or 0) <= 60: continue
         if e.get("_explicit") and (not d or (d.get("duration") or 0) < min_dur): continue
         ud = d.get("upload_date")
