@@ -55,12 +55,18 @@ function ytFallback(id, why, retry) {
   return `<div class="yt-fb" style="background-image:url('https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg')"><div class="yt-fb-in">
     <p>${esc(YT_ERR[why] || YT_ERR[2])}</p><p class="prow" style="justify-content:center"><a class="btn pri" href="${ytUrl(id)}" target="_blank" rel="noopener">▶ צפייה ביוטיוב ↗</a>${retry ? '<button class="btn" id="ytRetry">נסו שוב</button>' : ''}</p></div></div>`;
 }
+// Sketches may carry ytAlt: other uploads of the same sketch that play embedded. When the main video can't play here
+// (owner/region block), the player quietly moves to the next copy; only when none plays does the fallback card appear.
+// The chosen copy is remembered for the session (s._yi), so a blocked upload is not retried on every visit.
+const ytIds = s => [s.youtube, ...(s.ytAlt || [])];
+const ytCur = s => { if (s._yi == null) s._yi = s.ytNoEmbed && s.ytAlt && s.ytAlt.length ? 1 : 0; return ytIds(s)[s._yi] || s.youtube };
+const ytFrame = (s, uid) => `<iframe id="ytf" src="${ytSrc(s, uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 function ytSrc(s, uid) {
   const o = encodeURIComponent(location.origin), ref = encodeURIComponent(location.href.split('#')[0]);
-  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(s.youtube)}?rel=0&enablejsapi=1&playsinline=1&origin=${o}&widget_referrer=${ref}${ytStart(uid)}`;
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(ytCur(s))}?rel=0&enablejsapi=1&playsinline=1&origin=${o}&widget_referrer=${ref}${ytStart(uid)}`;
 }
-const ytBlock = (s, uid) => s.ytNoEmbed && !s.audio.length ? `<div class="yt-wrap fb" id="ytw">${ytFallback(s.youtube, 'noembed')}</div>` :
-  `<div class="yt-wrap" id="ytw"><iframe id="ytf" src="${ytSrc(s, uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="muted yt-hint" id="ytHint" hidden>הסרטון לא נטען? <a href="${ytUrl(s.youtube)}" target="_blank" rel="noopener">צפייה ביוטיוב ↗</a></div>`;
+const ytBlock = (s, uid) => s.ytNoEmbed && !s.audio.length && !(s.ytAlt || []).length ? `<div class="yt-wrap fb" id="ytw">${ytFallback(s.youtube, 'noembed')}</div>` :
+  `<div class="yt-wrap" id="ytw">${ytFrame(s, uid)}</div><div class="muted yt-hint" id="ytHint" hidden>הסרטון לא נטען? <a href="${ytUrl(ytCur(s))}" target="_blank" rel="noopener">צפייה ביוטיוב ↗</a></div>`;
 function ytStart(uid) { const p = positions()[uid]; return p && p.t > 5 && (!p.d || p.t < p.d - 10) ? '&start=' + Math.floor(p.t) : '' }
 function item(s) {
   const p = positions()[s.uid], c = catPath(s.cat).slice(curRav() ? 1 : 0).map(x => x.title).join(' › ');
@@ -320,9 +326,15 @@ function ytWire(s, yf) {
     },
     fail(code) {
       me.stop(); const w = $('#ytw'); if (!w) return;
+      // blocked here (not a transient player error) and another copy exists -> switch to it silently
+      if (code !== 2 && code !== 5 && ytCur(s) && s._yi < ytIds(s).length - 1) {
+        s._yi++; w.innerHTML = ytFrame(s, s.uid);
+        const a = $('#ytHint a'); a && (a.href = ytUrl(ytCur(s)));
+        return ytWire(s, $('#ytf'));
+      }
       w.classList.add('fb'); w.innerHTML = ytFallback(s.youtube, code, code === 2 || code === 5);
       const h = $('#ytHint'); h && (h.hidden = true);
-      const r = $('#ytRetry'); r && (r.onclick = () => { w.classList.remove('fb'); w.innerHTML = `<iframe id="ytf" src="${ytSrc(s, s.uid)}" title="YouTube" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`; ytWire(s, $('#ytf')) });
+      const r = $('#ytRetry'); r && (r.onclick = () => { w.classList.remove('fb'); w.innerHTML = ytFrame(s, s.uid); ytWire(s, $('#ytf')) });
     }
   };
   hello();

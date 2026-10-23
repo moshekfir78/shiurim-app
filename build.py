@@ -102,7 +102,10 @@ _ytg = collections.Counter()
 for r in items:
     e = _YTE.get(r.get("youtube") or "")
     if not e: continue
-    if e["s"] == "gone" and e.get("n", 1) >= 2:
+    if e["s"] == "gone" and e.get("n", 1) >= 2 and r.get("ytAlt"):
+        _ytg["gone->alt"] += 1; r["youtube"] = r["ytAlt"].pop(0); r["ytAlt"] or r.pop("ytAlt")   # sketch alternates take over
+        if (r.get("pageUrl") or "").startswith("https://www.youtube.com/watch"): r["pageUrl"] = "https://www.youtube.com/watch?v=" + r["youtube"]
+    elif e["s"] == "gone" and e.get("n", 1) >= 2:
         _ytg["gone"] += 1; r.pop("youtube", None)
         if (r.get("pageUrl") or "").startswith("https://www.youtube.com/watch") and not r.get("audio"): r["pageUrl"] = ""
     elif e["s"] in ("noembed", "age"): _ytg["noembed"] += 1; r["ytNoEmbed"] = 1
@@ -222,7 +225,7 @@ for r in items:
     if r.get("o") is not None: s["o"] = r["o"]
     if tp: s["tp"] = tp
     if f in TRANSCRIPTS: s["tr"] = 1
-    for k in ("youtube", "ytNoEmbed", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
+    for k in ("youtube", "ytNoEmbed", "ytAlt", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
         if r.get(k): s[k] = r[k]
     shiurim.append(s)
 shiurim.sort(key=lambda s: s["date"] or "", reverse=True)

@@ -48,7 +48,8 @@ ARTISTS = [
 ]
 BAD = re.compile(r"(קליפ\b|מוזיקה|music video|\bsong\b|interview|ראיון|פודקאסט|podcast|"
                  r"טריילר|trailer|מאחורי הקלעים|behind the scenes|פרסומת|\bpromo\b|פרומו|"
-                 r"טיזר|teaser|\breact\b|תגובה ל|חדשות|\bnews\b|live stream|לייב\b)", re.I)
+                 r"טיזר|teaser|\breact\b|תגובה ל|חדשות|\bnews\b|live stream|לייב\b|"
+                 r"מתארח|פגישה עם|תכנית הבוקר|תוכנית הבוקר|העולם הבוקר|בוקר טוב ישראל|המעגל הקטן|דוקומנטרי|דוקותיים)", re.I)
 # songs: only exclude if clearly a song clip, not "שירי" in sketch titles carelessly
 SONG = re.compile(r"(^|\s)(שיר|שירים|קליפ מוזיקלי|סופר סטאר)(\s|$)", re.I)
 HE = re.compile(r"[\u0590-\u05FF]")
@@ -160,6 +161,7 @@ def main():
     ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
     old = json.load(open(os.path.join(ROOT, "data", "sketches.json"), encoding="utf-8"))
     old_by = {p["id"]: {v["id"]: v for v in p["videos"]} for p in old["performers"]}
+    EXCL = set(old.get("exclude", []))   # curated removals (interviews, news, non-sketches) - never re-added
     results = {}
     for a in ARTISTS:
         print("===", a["name"], flush=True)
@@ -169,7 +171,7 @@ def main():
             if vid not in {x["id"] for x in items}:
                 items.append({"id": vid, "title": v["title"], "duration": v.get("duration"),
                               "channel": v.get("channel"), "views": 0})
-        items = dedupe(items, a["name"])
+        items = [x for x in dedupe(items, a["name"]) if x["id"] not in EXCL]
         items.sort(key=lambda x: (-(x["views"] or 0), x["title"]))
         results[a["id"]] = {"name": a["name"], "count": len(items), "videos": items}
         json.dump(results[a["id"]], open(f"{OUT}/{a['id']}.json", "w"), ensure_ascii=False, indent=1)
@@ -177,10 +179,15 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     json.dump(results, open(f"{OUT}/all.json", "w"), ensure_ascii=False, indent=1)
     # write data/sketches.json (caller should review; this replaces the curated list)
+    # alternates ("alts": embeddable copies of the same sketch, tried by the player first) are kept from the old list
+    keep_alts = lambda pid, v: ({"alts": old_by[pid][v["id"]]["alts"]} if old_by.get(pid, {}).get(v["id"], {}).get("alts") else {})
     performers = [{"id": a["id"], "name": a["name"],
-                   "videos": [{"id": v["id"], "title": v["title"], "duration": v.get("duration"), "channel": v.get("channel")}
+                   "videos": [{"id": v["id"], "title": v["title"], "duration": v.get("duration"), "channel": v.get("channel"), **keep_alts(a["id"], v)}
                               for v in results[a["id"]]["videos"]]} for a in ARTISTS]
-    json.dump({"_note": "Auto-rescanned. Review before commit.", "performers": performers},
+    # performers curated outside this scan (e.g. the classic-sketch archive channel, זהו זה) are kept as they are
+    done = {a["id"] for a in ARTISTS}
+    performers += [p for p in old["performers"] if p["id"] not in done]
+    json.dump({"_note": "Auto-rescanned. Review before commit.", **({"exclude": old["exclude"]} if old.get("exclude") else {}), "performers": performers},
               open(os.path.join(ROOT, "data", "sketches.json"), "w"), ensure_ascii=False, indent=1)
     # embeddability: check every new video in a real embedded player (data/yt_embed.json); importers/sketches.py
     # then drops deleted/private ones and marks owner-disabled embeds (app shows "watch on YouTube")

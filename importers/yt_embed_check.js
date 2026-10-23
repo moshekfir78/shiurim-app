@@ -20,7 +20,7 @@ const state = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : {}
 const ids = new Map();   // id -> priority (0 sketches, 1 others)
 for (const f of fs.readdirSync(path.join(ROOT, 'data', 'sources')).filter(f => f.endsWith('.json')).sort()) {
   const st = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'sources', f), 'utf8'));
-  for (const r of Object.values(st.shiurim || {})) if (r.youtube && /^[\w-]{11}$/.test(r.youtube)) ids.set(r.youtube, Math.min(ids.get(r.youtube) ?? 9, f.includes('sketches') ? 0 : 1));
+  for (const r of Object.values(st.shiurim || {})) for (const y of [r.youtube, ...(r.ytAlt || [])]) if (y && /^[\w-]{11}$/.test(y)) ids.set(y, Math.min(ids.get(y) ?? 9, f.includes('sketches') ? 0 : 1));
 }
 const rank = id => (state[id] ? 2 : 0) + ids.get(id);
 let todo = ONLY || [...ids.keys()].sort((a, b) => rank(a) - rank(b) || ((state[a] || {}).at || '').localeCompare((state[b] || {}).at || ''));

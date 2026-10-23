@@ -1,5 +1,26 @@
 {
  "_note": "Rescanned YouTube sketches (verbatim titles, yt-dlp lang=iw). Official channels+playlists+broad searches; Hebrew; no Shorts; deduped by title; songs/interviews/promos/full-shows filtered. CI does not re-scrape YouTube.",
+ "exclude": [
+  "tDfdo_74i9U",
+  "HSQ6hKNhdBo",
+  "FKZ1sPzvFjU",
+  "LU6DQUvXwkk",
+  "CwizyllXbXs",
+  "pFtesnU2y7o",
+  "3KozTiIbn2w",
+  "2zOvPpmz7oY",
+  "55VYIJ0Bjio",
+  "PIou2QJAoYY",
+  "l5VaMis0z6Q",
+  "2Frh2nol99M",
+  "Kwh-J3N51Yc",
+  "119TEnLqF-Q",
+  "fg7l93T2NZU",
+  "-ZWlRg0CoxY",
+  "zLADV86_xyg",
+  "GAcVF-8GQtE",
+  "ZcxHRx7fyAE"
+ ],
  "performers": [
   {
    "id": "gashash",
@@ -462,12 +483,6 @@
      "channel": "yossihenstandup"
     },
     {
-     "id": "tDfdo_74i9U",
-     "title": "החיים על פי הגשש החיוור | הומור או גזענות?",
-     "duration": 310,
-     "channel": "yes tv (יס)"
-    },
-    {
      "id": "r97OM4HQo2k",
      "title": "עלי גבעה (בגליל) - גרסת יוסי בנאי והגשש החיוור",
      "duration": 172,
@@ -556,12 +571,6 @@
      "title": "מה הוא עושה לה - הגשש החיוור - קריוקי",
      "duration": 95,
      "channel": "oren lev pro"
-    },
-    {
-     "id": "HSQ6hKNhdBo",
-     "title": "הגשש החיוור חוגגים 50 שנה",
-     "duration": 272,
-     "channel": "כאן חינוכית"
     },
     {
      "id": "2t51tPDBZ_8",
@@ -1212,12 +1221,6 @@
      "channel": "סטאנדאפ וסרטונים מצחיקים"
     },
     {
-     "id": "FKZ1sPzvFjU",
-     "title": "פגישה עם רוני קובן עונה 7 | פרק 7 - אדיר מילר",
-     "duration": 1801,
-     "channel": "כאן 11 - תאגיד השידור הישראלי"
-    },
-    {
      "id": "JYQLCXK5x1s",
      "title": "אדיר מילר מאלתר באריאל חדש 2019",
      "duration": 873,
@@ -1228,12 +1231,6 @@
      "title": "אדיר מילר מתעסק עם שוטרת - לא שודר 2018",
      "duration": 127,
      "channel": "סטג'ר - הערוץ הרשמי"
-    },
-    {
-     "id": "LU6DQUvXwkk",
-     "title": "העולם עצוב אז צוחקים עונה 2: אדיר מילר",
-     "duration": 1563,
-     "channel": "כאן חינוכית"
     },
     {
      "id": "zxB4aUX56r4",
@@ -1314,12 +1311,6 @@
      "channel": "Killer Tb"
     },
     {
-     "id": "Kwh-J3N51Yc",
-     "title": "גוסלר בית הפקה - דוקומנטרי - \"אתכם, בזכותכם!\" - אדיר מילר ודין מירושניקוב",
-     "duration": 337,
-     "channel": "גוסלר בית הפקה DreamTeam Media Productions"
-    },
-    {
      "id": "D0-FHAoeN9o",
      "title": "אדיר מילר בודק למי יש את הצחוק הכי מוזר בקהל - קורע!",
      "duration": 187,
@@ -1350,12 +1341,6 @@
      "channel": "Sagit Sol"
     },
     {
-     "id": "CwizyllXbXs",
-     "title": "המעגל הקטן עם דן שילון - בלעדי! ערבייה פולניה? עם אדיר מילר, יעל בר זוהר ולוסי אהריש",
-     "duration": 252,
-     "channel": "רשת 13"
-    },
-    {
      "id": "oecfdq2LENc",
      "title": "אדיר מילר - דובי",
      "duration": 208,
@@ -1372,12 +1357,6 @@
      "title": "נאור ציון אצל אדיר מילר די וי די",
      "duration": 483,
      "channel": "doovidle"
-    },
-    {
-     "id": "pFtesnU2y7o",
-     "title": "בוקר טוב ישראל - הכירו את אדיר מילר, סטנדאפיסט עולה | כאן ארכיון",
-     "duration": 136,
-     "channel": "כאן ארכיון | אוצרות השידור הישראלי"
     },
     {
      "id": "lWPY2XvhsOw",
@@ -1552,12 +1531,6 @@
      "title": "הונגרים- אדיר מילר ושגית סול",
      "duration": 172,
      "channel": "Sagit Sol"
-    },
-    {
-     "id": "3KozTiIbn2w",
-     "title": "חיות במה - אדיר מילר",
-     "duration": 1217,
-     "channel": "כאן חינוכית"
     },
     {
      "id": "6B8Fv48LgVE",
@@ -1812,12 +1785,6 @@
      "channel": "Papy shmuly"
     },
     {
-     "id": "119TEnLqF-Q",
-     "title": "בר-אילן פינת ישראל: אדיר מילר מתארח בבר-אילן",
-     "duration": 64,
-     "channel": "Bar-Ilan University - אוניברסיטת בר-אילן"
-    },
-    {
      "id": "dshn-fWKw2s",
      "title": "החברים של אדיר מילר",
      "duration": 250,
@@ -1954,12 +1921,6 @@
      "title": "אדיר מילר סטנדאפ 2021 אצל דודו טופז",
      "duration": 322,
      "channel": "דודו טופז הראשון בבידור Dudu Topaz"
-    },
-    {
-     "id": "2zOvPpmz7oY",
-     "title": "אדיר מילר פגע במשטרה בתכניתו והיא בתגובה ביטלה הופעתו",
-     "duration": 343,
-     "channel": "כאן חינוכית"
     },
     {
      "id": "x-2bo0fpPF8",
@@ -2128,12 +2089,6 @@
      "title": "אדיר מילר מכבית",
      "duration": 122,
      "channel": "John Tube"
-    },
-    {
-     "id": "fg7l93T2NZU",
-     "title": "דודו טופז מתארח ב\"ערב אדיר עם אדיר מילר",
-     "duration": 574,
-     "channel": "eyallz (new channel)"
     },
     {
      "id": "fbRiMS_171c",
@@ -2472,12 +2427,6 @@
      "channel": "Papy shmuly"
     },
     {
-     "id": "-ZWlRg0CoxY",
-     "title": "אופיר פינס מתארח אצל אדיר מילר במאי אסף קמר  Assaf Kamar",
-     "duration": 66,
-     "channel": "Assaf Kamar"
-    },
-    {
      "id": "582tvDKo0e4",
      "title": "אדיר מילר הסטנדאפיסט בקטע קורע מצחוק מהופעת האלתורים שלו",
      "duration": 261,
@@ -2542,12 +2491,6 @@
      "title": "אדיר מילר מאלתר ודופק מופע סטנדאפ במוקד מכבי - סטנדאפיסט אדיר מילר סטנדאפ במכבי",
      "duration": 723,
      "channel": "best fails"
-    },
-    {
-     "id": "zLADV86_xyg",
-     "title": "חוגגים יום הולדת לארגון העובדים עם אדיר מילר",
-     "duration": 69,
-     "channel": "ארגון עובדי EY"
     },
     {
      "id": "o1DnCIMIHR8",
@@ -3324,12 +3267,6 @@
      "channel": "MrLidorm12"
     },
     {
-     "id": "GAcVF-8GQtE",
-     "title": "צחוק מעבודה - אורי חזקיה - אופנה",
-     "duration": 494,
-     "channel": "רשת 13"
-    },
-    {
      "id": "neGc7J10HJw",
      "title": "צחוק מעבודה : : אורי חזקיה : : זבל",
      "duration": 512,
@@ -3345,13 +3282,19 @@
      "id": "F3j4jKW1xVI",
      "title": "צחוק מעבודה : : אורי חזקיה : : מחלות",
      "duration": 285,
-     "channel": "רשת 13"
+     "channel": "רשת 13",
+     "alts": [
+      "BKcjV6fdo2Q"
+     ]
     },
     {
      "id": "-f5pEMAtXyU",
      "title": "צחוק מעבודה : : אורי חזקיה : : טיולים שנתיים",
      "duration": 264,
-     "channel": "רשת 13"
+     "channel": "רשת 13",
+     "alts": [
+      "wGhmsYy6gOM"
+     ]
     },
     {
      "id": "pX-A8SrA_R0",
@@ -3381,7 +3324,11 @@
      "id": "qWqjAWwPBPU",
      "title": "אורי חזקיה - ימי הולדת",
      "duration": 382,
-     "channel": "רשת 13"
+     "channel": "רשת 13",
+     "alts": [
+      "P0efQR-LegE",
+      "RQHie8lbq10"
+     ]
     },
     {
      "id": "-hpLKGCdbTQ",
@@ -3412,12 +3359,6 @@
      "title": "אורי חזקיה | סטנדאפ מועדון לילה 2017 |חלק 5",
      "duration": 246,
      "channel": "אורי חזקיה - Ori Hizkiah"
-    },
-    {
-     "id": "ZcxHRx7fyAE",
-     "title": "צחוק מעבודה : : אורי חזקיה : : קולנוע",
-     "duration": 295,
-     "channel": "רשת 13"
     },
     {
      "id": "TIh94g4eRQY",
@@ -3738,12 +3679,6 @@
      "channel": "בניהו אברהמי"
     },
     {
-     "id": "55VYIJ0Bjio",
-     "title": "אורי חזקיה ושאולי בדישי- תכנית הבוקר",
-     "duration": 197,
-     "channel": "רשת 13"
-    },
-    {
      "id": "R7iQ9o9M13o",
      "title": "המערכונים הכי מצחיקים | סטנדאפ אורי חזקיה | טופ 5",
      "duration": 722,
@@ -3828,12 +3763,6 @@
      "channel": "מעניין"
     },
     {
-     "id": "PIou2QJAoYY",
-     "title": "העולם הבוקר- אורי חזקיה חותך לפת על הבוקר?",
-     "duration": 221,
-     "channel": "רשת 13"
-    },
-    {
      "id": "dlS6G1A4dT8",
      "title": "אורי חזקיה -מזייף בפזמון♥",
      "duration": 196,
@@ -3910,12 +3839,6 @@
      "title": "פלאות - הציורים של אורי חזקיה קמים לתחיה",
      "duration": 75,
      "channel": "קולנוע ישראלי"
-    },
-    {
-     "id": "l5VaMis0z6Q",
-     "title": "אורי חזקיה על העונה החדשה של צחוק מעבודה",
-     "duration": 101,
-     "channel": "PaparazziChannel"
     },
     {
      "id": "Zl2ll-oFGcQ",
@@ -4014,12 +3937,6 @@
      "channel": null
     },
     {
-     "id": "2Frh2nol99M",
-     "title": "אורי חזקיה- תבוא אלי",
-     "duration": 239,
-     "channel": "galya2020"
-    },
-    {
      "id": "TUyckaSkZ9g",
      "title": "אורי חזקיה| סטנדאפ מועדון לילה 2017 | חלק 6",
      "duration": 255,
@@ -4048,6 +3965,4116 @@
      "title": "טרמפ קטלני",
      "duration": 86,
      "channel": null
+    }
+   ]
+  },
+  {
+   "id": "zehuze",
+   "name": "זהו זה",
+   "videos": [
+    {
+     "id": "JCseeCGt6YI",
+     "title": "זהו זה - מוח על האש",
+     "duration": 200,
+     "channel": "Gadi Yosef"
+    },
+    {
+     "id": "5wEh2q3VkIQ",
+     "title": "זהו זה מלחמת המפרץ חתוך",
+     "duration": 401,
+     "channel": "ורדית פרידמן"
+    },
+    {
+     "id": "e_AWcmHkdg8",
+     "title": "זהו זה ממלחמת המפרץ",
+     "duration": 341,
+     "channel": "Roei Hayoon"
+    },
+    {
+     "id": "yX0PJ-wrYYM",
+     "title": "זהו זה - פטנטים ישראלים כחול לבן",
+     "duration": 246,
+     "channel": "‫אורי שוכר (‪Uri Sucher‬‏)‬‎"
+    },
+    {
+     "id": "HX8laE9Kcec",
+     "title": "זהו זה - רפי לוי - כתף אזל לי",
+     "duration": 193,
+     "channel": "‫אורי שוכר (‪Uri Sucher‬‏)‬‎"
+    },
+    {
+     "id": "ZSwqSmuLbpE",
+     "title": "זהו זה - הפולניות 1998",
+     "duration": 116,
+     "channel": "ארכיוניר"
+    },
+    {
+     "id": "BACVshsUNoI",
+     "title": "זהו זה - מאד עשירה",
+     "duration": 217,
+     "channel": "‫אורי שוכר (‪Uri Sucher‬‏)‬‎"
+    },
+    {
+     "id": "SQBkLw_9nlg",
+     "title": "זהו זה מסירת דירה ללקוח",
+     "duration": 216,
+     "channel": "כלכלה יצירתית בע\"מ"
+    },
+    {
+     "id": "eqxm4M6PJr0",
+     "title": "זהו זה מכללת קדומים אקדמייזלר",
+     "duration": 198,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "rv0k-Ln5zjk",
+     "title": "זהו זה! בממ\"ד | מחפשים מקלט (ספיישל עם כלביא)",
+     "duration": 142,
+     "channel": "כאן 11 - תאגיד השידור הישראלי"
+    },
+    {
+     "id": "jqrbfYa1oyg",
+     "title": "זהו זה - שקע חמקמק",
+     "duration": 319,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "WDH4lYFdlms",
+     "title": "זהו זה- סופר בפולנית",
+     "duration": 191,
+     "channel": "uricovagerev"
+    },
+    {
+     "id": "zWdyYImPq-A",
+     "title": "זהו זה - שבשבת",
+     "duration": 266,
+     "channel": "Avi Benodis"
+    },
+    {
+     "id": "LEHPlkz1UTo",
+     "title": "זהו זה - ארכיון ממלחמת המפרץ: ההנחיות לחזרה ללימודים במערכת החינוך",
+     "duration": 75,
+     "channel": "WhatsApp Videos"
+    },
+    {
+     "id": "quchB-4V1JA",
+     "title": "זהו זה חלוקת תיקים לשרים החדשים",
+     "duration": 164,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "7LDlCJwgSeA",
+     "title": "זהו זה משכנתא בבנק",
+     "duration": 219,
+     "channel": "כלכלה יצירתית בע\"מ"
+    },
+    {
+     "id": "f2rS2ETGdIo",
+     "title": "זהו זה הפגנה",
+     "duration": 143,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "WgSdQHyJ6Fw",
+     "title": "זהו זה שוד בית נייר הטואלט",
+     "duration": 281,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "w9gX0J_7bVU",
+     "title": "זהו זה (מוני מושונוב,שלמה בר-אבא ואבי קושניר) - הבאבא בובה בריקודי עם",
+     "duration": 224,
+     "channel": "אור קורן"
+    },
+    {
+     "id": "8XqJfFxLVdo",
+     "title": "זהו זה המתלמדים",
+     "duration": 296,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "xScqjibFxEk",
+     "title": "זהו זה מפגינים בתחנת משטרה",
+     "duration": 179,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "2gLaD-z14ZE",
+     "title": "זהו זה - החזרה מדובאי 😂🤣",
+     "duration": 155,
+     "channel": "Amnon M"
+    },
+    {
+     "id": "DJIGmhHP9Ks",
+     "title": "זהו זה-פורים 1987 (מערבון) -1 מתוך 2 - דורון צפריר",
+     "duration": 484,
+     "channel": "gmaildotcom"
+    },
+    {
+     "id": "2dy3YRk2ZjM",
+     "title": "זהו זה! בממ\"ד | הבידרמנים בממ\"ד (ספיישל עם כלביא)",
+     "duration": 285,
+     "channel": "כאן 11 - תאגיד השידור הישראלי"
+    },
+    {
+     "id": "MCIXlNY7oJo",
+     "title": "זהו זה אלעל",
+     "duration": 94,
+     "channel": "Moshe Dav"
+    },
+    {
+     "id": "dh6z_8ZXPoU",
+     "title": "זהו זה יעוץ.זוגי",
+     "duration": 187,
+     "channel": "mosthandsum"
+    },
+    {
+     "id": "7hsNeBYiYU4",
+     "title": "זהו זה! - בית משותף | כאן מציינים 90 שנה לשידור הציבורי",
+     "duration": 138,
+     "channel": "כאן 11 - תאגיד השידור הישראלי"
+    },
+    {
+     "id": "pyvWiU1JabA",
+     "title": "זהו זה - מיני לקט המנחים צוחקים בשידור חי",
+     "duration": 239,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "S9tNoHAbQgI",
+     "title": "זהו זה! בממ\"ד | ארווין וסימה – אין אזעקה (ספיישל עם כלביא)",
+     "duration": 205,
+     "channel": "כאן 11 - תאגיד השידור הישראלי"
+    },
+    {
+     "id": "1dUSmTRutNA",
+     "title": "זהו זה! - סעדון מחדרה",
+     "duration": 169,
+     "channel": "Snir Turgeman"
+    },
+    {
+     "id": "WGKV15gIpa4",
+     "title": "מערכון הזקנים של זהו זה - 16.7.2019",
+     "duration": 695,
+     "channel": "Gaby Bernstein's bread and butter"
+    },
+    {
+     "id": "mDmvVPtWCic",
+     "title": "זהו זה / פינת הספרות עם 'חוחית' 1985",
+     "duration": 252,
+     "channel": "parasitext"
+    },
+    {
+     "id": "3mAMc0-Sl9I",
+     "title": "זהו זה! בממ\"ד | הזקנים מפחדים (ספיישל עם כלביא)",
+     "duration": 308,
+     "channel": "כאן 11 - תאגיד השידור הישראלי"
+    },
+    {
+     "id": "DRn-aydg_NE",
+     "title": "שבי חוזר מהמילואים, זהו זה",
+     "duration": 86,
+     "channel": "Tamir Schen"
+    },
+    {
+     "id": "4W68KyOytAM",
+     "title": "זהו זה-המשמר האזרחי במלחמת המפרץ(1990) 1 מתוך2  -דורון צפריר",
+     "duration": 436,
+     "channel": "gmaildotcom"
+    },
+    {
+     "id": "Il6aI0UHRIw",
+     "title": "זהו זה! ג'ו ביידן נכנס לבית הלבן 🤣😂",
+     "duration": 225,
+     "channel": "Amnon M"
+    },
+    {
+     "id": "zFLgjpw-cNk",
+     "title": "דבי ונולי -  מתוך \"זהו זה\" מלחמת המפרץ",
+     "duration": 160,
+     "channel": "נולי עומר"
+    },
+    {
+     "id": "GVAmwhuHjXw",
+     "title": "המסעדה הגדולה - זהו זה",
+     "duration": 1337,
+     "channel": "קובי וסרלאוף רוק ישראלי איזוטרי ובדיחות אולד סקול!"
+    },
+    {
+     "id": "c95w8FKUDyo",
+     "title": "זהו זה - נהגי גן עדן",
+     "duration": 533,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "Tge7EzLMcO8",
+     "title": "מערכון מהתוכנית \"זהו זה\", הטלוויזיה החינוכית, ערוץ 1",
+     "duration": 62,
+     "channel": "העין השביעית - The Seventh Eye"
+    },
+    {
+     "id": "Dew18xMclcE",
+     "title": "זהו זה - מסע בין כוכבים , חלק 1/4",
+     "duration": 562,
+     "channel": "Robotrik1"
+    },
+    {
+     "id": "yyhNISM8KR4",
+     "title": "זהו זה! בממ\"ד | חיליק מגנוס מחלץ ישראלים שנתקעו בחו\"ל (ספיישל עם כלביא)",
+     "duration": 220,
+     "channel": "כאן 11 - תאגיד השידור הישראלי"
+    },
+    {
+     "id": "QW2FEqoXMJ0",
+     "title": "זהו זה רשות המיסים",
+     "duration": 231,
+     "channel": "Amnon M"
+    },
+    {
+     "id": "KDnrF9fuzP0",
+     "title": "זהו זה! בהופעה בקיסריה - מערכון חיים בידרמן",
+     "duration": 249,
+     "channel": "Amit Meir"
+    },
+    {
+     "id": "EsZIw6RzJFg",
+     "title": "זהו זה חי - מוני מושונוב, דוב'לה גליקמן ואבי קושניר - עם הפולניות - ערוץ 2 - שידורי רשת - 1997",
+     "duration": 585,
+     "channel": "‫אבי עמיצור - נוסטלגיה וזכרונות ילדות‬‎"
+    },
+    {
+     "id": "HHTTpd0i64I",
+     "title": "זהו זה - מסיבת פרידה לגידי",
+     "duration": 2090,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "YLPc1RzFFIM",
+     "title": "עפרה חזה-זהו זה-\"האחים בוז\"-חלק ה'",
+     "duration": 403,
+     "channel": "NofarOfra"
+    },
+    {
+     "id": "5Ik03oLlqtk",
+     "title": "זהו זה סרט ערבי, פורים 2011 סאנדיסק",
+     "duration": 175,
+     "channel": "Orit Arnon"
+    },
+    {
+     "id": "au3h4zQDiaE",
+     "title": "גידי גוב מחקה את טל ברודי בזהו זה",
+     "duration": 244,
+     "channel": "history0811"
+    },
+    {
+     "id": "Iy53WQJuD1A",
+     "title": "זהו זה-המשמר האזרחי במלחמת המפרץ(1990) 2 מתוך  2-דורון צפריר",
+     "duration": 436,
+     "channel": "gmaildotcom"
+    },
+    {
+     "id": "9Zu93HvBUOw",
+     "title": "זהו זה - סיום עונת הקיץ 1979",
+     "duration": 2048,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "6_Ck1l36lYA",
+     "title": "זהו זה-סערה בכוס תה-מאיגרא רמא לבירא עמיקתא-דורון צפריר",
+     "duration": 272,
+     "channel": "gmaildotcom"
+    },
+    {
+     "id": "fC0CTHDt6Po",
+     "title": "עפרה חזה-זהו זה-\"האחים בוז\"-חלק א'",
+     "duration": 481,
+     "channel": "NofarOfra"
+    },
+    {
+     "id": "oZcRuhG8r60",
+     "title": "קטע זהו זה מלחמת המפרץ",
+     "duration": 306,
+     "channel": "Almogit Guez"
+    },
+    {
+     "id": "EtHrd19ZZcU",
+     "title": "זהו זה הקריינית הקוריאנית",
+     "duration": 260,
+     "channel": "Benjamin May"
+    },
+    {
+     "id": "EYJ2tYIHF6A",
+     "title": "מלחמת החזאים - זהו זה",
+     "duration": 1609,
+     "channel": "קובי וסרלאוף רוק ישראלי איזוטרי ובדיחות אולד סקול!"
+    },
+    {
+     "id": "quvGZAuBltM",
+     "title": "זהו זה עונה 8 פרק 17.  10.03.26",
+     "duration": 253,
+     "channel": "רונן פורמן . רב מג"
+    },
+    {
+     "id": "GdkbKKm-rnM",
+     "title": "זהו זה - פלטפוס: האיחוד 1998",
+     "duration": 336,
+     "channel": "ארכיוניר"
+    },
+    {
+     "id": "c1xAgOUfonc",
+     "title": "זהו זה - חידת המדע של גברת תשובה",
+     "duration": 267,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "BVY8XQ3tMR0",
+     "title": "הזקנים של זהו זה - גרסת 2019",
+     "duration": 354,
+     "channel": "Nogaro"
+    },
+    {
+     "id": "bohmg_8Az0Q",
+     "title": "צחוק ישראלי הכי הכי - הפולניות - זהו זה עם מני פאר",
+     "duration": 637,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "wKAK172fyx8",
+     "title": "זהו זה בחירות 2022 🤣😂😝",
+     "duration": 217,
+     "channel": "Amnon M"
+    },
+    {
+     "id": "U6GJKe9IMs8",
+     "title": "זהו זה!  המשטרה חוקרת",
+     "duration": 105,
+     "channel": "m.p."
+    },
+    {
+     "id": "SUEp3abjzGk",
+     "title": "\"המופע של זהו זה\" - אוגוסט 1997",
+     "duration": 466,
+     "channel": "קלטות מכוסות אבק"
+    },
+    {
+     "id": "ps2qc72caO8",
+     "title": "בשיטור חוקר - זהו זה",
+     "duration": 1391,
+     "channel": "קובי וסרלאוף רוק ישראלי איזוטרי ובדיחות אולד סקול!"
+    },
+    {
+     "id": "Esu3y65fZAE",
+     "title": "זהו זה - מסע בין כוכבים , חלק 3/4",
+     "duration": 525,
+     "channel": "Robotrik1"
+    },
+    {
+     "id": "QHvCe_z_Pqk",
+     "title": "זהו זה המערכון המלא 24.11.25",
+     "duration": 187,
+     "channel": "רונן פורמן . רב מג"
+    },
+    {
+     "id": "ZsrL7MmGYd0",
+     "title": "זהו זה על הבמה - מערכון זקנים (היכל התרבות ת״א - 02.02.24)",
+     "duration": 598,
+     "channel": "shay kedmi"
+    },
+    {
+     "id": "oQThsIzPOnM",
+     "title": "מצעד המערכונים של זהו זה - לקט DVD מס' 3",
+     "duration": 3402,
+     "channel": "אור קורן"
+    },
+    {
+     "id": "MUViaHG8_Ps",
+     "title": "זהו זה - האחים מרכס",
+     "duration": 157,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "vjlzF1BuvEQ",
+     "title": "עפרה חזה-זהו זה-\"האחים בוז\"-חלק ג'",
+     "duration": 461,
+     "channel": "NofarOfra"
+    },
+    {
+     "id": "nffqEQP9YFE",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - זהו זה מערכונים יוני 96",
+     "duration": 1488,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "egrJmsDkBsc",
+     "title": "זהו זה מערכון ״מוכרת הגפרורים״",
+     "duration": 158,
+     "channel": "אקשן ACTION"
+    },
+    {
+     "id": "kEBCv1tEJGc",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - Israeli archive - זהו זה חי מערכונים",
+     "duration": 1329,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "2QqmdUApGyg",
+     "title": "זהו זה - מסעדה צרפתית",
+     "duration": 162,
+     "channel": "Nogaro"
+    },
+    {
+     "id": "Y-rrbfXn_fo",
+     "title": "זהו זה עונה 8 פרק 19. \"המקלט\"",
+     "duration": 171,
+     "channel": "רונן פורמן . רב מג"
+    },
+    {
+     "id": "5KYyW6aFh38",
+     "title": "זהו זה - פתיחת עונת הקיץ 1979",
+     "duration": 2354,
+     "channel": "אור קורן"
+    },
+    {
+     "id": "ablUayqDc98",
+     "title": "זהו זה ל״ג בעומר מערכון ״ יותם אמר שזה בסדר״",
+     "duration": 220,
+     "channel": "אקשן ACTION"
+    },
+    {
+     "id": "NPdHnGQKb5Y",
+     "title": "זהו זה - לדבר כמו ברנדו 1991",
+     "duration": 90,
+     "channel": "ארכיוניר"
+    },
+    {
+     "id": "YJuPYN2f2HY",
+     "title": "צחוק ישראלי הכי הכי - פאקט   עולם הזוהר -  מערכון על אילנה  דיין - עובדה - זהו זה",
+     "duration": 168,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "on7QQy-caTY",
+     "title": "מערכון זהו זה - הבאבא בובה - ריקודי עם - פסטיבל קמפ בתנועה 2013",
+     "duration": 278,
+     "channel": "Gadi Bitton"
+    },
+    {
+     "id": "hlj3EB03Zq8",
+     "title": "זהו זה - גירושין פיקטיביים - עם מוני מושונוב ואבי קושניר - ערוץ 1 - חינוכית 1 - 1991",
+     "duration": 1531,
+     "channel": "‫אבי עמיצור - נוסטלגיה וזכרונות ילדות‬‎"
+    },
+    {
+     "id": "q3kF1VYshXY",
+     "title": "זהו זה - כדורגל",
+     "duration": 123,
+     "channel": "Ofir Rosenfeld"
+    },
+    {
+     "id": "C-87gfLqHWM",
+     "title": "צחוק ישראלי הכי הכי - חדשות זהו זה - מערכון",
+     "duration": 393,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "-gNcLLOzj9k",
+     "title": "זהו זה - חיים שכאלה ליאצק חלק 1 מתוך 3",
+     "duration": 504,
+     "channel": "שאול קורן"
+    },
+    {
+     "id": "n1dbCzGofu8",
+     "title": "😂😝😜😝 סרט ערבי של זהו זה 😝😂😂 מי זוכר??? אחד הקטעים הגדולים ביותר של זהו זה.... נוסטלגיה😅😂😭🤣",
+     "duration": 113,
+     "channel": "l LIKE IT"
+    },
+    {
+     "id": "PXQYRVgrnCs",
+     "title": "מערכון הזקנים של זהו זה - 18.9.2023",
+     "duration": 438,
+     "channel": "Gaby Bernstein"
+    },
+    {
+     "id": "SKO5JQwcWjU",
+     "title": "פרודיה על \"רובי\" - מוני מושונוב ב\"זהו זה\" מחקה את רובי פורת שובל",
+     "duration": 484,
+     "channel": "רובי פורת שובל - Ruby Porat Shoval"
+    },
+    {
+     "id": "B3ZEtqFHcyQ",
+     "title": "זהו זה 1997",
+     "duration": 1419,
+     "channel": "ארכיון צחוק ישראלי -  israeli archive -רון בכר "
+    },
+    {
+     "id": "Nz-dyQex4cQ",
+     "title": "זהו זה מונרו סינטרה",
+     "duration": 252,
+     "channel": "אילן וייל"
+    },
+    {
+     "id": "tRHar2PksJ8",
+     "title": "זהו זה - מת לנסוע לאמריקה",
+     "duration": 372,
+     "channel": "Uri Kabiri Productions"
+    },
+    {
+     "id": "hTb8M9fEKFA",
+     "title": "ארכיון צחוק ישראלי  - זהו זה מערכונים",
+     "duration": 573,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "Qm4vWHlB-2s",
+     "title": "זהו זה - אמן הווטסאה",
+     "duration": 209,
+     "channel": "aknv tso"
+    },
+    {
+     "id": "kH5m0NRxEsc",
+     "title": "זהו זה! היכל התרבות תל אביב - מערכון חיים בידרמן",
+     "duration": 234,
+     "channel": "Amit Meir"
+    },
+    {
+     "id": "sCQpumjFr7o",
+     "title": "שלמה בר אבא מערכון הבית הלבן זהו זה",
+     "duration": 118,
+     "channel": "yaron Rotenberg"
+    },
+    {
+     "id": "gs3-s1uPGAY",
+     "title": "צחוק ישראלי הכי הכי - זהו זה 1982 חיים עובד חת ושתיים",
+     "duration": 1277,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "S4yFH0EbPkI",
+     "title": "זהו זה   האופנובנק",
+     "duration": 1553,
+     "channel": "Mauriciowzmn"
+    },
+    {
+     "id": "UVQZ_EzhF6U",
+     "title": "זהו זה - המשקפיים של דובל'ה - קטע ענק! 1992",
+     "duration": 77,
+     "channel": "ארכיוניר"
+    },
+    {
+     "id": "ofNxmrLcp5Q",
+     "title": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive - זהו זה מערכונים",
+     "duration": 2322,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "-tBtFM53wyk",
+     "title": "זהו זה - אמבט ספורט - עם מוני מושונוב, דובל'ה גליקמן ואבי קושניר - ערוץ 1 - חינוכית 1 - 1989",
+     "duration": 2065,
+     "channel": "‫אבי עמיצור - נוסטלגיה וזכרונות ילדות‬‎"
+    },
+    {
+     "id": "Eo0ba-_6Hrg",
+     "title": "זהו זה - לקט עם דובל'ה גליקמן ואבי קושניר - ערוץ 2 - חינוכית 2 - מרץ 1994",
+     "duration": 1297,
+     "channel": "‫אבי עמיצור - נוסטלגיה וזכרונות ילדות‬‎"
+    },
+    {
+     "id": "TpwT22RPtAo",
+     "title": "זהו זה! היכל התרבות תל אביב - מערכון הזקנים",
+     "duration": 561,
+     "channel": "Amit Meir"
+    },
+    {
+     "id": "s6aevMqpji8",
+     "title": "צחוק ישראלי הכי הכי - זהו זה 7 - 1992  סימפסון",
+     "duration": 1705,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "YvinUtffBO8",
+     "title": "צחוק ישראלי הכי הכי - זהו זה לקט מערכונים 1993",
+     "duration": 2482,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "9JBaQw6KFtg",
+     "title": "זהו זה פסח 1994",
+     "duration": 1294,
+     "channel": "ארכיון צחוק ישראלי -  israeli archive -רון בכר "
+    },
+    {
+     "id": "0AaD_1y5rxo",
+     "title": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive - זהו זה מערכונים ושובו של השריף",
+     "duration": 3451,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "8Vy0N4iwXcs",
+     "title": "זהו זה - חובבי רדיו (לקט ערוך) 1985  A parody about a young radio amateur",
+     "duration": 950,
+     "channel": "Doron A. Tal (Türkel) 4X4XM דורון אברהם טל (טירקל)"
+    },
+    {
+     "id": "v9_hlzQnXSs",
+     "title": "אוצרות ארכיון  צחוק ישראלי - רון בכר - Israeli archive  - זהו זה לקט מערכונים 1997",
+     "duration": 1433,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "sfGogQprUwo",
+     "title": "זהו זה! היכל התרבות תל אביב - מערכון הספרה 3 (סלופון)",
+     "duration": 288,
+     "channel": "Amit Meir"
+    },
+    {
+     "id": "PGt7zV3taEI",
+     "title": "חתן וכלה תקועים - מערכון | זהו זה",
+     "duration": 198,
+     "channel": "נדב רוזמן"
+    },
+    {
+     "id": "1TO61nq49Lw",
+     "title": "ליאור פרלה עידו מוסרי ומוני מושונוב - מערכון זהו זה - פסטיבל הפסנתר 2015",
+     "duration": 153,
+     "channel": "Michal Nevo"
+    },
+    {
+     "id": "WRb14hNNYag",
+     "title": "עזרא דגן ב\"זהו זה\" עם מוני מושנוב שלמה גרוניך דבלה גליקמן ושחקני הבימה",
+     "duration": 424,
+     "channel": "עזרא דגן Ezra Dagan"
+    },
+    {
+     "id": "_WqkF-LENnE",
+     "title": "צחוק ישראלי הכי הכי - זהו זה 5 ספטמבר 92",
+     "duration": 1966,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "kgB67O4kq14",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - Israeli archive - מערכוני זהו זה מערכונים",
+     "duration": 3369,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "bZCYEGkDRC8",
+     "title": "ארכיון צחוק ישראלי - מערכון מבצע שעה חופשית בדיוטי פרי  - זהו זה",
+     "duration": 187,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "RmAK5uYwp3A",
+     "title": "לקט מערכוני זהו זה - ארכיון צחוק ישראלי - israeli archive",
+     "duration": 2836,
+     "channel": "ארכיון צחוק ישראלי -  israeli archive -רון בכר "
+    },
+    {
+     "id": "R2Nn9CXI1Q0",
+     "title": "צחוק ישראלי הכי הכי - זהו זה 10",
+     "duration": 2295,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "qZwGaxup_kw",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - Israeli archive - לקט מערכוני זהו זה 45",
+     "duration": 1777,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "ZiuTvwK4BY0",
+     "title": "זהו זה! מערכון מוזיאון סוף הסגר",
+     "duration": 164,
+     "channel": "שרית דרוקמן"
+    },
+    {
+     "id": "pcdo20dboKs",
+     "title": "זהו זה - גבעת פיכסה - חלק 3",
+     "duration": 144,
+     "channel": "Sagi PC"
+    },
+    {
+     "id": "4fvILrXLqJE",
+     "title": "צחוק ישראלי הכי הכי - זהו זה לקט מערכונים",
+     "duration": 601,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "hRBFqB50cLE",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - Israeli archive - זהו זה מערכונים",
+     "duration": 2421,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "TuI0dinDQJ8",
+     "title": "זהו זה במפרץ",
+     "duration": 2250,
+     "channel": "IBA Classics"
+    },
+    {
+     "id": "MlEkXpQBSEw",
+     "title": "זהו זה מלחמת המפרץ הטבח ג'קלין",
+     "duration": 214,
+     "channel": "שלומי בוגדרי"
+    },
+    {
+     "id": "dbwSmsAy4vc",
+     "title": "מערכון זהו זה על האנטישמיות באוניברסיטאות",
+     "duration": 171,
+     "channel": "Moshe Tal"
+    },
+    {
+     "id": "bqHyhp5OsA8",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - Israeli archive -  מערכוני זהו זה פרק 249 הו זה   לקט",
+     "duration": 2508,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "d3iP9irnR8U",
+     "title": "אוצרות ארכיון צחוק ישראלי - רון בכר - Israeli archive - מערכוני זהו זה - פרק 43",
+     "duration": 2041,
+     "channel": "אוצרות ארכיון ישראלי - רון בכר - Israeli archive"
+    },
+    {
+     "id": "9wLah4ZiF-8",
+     "title": "מערכון קורע של זהו זה על שרים",
+     "duration": 159,
+     "channel": "m r"
+    },
+    {
+     "id": "TVp3y63onOY",
+     "title": "זהו זה - סיחים על האש",
+     "duration": 87,
+     "channel": "אוריה אסרף"
+    },
+    {
+     "id": "v55xfMGdsU4",
+     "title": "מערכוני זהו זה יוני 94 ארכיון צחוק ישראלי - israeli archive",
+     "duration": 2304,
+     "channel": "ארכיון צחוק ישראלי -  israeli archive -רון בכר "
+    },
+    {
+     "id": "NxWxtAlkebA",
+     "title": "זהו זה  16 11",
+     "duration": 1738,
+     "channel": "‫ניקי \"‪NICETV‬‏\" נתן‬‎"
+    },
+    {
+     "id": "_n48IMaQxo8",
+     "title": "זהו זה גרושין   אומן גידי גוב 1991",
+     "duration": 2136,
+     "channel": "ארכיון צחוק ישראלי -  israeli archive -רון בכר "
+    },
+    {
+     "id": "TSbYr_yTOqU",
+     "title": "זהו זה מערכונים 2",
+     "duration": 940,
+     "channel": "ארכיון צחוק ישראלי -  israeli archive -רון בכר "
+    },
+    {
+     "id": "EZ86XG9vNrE",
+     "title": "לקט מערכונים מתוכניות זהו זה -  כייף ישראלי - israeli fun",
+     "duration": 2834,
+     "channel": " כייף ישראלי     -     israeli fun"
+    }
+   ]
+  },
+  {
+   "id": "banai",
+   "name": "יוסי בנאי",
+   "videos": [
+    {
+     "id": "B1aFoOP4z2E",
+     "title": "יוסי בנאי - סופרפארם - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 452,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4LwspTRpcZk",
+     "title": "יוסי בנאי - חלום שבדי - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 397,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FnoNaesDCio",
+     "title": "יוסי בנאי - מסעדת קיקיאקי - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 398,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0GuE8lbrCrA",
+     "title": "יוסי בנאי - תן לצהל לנצח - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 298,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "X3MIzA3S_jg",
+     "title": "יוסי בנאי - הגזמות ושדרוגים - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 319,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "txDBbkCtiDs",
+     "title": "יוסי בנאי - ההתבטאות - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 290,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3JAdUSRYZOw",
+     "title": "יוסי בנאי - שובו של הסוראמלו (חלק ב)",
+     "duration": 2329,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "iA4sVTdL5ZY",
+     "title": "יוסי בנאי - השעה שש בערב - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 304,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Ja_m1nHD37w",
+     "title": "יוסי בנאי ורבקה מיכאלי - המורה והתלמיד",
+     "duration": 512,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yfIVVP1eZ10",
+     "title": "יוסי בנאי - טיפשות",
+     "duration": 339,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wXoM6GbrRik",
+     "title": "יוסי בנאי - המחלה שלי - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 332,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2GUkHBxAsY8",
+     "title": "יוסי בנאי ורבקה מיכאלי - מישהו טילפן יקירתי",
+     "duration": 701,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "aG-tS3F_TCg",
+     "title": "יוסי בנאי ורבקה מיכאלי - קול כלה וקול שדכן",
+     "duration": 640,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QpKUl-VaoMQ",
+     "title": "יוסי בנאי - החתונה, שיכור ולא מיין (מתוך בשעה טובה עם אבי אתגר)",
+     "duration": 474,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "OVmRXjyk_vE",
+     "title": "יוסי בנאי - המזל והשכל",
+     "duration": 314,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "OaIQMacUhUQ",
+     "title": "יוסי בנאי - שלום בר קיימא - מתוך \"מיומנו של ישראלי שפוי\" (2002)",
+     "duration": 449,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "34KSCn2d030",
+     "title": "יוסי בנאי ורבקה מיכאלי - חבצלת",
+     "duration": 681,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RQWLRTFQfCg",
+     "title": "יוסי בנאי ורבקה מיכאלי - במסדרון בית המשפט (1970)",
+     "duration": 425,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "mHkmwmFrUx0",
+     "title": "יוסי בנאי ורבקה מיכאלי - הטלפונים",
+     "duration": 716,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3_KmgJPHGT8",
+     "title": "יוסי בנאי - נשים נשים (המערכון)",
+     "duration": 576,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ri4AZw64TEM",
+     "title": "יוסי בנאי - מלאך המוות וג'ורג' העדין",
+     "duration": 262,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "_8ly7H65lUU",
+     "title": "יוסי בנאי ורבקה מיכאלי - המברק (1970)",
+     "duration": 290,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Gs2flRIK-OY",
+     "title": "יוסי בנאי ורבקה מיכאלי - הפורץ",
+     "duration": 490,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vndZoySJB8U",
+     "title": "יוסי בנאי ורבקה מיכאלי - לאחר הנפילה",
+     "duration": 409,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9-4Sib6M420",
+     "title": "יוסי בנאי - בחולות, איצ'ה ממבוש (מתוך הדרן לחיים חפר, 1987)",
+     "duration": 256,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "EQix2F_Hurk",
+     "title": "יוסי בנאי - שמח בחלקו (עיניים גדולות)",
+     "duration": 253,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "f5NcPvEc-Tw",
+     "title": "יוסי בנאי ואבנר חזקיהו - במערכת (1961)",
+     "duration": 501,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jrFBrH9DXww",
+     "title": "יוסי בנאי ורבקה מיכאלי - רבע עוף או בורקס",
+     "duration": 462,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "EKGDxiEz-U8",
+     "title": "יוסי בנאי - פתגמים (בונבוניירה, פרחים ומרצפן)",
+     "duration": 208,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "cdSCZvNwdQE",
+     "title": "יוסי בנאי ואילי גורליצקי - סכיני גילוח ובלונים (1968)",
+     "duration": 587,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "qEhU3nrg-LY",
+     "title": "יוסי בנאי - בלי גסויות (1981)",
+     "duration": 325,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "McEZf3Xah9A",
+     "title": "יוסי בנאי ואילי גורליצקי - הצילו על הים (המציל)",
+     "duration": 375,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zHVqpoj5bIM",
+     "title": "יוסי בנאי - החדר הספרדי",
+     "duration": 184,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QnecD19R1tA",
+     "title": "יוסי בנאי - חממי הפרופסור והחמור (שיטות השקייה)",
+     "duration": 144,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "_B0_tJ1rkkk",
+     "title": "יוסי בנאי - שלכם לשעה קלה (1972)",
+     "duration": 1754,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "A2-JCwg2n98",
+     "title": "יוסי בנאי - מונולוג סופרפארם (2004)",
+     "duration": 405,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ewhVLYGJNJ8",
+     "title": "יוסי בנאי ויהורם גאון - חור במסך (1969)",
+     "duration": 427,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "erKM4AjqMtU",
+     "title": "יוסי בנאי - הקרפיון",
+     "duration": 206,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "qy3yCEK9fBU",
+     "title": "יוסי בנאי ואילי גורליצקי - שיחה טלפונית (לא שומעים) (1968)",
+     "duration": 282,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rNlMBM2tVEk",
+     "title": "יוסי בנאי ואילי גורליצקי - חמודי (1968)",
+     "duration": 464,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "-_Sz-0Vg2ho",
+     "title": "יוסי בנאי - קבצנים וקמצנים",
+     "duration": 244,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QH8Z7MIae_g",
+     "title": "יוסי בנאי - מתערבים על הסרט?",
+     "duration": 128,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "DkspNNgmCow",
+     "title": "יוסי בנאי - פייבלוביץ' והכפתורים",
+     "duration": 136,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "z4Wims4eti4",
+     "title": "יוסי בנאי - זהבה",
+     "duration": 242,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1cUNLSVxhIo",
+     "title": "יוסי בנאי - ההלוייה של באלרו",
+     "duration": 187,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bTdhuJ3qWOM",
+     "title": "יוסי בנאי - לשתות במועדון לילה",
+     "duration": 108,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "WkmputmGLLo",
+     "title": "יוסי בנאי - שוטר תנועה",
+     "duration": 112,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "efHu90FkncU",
+     "title": "יוסי בנאי ואילי גורליצקי - ערב ראיונות (1968)",
+     "duration": 861,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "WD_B6G4qQIg",
+     "title": "יוסי בנאי - להיות לבד (מונולוג)",
+     "duration": 214,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "qquNUi3ciBk",
+     "title": "יוסי בנאי וגדי יגיל - קצת רעב (1970)",
+     "duration": 149,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "98GmuD7MbjY",
+     "title": "יוסי בנאי - חגיגות שנת הארבעים (1988)",
+     "duration": 720,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oR9DieuaqIA",
+     "title": "יוסי בנאי ורמי הויברגר - להיות או לא להיות (2004)",
+     "duration": 196,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "25_L_0sVJ9A",
+     "title": "יוסי בנאי - כבוד השחקן (1970)",
+     "duration": 108,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "8lvBxkR36T8",
+     "title": "יוסי בנאי ואילי גורליצקי - סיום (1968)",
+     "duration": 142,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2njq-VXMG7M",
+     "title": "יוסי בנאי - חתונה בשקיעה (1983)",
+     "duration": 228,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "topaz",
+   "name": "דודו טופז",
+   "videos": [
+    {
+     "id": "V5_or6ngd1Y",
+     "title": "דודו טופז - צורה לנו חלק א (1989)",
+     "duration": 2277,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QBpu1vpJNy8",
+     "title": "דודו טופז - יום לימודים ארוך",
+     "duration": 100,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "G0ZmZUjtPoQ",
+     "title": "דודו טופז - משבר גיל הארבעים (1993)",
+     "duration": 214,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "A-VFShf1jfE",
+     "title": "דודו טופז - סיכום שנת 1993",
+     "duration": 490,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "sA38sAOpib8",
+     "title": "דודו טופז - פליטת פה הקדמה (1994)",
+     "duration": 211,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Gnk56e2jku4",
+     "title": "דודו טופז - אורי גלר (1984)",
+     "duration": 192,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "H5kVveWV3z0",
+     "title": "דודו טופז - משפחה במלון (האורנג'דה) (1986)",
+     "duration": 322,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jhDpGPvz6vg",
+     "title": "דודו טופז - שינוי תדמית (1993)",
+     "duration": 264,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Zm_kMrnHq60",
+     "title": "דודו טופז - מקדונלדס עם הילד (2008)",
+     "duration": 186,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HqypJYZijIA",
+     "title": "דודו טופז - החיים בניו יורק (1984)",
+     "duration": 202,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1OtMfAQkFgo",
+     "title": "דודו טופז וגיל אלון - אותי זה מצחיק (1993)",
+     "duration": 465,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zBvpu6PJoJ0",
+     "title": "דודו טופז - חורחה גבר מוכה",
+     "duration": 190,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "GjPLoPIrUlI",
+     "title": "דודו טופז - החדשות בעוד 25 שנה (1974)",
+     "duration": 239,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "67iKwWkwdWQ",
+     "title": "דודו טופז - הצלם",
+     "duration": 337,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ix1JF6gur-8",
+     "title": "דודו טופז - השירים שעליהם גדלנו",
+     "duration": 326,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Ht32NCY8l0c",
+     "title": "דודו טופז - ביג ג'ון (אלטון ג'ון) (1993)",
+     "duration": 137,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "deaxKNritpA",
+     "title": "דודו טופז - המקור הבכיר (מתוך \"סיבה למסיבה\", 1987)",
+     "duration": 310,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "YwCbsil3UQY",
+     "title": "דודו טופז - הטנגו האחרון בפריז",
+     "duration": 220,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "CrJN8cBJb6I",
+     "title": "דודו טופז - בין המלחמות (השירים בין 67 ל73)",
+     "duration": 239,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kbqwzFK3c3g",
+     "title": "דודו טופז - סנטה קלאוס (1993)",
+     "duration": 201,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1JppbyhzBko",
+     "title": "דודו טופז - שיחה עם בודק בטחוני (קטע סיום) (1984)",
+     "duration": 498,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LST4ZcKsF5o",
+     "title": "דודו טופז - דרדסים ודרדוסים (1984)",
+     "duration": 180,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kmJDDMqlquA",
+     "title": "דודו טופז - כל ישראל חברים",
+     "duration": 375,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "d4PubuGtlOI",
+     "title": "דודו טופז ורויטל עמית - שעועית",
+     "duration": 330,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "heEJAktYm28",
+     "title": "דודו טופז - הדלקת משואות",
+     "duration": 222,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kucEahioB3U",
+     "title": "דודו טופז - ראש טוב (מורדוך)",
+     "duration": 202,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "C6IO8dUcHOg",
+     "title": "דודו טופז - חורחה ביום העצמאות (1993)",
+     "duration": 234,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "SQ43Ea66gAM",
+     "title": "דודו טופז - עצות לחברים בבריכת שחייה אקסלוסיבית",
+     "duration": 414,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "iKmFOSWKcJI",
+     "title": "דודו טופז - רסר מספר לבנו את סיפור כיפה אדומה",
+     "duration": 229,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0S83ECdl0Lo",
+     "title": "דודו טופז - שנת הארבעים",
+     "duration": 332,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "eLwrlJM1Iq0",
+     "title": "דודו טופז - דובר כלכלי",
+     "duration": 202,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "olRpplERPuM",
+     "title": "דודו טופז - חידון בטלוויזיה",
+     "duration": 380,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2R2f77kzQaQ",
+     "title": "דודו טופז - שמות הישובים (גרסת התקליט)",
+     "duration": 350,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3sbVY6g0_wY",
+     "title": "דודו טופז - טרש בטיטו",
+     "duration": 306,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "gjKjf5Tdj_o",
+     "title": "דודו טופז - הקול הצף (1989)",
+     "duration": 454,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "knCsIxvU1VY",
+     "title": "דודו טופז - שבוע מעצבן (1993)",
+     "duration": 125,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xKsjFFdl0d4",
+     "title": "דודו טופז - בוקר טוב ישראל (1992)",
+     "duration": 275,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "gqUAhSctqaU",
+     "title": "דודו טופז - הישגי שנת הארבעים",
+     "duration": 186,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zp_U4bzL8PQ",
+     "title": "דודו טופז - מצעד הפזמונים (1993)",
+     "duration": 144,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "aB3EHoFbkwQ",
+     "title": "דודו טופז - חדשות (1980, גרסת התקליט)",
+     "duration": 256,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "guRwvA9O3xw",
+     "title": "דודו טופז - מקרה קיבה",
+     "duration": 228,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "mSaVM8-igbE",
+     "title": "דודו טופז - לצעירים",
+     "duration": 148,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wmygj-C-WQs",
+     "title": "דודו טופז - צורה לנו, סיום",
+     "duration": 119,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0uDEDh96jS8",
+     "title": "דודו טופז - \"פיצויים מסדאם\" (מתוך \"סופשבוע\", 1991)",
+     "duration": 180,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Q3eHPdr7Txo",
+     "title": "דודו טופז - צורה לנו, קטע פתיחה",
+     "duration": 86,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0smB6qGoNjE",
+     "title": "דודו טופז - חורחה והמשפחה (1993)",
+     "duration": 144,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "yagil",
+   "name": "גדי יגיל",
+   "videos": [
+    {
+     "id": "wrM06wmfI7E",
+     "title": "גדי יגיל ומוטי גלעדי - הטרמפיסט (מתוך \"סיבה למסיבה\")",
+     "duration": 342,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wlpp5ROG55I",
+     "title": "גדי יגיל וחנה לסלאו - חדר לידה",
+     "duration": 590,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "pI_sgnT0Blc",
+     "title": "גדי יגיל - הקבלן",
+     "duration": 454,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4pVFDHE5EQU",
+     "title": "גדי יגיל וטוביה צפיר - אל תחתכו את השמחה",
+     "duration": 440,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3Kl2GCLTXcQ",
+     "title": "גדי יגיל ומוטי גלעדי - גימיק",
+     "duration": 546,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jByK56mj1vk",
+     "title": "גדי יגיל - חיקיתי לך ארצי (1978)",
+     "duration": 1535,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "atmrpne5djQ",
+     "title": "גדי יגיל ומוטי גלעדי - איינשטיין ויינשטיין",
+     "duration": 422,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "BuA3SeVQvuY",
+     "title": "גדי יגיל - דאלאס (1985)",
+     "duration": 350,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jbcziU35ttQ",
+     "title": "גדי יגיל ורבקה מיכאלי - מודיעין 14 (1971)",
+     "duration": 357,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Jk7-GsjgAVs",
+     "title": "גדי יגיל מחקה את יוסי בנאי",
+     "duration": 73,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Xoy_H_99RcY",
+     "title": "גדי יגיל - תעודת זהות (1978)",
+     "duration": 379,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "x77roDSimQg",
+     "title": "גדי יגיל - המציל",
+     "duration": 346,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3LdMkv-d2bU",
+     "title": "גדי יגיל - הצלם (חתן כלה)",
+     "duration": 433,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ft8s2nXRa1k",
+     "title": "גדי יגיל - איש מחלקת הניקיון",
+     "duration": 384,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "c4SSiKqrpfc",
+     "title": "גדי יגיל - המכס",
+     "duration": 415,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "WDxas1Y7YRo",
+     "title": "גדי יגיל ושמוליק סגל - בניין ההסתדרות נהרס",
+     "duration": 212,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FE98g2cYlt8",
+     "title": "גדי יגיל ואברהם מור - אברהמלה תמכור לי טלוויזיה",
+     "duration": 422,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "GghbxHLI7zM",
+     "title": "גדי יגיל - אח, איזה יום הולדת",
+     "duration": 232,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "lhA6OhWlVqw",
+     "title": "גדי יגיל ובני אמדורסקי - מה למדת בגן היום",
+     "duration": 156,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Ip9iY1BYuCc",
+     "title": "גדי יגיל - חיי כלב",
+     "duration": 343,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3ntP0ZSabMI",
+     "title": "גדי יגיל - מנצח התזמורת",
+     "duration": 275,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5zTZzdS4fGY",
+     "title": "גדי יגיל וחנה לסלאו - יצאנו שנתיים",
+     "duration": 211,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xh1w5vgKOZM",
+     "title": "גדי יגיל - שלישית חיקויים (1968)",
+     "duration": 365,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0NP90GPthZI",
+     "title": "גדי יגיל - תולדות הריקוד (1985)",
+     "duration": 389,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "VTJPQ5Uza50",
+     "title": "גדי יגיל - האיש שאכל יותר מדי",
+     "duration": 285,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jHJt34VUBvQ",
+     "title": "גדי יגיל - שחקנים מברכים שחקניות (1976)",
+     "duration": 279,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "perqPl19le8",
+     "title": "גדי יגיל, נירה רבינוביץ ואריה פפה פלדמן - חברת המרימים (1968)",
+     "duration": 154,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "VIZyUtJ9PWg",
+     "title": "גדי יגיל - בוקסינג ג'ו",
+     "duration": 232,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "lSl_iTaKyfo",
+     "title": "גדי יגיל - ציפור קטנה לחשה לי ש (1973)",
+     "duration": 313,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "GUHPcXRryHc",
+     "title": "גדי יגיל - קוקו בקלאווה על התיאטרון",
+     "duration": 272,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "pOegPJM_XSo",
+     "title": "גדי יגיל - כנרים על הגג",
+     "duration": 409,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "v9o_EOdK314",
+     "title": "גדי יגיל - הספר הצרפתי",
+     "duration": 416,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "69o-6p2Xgis",
+     "title": "גדי יגיל - חתונות במשפחת דיין",
+     "duration": 136,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fhldUgeN97g",
+     "title": "גדי יגיל - מוכר הקרקעות",
+     "duration": 148,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yavNOjcLI7A",
+     "title": "גדי יגיל - זה לא יצא",
+     "duration": 368,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "a4x4h7jqmJI",
+     "title": "גדי יגיל - שמות",
+     "duration": 134,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "tr0_KkP4Cuc",
+     "title": "גדי יגיל - הרקדן",
+     "duration": 360,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wdbQtPSnIVE",
+     "title": "גדי יגיל - שתי חתולות",
+     "duration": 164,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "baKhEqxbZ5I",
+     "title": "גדי יגיל - ממלכה בשביל סוס (1973)",
+     "duration": 477,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "-UDFbl3ob2k",
+     "title": "גדי יגיל - מקרה טלוויזיה",
+     "duration": 253,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "ofir",
+   "name": "שייקה אופיר",
+   "videos": [
+    {
+     "id": "HfXGjkYrYbQ",
+     "title": "שייקה אופיר מלמד לשתות קפה (מתוך שעה טובה)",
+     "duration": 622,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3llwEDAet1M",
+     "title": "שייקה אופיר - לקלף תפוז (1979)",
+     "duration": 499,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "edum8e48xsw",
+     "title": "שייקה אופיר - מנצח המקהלה (1980)",
+     "duration": 487,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "84vkeCC1VCI",
+     "title": "שייקה אופיר ורבקה מיכאלי - דרבנו גרשום",
+     "duration": 561,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bEDBnA8xv-c",
+     "title": "שייקה אופיר - בלבולי לשון (גרסה נדירה)",
+     "duration": 271,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "qaZn-eTQOQ4",
+     "title": "שייקה אופיר ואורי זוהר - יוסי הקטן (תקרית גבול)",
+     "duration": 376,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "A0Xe3BR-xNQ",
+     "title": "שייקה אופיר - מכבי האש (1973, גרסת התקליט)",
+     "duration": 572,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1jbX6Lc1n0M",
+     "title": "שייקה אופיר ושמעון ישראלי - הנהגים (שיח סבלים)",
+     "duration": 191,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QpvW5wNAeVI",
+     "title": "שייקה אופיר -  אבו אל בנאת (1973, גרסת התקליט)",
+     "duration": 585,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9MAfxKnPEKg",
+     "title": "שייקה אופיר - המורה לאנגלית",
+     "duration": 532,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "7UG7nyhOKj4",
+     "title": "שייקה אופיר - ציונה והעין המקולקלת",
+     "duration": 587,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "uuM9_BEo2Lk",
+     "title": "שייקה אופיר - זלמן הוותיק (גרסת יום חיל השריון)",
+     "duration": 280,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2_f0SC0ICZY",
+     "title": "שייקה אופיר ואורי זוהר - התעשר",
+     "duration": 344,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Dv4RPFABfRs",
+     "title": "שייקה אופיר, מושיק טימור, טוביה צפיר ובומבה צור - מחפשים את המטמון (1976)",
+     "duration": 825,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3zBPAHjWU5Y",
+     "title": "שייקה אופיר ובומבה צור - אב ובנו",
+     "duration": 559,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4gKfesI3eaI",
+     "title": "שייקה אופיר - כיפה אדומה",
+     "duration": 549,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KGuMxSsPKm8",
+     "title": "שייקה אופיר - המושבניק",
+     "duration": 452,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "-yT2Ou9CV5c",
+     "title": "שייקה אופיר - אפרים קישון מגיע לארץ",
+     "duration": 131,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vJEAQKnD_NE",
+     "title": "שייקה אופיר ואורי זוהר - חלש האופי (הירח הכחול)",
+     "duration": 296,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "IaCbG7d3BUE",
+     "title": "שייקה אופיר - בית ספר לגנבים",
+     "duration": 493,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XidWKQ_yTME",
+     "title": "שייקה אופיר - חדשות בסגנון אישי",
+     "duration": 152,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "VH3O6ANtrvc",
+     "title": "שייקה אופיר ועודד תאומי - תאונה",
+     "duration": 288,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kGCKnWynJx4",
+     "title": "שייקה אופיר ויהורם גאון - בחור צנוע (1971)",
+     "duration": 216,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "AMKkE-FvvDg",
+     "title": "שייקה אופיר - חדודי לשון",
+     "duration": 310,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "B48Dc_LFHGA",
+     "title": "שייקה אופיר - מבית המורה אל בית העלמין (1976)",
+     "duration": 409,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "alfH9Lf4fCk",
+     "title": "שייקה אופיר ויעקב אגמון - שאלות אישיות, בלבולי לשון (1968)",
+     "duration": 367,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "8g-YVBv1T9M",
+     "title": "שייקה אופיר - זלמן",
+     "duration": 309,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XF1NdevLddk",
+     "title": "שייקה אופיר - צו השעה",
+     "duration": 503,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wehVzGQ2QoY",
+     "title": "שייקה אופיר - הקונצרט לבני הנעורים",
+     "duration": 196,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "6b3X0OavkdQ",
+     "title": "שייקה אופיר - סימני קריאה (ניקוד ווקאלי)",
+     "duration": 277,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "TwGqi8XNST4",
+     "title": "שייקה אופיר - שוטר מקוף",
+     "duration": 237,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XqAl1j3ZKl8",
+     "title": "שייקה אופיר - דון ז'ואן (הצגה ראשונה), קלמנטינה (1976)",
+     "duration": 271,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "NYbV66dTJc4",
+     "title": "שייקה אופיר ואורי זוהר - התייר האמריקאי",
+     "duration": 239,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "58xdP8Nylm4",
+     "title": "שייקה אופיר ואורי זוהר - פרופסור קורצנברג",
+     "duration": 192,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jzSHp0gHXg4",
+     "title": "שייקה אופיר - זיוה ודנה",
+     "duration": 472,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "a9A-yJfiSwA",
+     "title": "שייקה אופיר ואורי זוהר - מה השעה",
+     "duration": 220,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ykdpzbeONpE",
+     "title": "שייקה אופיר - נאום בחירות",
+     "duration": 332,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "VjSSnaXLKBI",
+     "title": "שייקה אופיר - היורד",
+     "duration": 202,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "394WWHzZLFs",
+     "title": "שייקה אופיר ואורי זוהר - הזמנה לסנטר הכפול",
+     "duration": 79,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "elimariano",
+   "name": "אלי ומריאנו",
+   "videos": [
+    {
+     "id": "fEf_ROwzh2M",
+     "title": "אלי ומריאנו - קצין מיון בבקום",
+     "duration": 352,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "mQGZV7Ry9NU",
+     "title": "אלי ומריאנו - הראשון בחיקוי",
+     "duration": 465,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "s_AFMLA87FY",
+     "title": "אלי ומריאנו - מזרחי לא מקופח",
+     "duration": 370,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9TGMZE0swxk",
+     "title": "אלי ומריאנו - אליקו הנביא",
+     "duration": 371,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "d_8ZrROY6eY",
+     "title": "אלי ומריאנו - תוכניות רדיו (מתוך מופע הצדעה לספי ריבלין, 2009)",
+     "duration": 574,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "UY_BXyoIYU8",
+     "title": "אלי ומריאנו - כיתת המפורסמים",
+     "duration": 387,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rjA7ZNe8g1E",
+     "title": "אלי ומריאנו - רואים טלוויזיה (לך תנמיך)",
+     "duration": 471,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "EFbSDubjPw4",
+     "title": "אלי ומריאנו - שביתת הסטודנטים",
+     "duration": 278,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Bj3N2U421OA",
+     "title": "אלי ומריאנו ואפקט הדומינו - דודו טופז אצל משפחת זיתוני",
+     "duration": 383,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "X82UScIjAdc",
+     "title": "אלי ומריאנו - קלינטון במכס",
+     "duration": 307,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "crIvT2enyJs",
+     "title": "אלי ומריאנו - צלמי פפראצ'י",
+     "duration": 207,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9mL_skHI5X4",
+     "title": "אלי ומריאנו - איציק מיוזיק",
+     "duration": 490,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vq-eEGyqizg",
+     "title": "אלי ומריאנו - תדרוך משטרתי",
+     "duration": 429,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rYk1mljw-M4",
+     "title": "אלי ומריאנו - ערס בחוף שרתון",
+     "duration": 560,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "17xZPn46vBY",
+     "title": "אלי ומריאנו - מוסי מג'יק",
+     "duration": 426,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "lCCfsAV9T0U",
+     "title": "אלי ומריאנו - תודות",
+     "duration": 392,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "8oBmjlZyZhk",
+     "title": "אלי ומריאנו - אוהדי ביתר",
+     "duration": 419,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "93R5ru4XdSg",
+     "title": "אלי ומריאנו - הצלמים במונדיאל 1998",
+     "duration": 157,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oEiJox-dxBw",
+     "title": "אלי ומריאנו - השירותים",
+     "duration": 281,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "YBN93E9fcBQ",
+     "title": "אלי ומריאנו - מפלגות 99",
+     "duration": 267,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "542JgJmuNdk",
+     "title": "אלי ומריאנו - נהג השר",
+     "duration": 295,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "8h0Q4E8_yWQ",
+     "title": "אלי ומריאנו - תחרויות ספורט",
+     "duration": 463,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oUwYSlyDdys",
+     "title": "אלי ומריאנו - רמת אביב ג'",
+     "duration": 171,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5y1s0-plfpk",
+     "title": "אלי ומריאנו - זהו אלי וזהו מריאנו",
+     "duration": 195,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "tNTCYoVARXo",
+     "title": "אלי ומריאנו - תכניות רדיו",
+     "duration": 239,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2qlCouwcLXw",
+     "title": "אלי ומריאנו - אילתורים מההופעה",
+     "duration": 158,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "swissa",
+   "name": "סוויסה ויצפאן",
+   "videos": [
+    {
+     "id": "PwZ_Avj_2Rw",
+     "title": "סוויסה ויצפאן -  דיוטי פרי (2002)",
+     "duration": 835,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "L1bmhYD1JgU",
+     "title": "סוויסה ויצפאן - עזרא פרס ישראל (2002)",
+     "duration": 433,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "pqA2zgF6yC0",
+     "title": "אלי יצפאן ושולה חן - כסף זה הכל בבנק",
+     "duration": 390,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bqbjtnY4ZsU",
+     "title": "סוויסה ויצפאן - וירוס (מחלת השמאלן) (2002)",
+     "duration": 370,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "WzDj6pkEdR0",
+     "title": "סוויסה ויצפאן - קפה גלעד (2002)",
+     "duration": 606,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kGCZ4OjSKzI",
+     "title": "סוויסה ויצפאן - מילואים באוטונומיה (1996)",
+     "duration": 998,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jQMJdYSIvbI",
+     "title": "סוויסה ויצפאן - טיול לאילת (1996)",
+     "duration": 705,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "X9DwvkQgfiM",
+     "title": "סוויסה ויצפאן - שוטרים (2002)",
+     "duration": 395,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "a3yU34PmrtA",
+     "title": "סוויסה ויצפאן - השכן הארגנטינאי (1996)",
+     "duration": 459,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4Y3MnXexrKo",
+     "title": "סוויסה ויצפאן - רב המלצרים (1996)",
+     "duration": 356,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oHz4mjZ0msI",
+     "title": "סוויסה ויצפאן - אינטרנשיונל ניוז (1996)",
+     "duration": 335,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zM7i3K0IKyY",
+     "title": "אלי יצפאן - אלברט אפללו ולהקת מחוז צפון - שוטרים (לפי חופים)(2005)",
+     "duration": 162,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FyqBp4uTOLY",
+     "title": "סוויסה ויצפאן - מחלקת הפריות (1996)",
+     "duration": 369,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "nTHdeEFOUyc",
+     "title": "סוויסה ויצפאן - האפצ'י (2002)",
+     "duration": 500,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "x4Za8H9-_e4",
+     "title": "אלי יצפאן - אותך אני לא סובל",
+     "duration": 217,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "uDWaU_Lu_vs",
+     "title": "סוויסה ויצפאן - הנואם והמתרגם (1996)",
+     "duration": 277,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "B8I2020MbLQ",
+     "title": "סוויסה ויצפאן - נהג מונית (1996)",
+     "duration": 940,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "-UJZsmJ0paY",
+     "title": "אלי יצפאן - לונדון וקירנשבאום והבחירות בארצות הברית (2004)",
+     "duration": 180,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "VfnKGQfking",
+     "title": "אלי יצפאן ורבקה מיכאלי - אין לי רגע דל (2003)",
+     "duration": 127,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "AMpa_MqxXpw",
+     "title": "סוויסה ויצפאן - נהג מונית 2 (2002)",
+     "duration": 819,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xrddMVAP2gs",
+     "title": "אלי יצפאן - ישנן פצצות (2003)",
+     "duration": 88,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zZN6Mwh-mHI",
+     "title": "אלי יצפאן - אובלדי אובלדה שמעון פרס (2001)",
+     "duration": 138,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "WfxC_joacic",
+     "title": "סוויסה ויצפאן - יהורם גאון (1996)",
+     "duration": 224,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "POrqAqKeqoE",
+     "title": "סוויסה ויצפאן - בזבוזי היובל (2002)",
+     "duration": 610,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "7JFwUpjBYWQ",
+     "title": "אלי יצפאן - שלוש ארבע לשביתה",
+     "duration": 213,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LWJKz0EPAB0",
+     "title": "סוויסה ויצפאן - אלה הם חייך (חלק ב) (2002)",
+     "duration": 327,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KrcCDnHMVqw",
+     "title": "סוויסה ויצפאן - שיחת טלפון לבדיחות (1996)",
+     "duration": 120,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "_JxLRB-OoGU",
+     "title": "סוויסה ויצפאן - טיול באילת (1996)",
+     "duration": 678,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "avnerdan",
+   "name": "אבנר דן",
+   "videos": [
+    {
+     "id": "XleNT1ilVCM",
+     "title": "אבנר דן - גרוזינים ורוסים",
+     "duration": 61,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "o-ad0VbKXTc",
+     "title": "אבנר דן - טלפון מהתעלה",
+     "duration": 435,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "EST_O_za4o4",
+     "title": "אבנר דן - פאול ומרקו",
+     "duration": 82,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "tJvIqX6DHTk",
+     "title": "אבנר דן - מורה לנהיגה",
+     "duration": 457,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "sgDPJDweHAk",
+     "title": "אבנר דן - נהג האוטובוס",
+     "duration": 349,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0wtuDNtoE6c",
+     "title": "אבנר דן -  ג'וג'ו נוסע לאמריקה, ג'וג'ו וסעדיה בכנרת",
+     "duration": 234,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "IcrDm-FA9OY",
+     "title": "אבנר דן - טלפון לראש העין",
+     "duration": 228,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0-B-qLbGvCY",
+     "title": "אבנר דן -  מרים ויחיה בקולנוע",
+     "duration": 244,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9yEyiNbPtqA",
+     "title": "אבנר דן - התוכי המדבר",
+     "duration": 112,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "goVFjaiCWLo",
+     "title": "אבנר דן -  אגא בקולנוע מרכז",
+     "duration": 329,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "m-p5o2ZId54",
+     "title": "אבנר דן - איפה את אהובה בעירקית",
+     "duration": 82,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jNiVJzEzb1s",
+     "title": "אבנר דן - צחוק במצבים",
+     "duration": 396,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HkcechXlQZc",
+     "title": "אבנר דן -  יחזקאל נוסע לפרס",
+     "duration": 147,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "acKDeRmoXuA",
+     "title": "אבנר דן - פסטיבל הזמר המזרחי",
+     "duration": 232,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "NCY1a6mNKV0",
+     "title": "אבנר דן - שידוך פרסי",
+     "duration": 241,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KNr5jd3OLJk",
+     "title": "אבנר דן - אבנר ושוקי באוטובוס",
+     "duration": 69,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "PseChKkipa4",
+     "title": "אבנר דן - המלצר הצרפתי (בית הקפה)",
+     "duration": 519,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Yw3k6R2d-Ns",
+     "title": "אבנר דן - זכריה ומשה בהצגה יומית",
+     "duration": 120,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "z3oYXac2AQg",
+     "title": "אבנר דן - המת החי",
+     "duration": 607,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "opSclXprglw",
+     "title": "אבנר דן - האליבי (הפריצה)",
+     "duration": 225,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9Xsn40hM2Rk",
+     "title": "אבנר דן - עיראקי בתאטרון, המגמגם, הילד התימני והמורה",
+     "duration": 207,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "6iE-saNchyk",
+     "title": "אבנר דן - המשמר האזרחי",
+     "duration": 845,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "DjWrCbkKeIM",
+     "title": "אבנר דן - זכיה בפיס",
+     "duration": 159,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "K299rP_S5Yc",
+     "title": "אבנר דן - פקח גן החיות",
+     "duration": 426,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "7TGHGF4OAp4",
+     "title": "אבנר דן - השירותים",
+     "duration": 93,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "hadpaami",
+   "name": "מושונוב ובראבא – ערב חד פעמי",
+   "videos": [
+    {
+     "id": "Z_rtdrc_eJg",
+     "title": "מוני מושונוב ושלמה בראבא - הביצה והתרנגולת (מתוך \"סופשבוע\")",
+     "duration": 1112,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bA2CEuE_ri0",
+     "title": "מוני מושונוב ושלמה בראבא - גבר מוכה",
+     "duration": 376,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5DprS7Mx1WU",
+     "title": "מוני מושונוב ושלמה בראבא - חלטורה ביום העצמאות",
+     "duration": 450,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "MoNlWiEncAE",
+     "title": "שלמה בראבא - יאצק באינתיפאדה (1987)",
+     "duration": 346,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bkIUaFoPiKc",
+     "title": "מוני מושונוב ושלמה בראבא - הסדרנים (שאול, כל העולם במה 1985)",
+     "duration": 352,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "p1jIaeJGBPc",
+     "title": "שלמה בראבא - תור לניתוח (אין מוצא)",
+     "duration": 420,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zgVH5rBso9A",
+     "title": "מוני מושונוב ושלמה בראבא - מסעדה בניו יורק (1997)",
+     "duration": 814,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wnzrZc0VJfM",
+     "title": "מוני מושונוב ושלמה בראבא - צוותא מנהטן (1990)",
+     "duration": 1300,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "08ZwDq5KliA",
+     "title": "ערב חד פעמי משופץ (1985, וידיאו)",
+     "duration": 1054,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bUKvw68hu7w",
+     "title": "ערב חד פעמי משופץ - יאצק (1985, וידיאו)",
+     "duration": 288,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Bq4AxXY3UIQ",
+     "title": "מוני מושונוב ושלמה בראבא - סיפורו של רפי נעליים",
+     "duration": 953,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ZXiJc8N8JCU",
+     "title": "מוני מושונוב ושלמה בראבא - שאול בחנות בגדים",
+     "duration": 794,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "750UhzcaY_M",
+     "title": "שלמה בראבא (ערב חד פעמי) - שאול (1982)",
+     "duration": 406,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fs8hDWWuFkc",
+     "title": "ערב חד פעמי משופץ - קומנדו צנזורה (1985, וידיאו)",
+     "duration": 278,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oPLED_rBFPE",
+     "title": "ערב חד פעמי קונבנציונלי - מוני רוצה לשיר, ואיך שלא",
+     "duration": 438,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "it8iO48sKk8",
+     "title": "שלמה בראבא - מלחמת המפרץ (1991)",
+     "duration": 221,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yhE30MAZb2s",
+     "title": "ערב חד פעמי - יאשק הפולני (יאצק, 1982)",
+     "duration": 562,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "uIzSmVr4WpQ",
+     "title": "ערב חד פעמי קונבנציונלי - יאצק במלחמת המפרץ (מצב רוח טוב)",
+     "duration": 408,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "llokkwaOaO0",
+     "title": "מוני מושונוב ושלמה בראבא - שדה התעופה",
+     "duration": 413,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "F886SUvuJv4",
+     "title": "ערב חד פעמי קונבנציונלי - באבה בובה (1991)",
+     "duration": 428,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "uKNPjX5zGaE",
+     "title": "מוני מושונוב ושלמה בראבא - מבט שני",
+     "duration": 394,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "EV2nz5w9MLY",
+     "title": "ערב חד פעמי משופץ (1985) חלק א",
+     "duration": 1671,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "v2Otwf1dWTk",
+     "title": "שלמה בראבא - יאצק במנהטן",
+     "duration": 295,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "at1a1PU1aSQ",
+     "title": "שלמה בראבא - יאצק במוצב",
+     "duration": 374,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KQmWMYvA0Y4",
+     "title": "ערב חד פעמי - כוננות ספיגה (1982)",
+     "duration": 842,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XLlo3iq064k",
+     "title": "מוני מושונוב ושלמה בראבא - עניין של כסף",
+     "duration": 405,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fX3-FT6rquQ",
+     "title": "ערב חד פעמי קונבנציונלי - דונט וורי, בי הפי",
+     "duration": 244,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bkoJDuPeiKA",
+     "title": "מוני מושונוב ושלמה בראבא - פארודיה לסרט הערבי",
+     "duration": 250,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "mlOf06Q6NeU",
+     "title": "מוני מושונוב ושלמה בראבא - פתיחה (פתאום ביחד)",
+     "duration": 87,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "AHyqH0gBi0c",
+     "title": "ערב חד פעמי - מה עושות האיילות (1982)",
+     "duration": 133,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jY4cx1iJtCk",
+     "title": "ערב חד פעמי - מתכוננים (1982)",
+     "duration": 178,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "t3AHJS_RQBM",
+     "title": "מוני מושונוב ושלמה בראבא - מה הבעיה שלך",
+     "duration": 75,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kPKgPUhhPuA",
+     "title": "ערב חד פעמי קונבנציונלי - היכרות (מנהטן)",
+     "duration": 585,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "76eRzAXaGbQ",
+     "title": "ערב חד פעמי קונבנציונלי - שאול שקלי (כולם כולם)",
+     "duration": 270,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rNM3oMJq9H8",
+     "title": "מוני מושונוב ושלמה בראבא - הירושה",
+     "duration": 504,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "qL4detL7U2c",
+     "title": "ערב חד פעמי - הילדה הכי יפה בגן (1982)",
+     "duration": 138,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ecv0WR_4vLY",
+     "title": "ערב חד פעמי קונבנציונלי - איש הצנזורה",
+     "duration": 590,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "MEbKx3k3gV4",
+     "title": "שלמה בראבא (ערב חד פעמי) - שירו של שאול (כאלה הם החיים, 1982)",
+     "duration": 146,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ibFXYaYFyAk",
+     "title": "מוני מושונוב ושלמה בראבא - זה שלך",
+     "duration": 424,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fjG4KJk5FpE",
+     "title": "מוני מושונוב ושלמה בראבא - מחלה",
+     "duration": 406,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KAPfFZTwSbY",
+     "title": "מוני מושונוב ושלמה בראבא - מנהטן (מתוך גל\"צ בפארק, 1990)",
+     "duration": 234,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "s4H7Ap2y0MA",
+     "title": "מוני מושונוב ושלמה בראבא - עבודה (בוריס קופץ מהגג)",
+     "duration": 509,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4j1wHnYnhGU",
+     "title": "ערב חד פעמי קונבנציונלי - ארווין והפסיכולוג",
+     "duration": 386,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "OZXC22OqwHo",
+     "title": "שלמה בראבא - מתיחה לחנוכה",
+     "duration": 324,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "BEqahiX-4XU",
+     "title": "ערב חד פעמי משופץ - בראבא מדריך תיירים (1985)",
+     "duration": 68,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "iPx206_s5q8",
+     "title": "מוני מושונוב ושלמה בראבא - תינוק של ביתר",
+     "duration": 567,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "tawipMRfGlA",
+     "title": "ערב חד פעמי קונבנציונלי - הבאבא בובה",
+     "duration": 501,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "adUCEW0uysQ",
+     "title": "ערב חד פעמי - עצוב (1982)",
+     "duration": 442,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "YtfvI0P4Hvc",
+     "title": "ערב חד פעמי משופץ - שאול בלשכת עבודה (1985)",
+     "duration": 495,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "NLCRVHR0ApA",
+     "title": "שלמה בראבא - אביב (מלחין מבקש עזרה לפסטיבל האביב)",
+     "duration": 358,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yZoFjvcly2k",
+     "title": "מוני מושונוב ושלמה בראבא - סליחה",
+     "duration": 337,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "pqrkUdDWtEI",
+     "title": "ערב חד פעמי משופץ - הייקים (1985)",
+     "duration": 200,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HB4RRQSg_dY",
+     "title": "ערב חד פעמי משופץ (1985) חלק אחרון",
+     "duration": 356,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "dayan",
+   "name": "תיקי דיין",
+   "videos": [
+    {
+     "id": "3MhV4wWuzvw",
+     "title": "תיקי דיין - הכרטיסנית (1986)",
+     "duration": 467,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "pOk6wW1kkR4",
+     "title": "תיקי דיין - בדיחות בבולגרית (גרבץ) (1975)",
+     "duration": 252,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9RDJh2XGOSw",
+     "title": "תיקי דיין - ביקור במס הכנסה",
+     "duration": 527,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "8WDJ48hfZgc",
+     "title": "תיקי דיין - בדיחות על הקורסיקאים",
+     "duration": 400,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "MbBoDroJ2Wc",
+     "title": "תיקי דיין - אור ירוק (1973)",
+     "duration": 281,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "cfTDYI1rvUM",
+     "title": "תיקי דיין - שלכם לשעה קלה (1973) - חלק ב",
+     "duration": 2368,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xbvHPNUacCo",
+     "title": "תיקי דיין - ילדה מספרת על לג בעומר (ילדה קטנה) (1973)",
+     "duration": 206,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "_GlMpmGA0JQ",
+     "title": "תיקי דיין - עסקנית בתי הסוהר (1972)",
+     "duration": 191,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "3Pk3ArxUicM",
+     "title": "תיקי דיין - שלכם לשעה קלה (1971) - חלק אחרון",
+     "duration": 702,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "JKIs5PHUGPk",
+     "title": "תיקי דיין - מכתב מהסוכנות (1973)",
+     "duration": 173,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9JZ0SSiiqAg",
+     "title": "תיקי דיין - החרוז הישראלי (1971)",
+     "duration": 101,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "J5ZkCUgj7xc",
+     "title": "תיקי דיין ודן אלמגור - זכרונות ממלכת האמבטיה",
+     "duration": 209,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ux9w4IAv4Z0",
+     "title": "תיקי דיין - נתן לי ארבע (1973)",
+     "duration": 74,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "BFFmzmg65FI",
+     "title": "תיקי דיין - סיפור חייו של שחקן תאטרון",
+     "duration": 164,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5-UiWqf8SPg",
+     "title": "תיקי דיין - האולפן בקנדה (1975)",
+     "duration": 203,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LrmyDIV94Qs",
+     "title": "תיקי דיין ודורי בן זאב - סרג'יו הקוסם חלק ב",
+     "duration": 339,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HwhPqS5uO4s",
+     "title": "תיקי דיין ודורי בן זאב - סרג'יו הקוסם חלק א",
+     "duration": 247,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "dk0e_Y86NbM",
+     "title": "תיקי דיין ודורי בן זאב - סרג'יו הקוסם חלק ג",
+     "duration": 72,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "shavit",
+   "name": "ציפי שביט",
+   "videos": [
+    {
+     "id": "RpeAPlhpZng",
+     "title": "ציפי שביט - הדיאטה (1993)",
+     "duration": 347,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "eK8V5CZkfqs",
+     "title": "ציפי שביט - ג'מבו במספר גרסאות (1993)",
+     "duration": 175,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ElU3aQBEOlI",
+     "title": "ציפי שביט - יום העצמאות (1993)",
+     "duration": 240,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "hCLSoCqutkI",
+     "title": "ציפי שביט - נקמה",
+     "duration": 112,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "00j9iOCz4Rg",
+     "title": "ציפי שביט - תודה שבאתם",
+     "duration": 435,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "lwcbZ0DwPGM",
+     "title": "ציפי שביט ב\"סיבה למסיבה\" (1989)",
+     "duration": 740,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "cxr-66rhwfQ",
+     "title": "ציפי שביט - מסיבת הפתעה לטולה",
+     "duration": 855,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bjaMWfomPII",
+     "title": "ציפי שביט - בת חד הורית",
+     "duration": 510,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "DQjkZ7QO4LA",
+     "title": "ציפי שביט - הבעלים",
+     "duration": 263,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "-8iezVvDaQ0",
+     "title": "ציפי שביט - הרזייה (דיאטה)",
+     "duration": 519,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "lKQ9SiYFleE",
+     "title": "ציפי שביט - מופע ביום העצמאות",
+     "duration": 222,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "S-hWrBJJmIY",
+     "title": "ציפי שביט - הלילה",
+     "duration": 245,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1_js4lnDofI",
+     "title": "ציפי שביט - אליק מתחתן",
+     "duration": 502,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "V7JjkbDZaqw",
+     "title": "ציפי שביט - זה לא בריא",
+     "duration": 138,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "7Uh7xRw37hE",
+     "title": "ציפי שביט - אוהבת לדבר",
+     "duration": 364,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "B0BKS68ir60",
+     "title": "ציפי שביט - הכי קטנה",
+     "duration": 256,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "tzafir",
+   "name": "טוביה צפיר",
+   "videos": [
+    {
+     "id": "Mo-zho54V9c",
+     "title": "טוביה צפיר, דובי גל, מני פאר ומתי כספי - אגם המברברים",
+     "duration": 187,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "IKGR589DLeI",
+     "title": "טוביה צפיר - שרון חוזר לחווה",
+     "duration": 184,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "DtGkkpJ1cUA",
+     "title": "טוביה צפיר - שלום לך ממשלת אחדות 1990",
+     "duration": 148,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "39YCRw4YHKs",
+     "title": "טוביה צפיר - הפוקר היהודי (1989)",
+     "duration": 317,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "AA3cdPkqJGw",
+     "title": "טוביה צפיר - מוקץ (מי ינהיג את הליכוד) (1993)",
+     "duration": 121,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FXKhKE-01Ec",
+     "title": "טוביה צפיר - עזר וייצמן ואחדות העם (1995)",
+     "duration": 77,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "stcx4Y_vANw",
+     "title": "שעשועי רוטציה (טוביה צפיר, מני פאר ואסנת וישינסקי) - גן הכנסת",
+     "duration": 302,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "D78ywN0rTww",
+     "title": "טוביה צפיר, דובי גל ורבקה מיכאלי - מכבי תל אביב אלופת אירופה (1977)",
+     "duration": 579,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wlwaqHI6yWU",
+     "title": "ערוץ 2 (טוביה צפיר, ספי ריבלין ונחום שליט) - כלבוטק",
+     "duration": 488,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "C5lJwZbq3qw",
+     "title": "טוביה צפיר - טדי קולק (אומפפה - אקס ראש העיר, 1993)",
+     "duration": 96,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "dx8lHflUB_Q",
+     "title": "שעשועי רוטציה (טוביה צפיר, מני פאר ואסנת וישינסקי) - צילומים בשטחים",
+     "duration": 233,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "GvfYPH0tGnc",
+     "title": "ערוץ 2 (טוביה צפיר, ספי ריבלין) - שר החקלאות",
+     "duration": 151,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "F7qD1_eZc3c",
+     "title": "ערוץ 2 - תכנית ילדים: רגע עם חינטרשתא",
+     "duration": 359,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "x6Fxzjgok1I",
+     "title": "ערוץ 2 - הקדמה לבלדה לרמות",
+     "duration": 68,
+     "channel": "מערכונים ישראלים"
+    }
+   ]
+  },
+  {
+   "id": "classics",
+   "name": "קלאסיקות ישראליות",
+   "videos": [
+    {
+     "id": "38vdFzjzZjQ",
+     "title": "ניקוי ראש - חלפון",
+     "duration": 187,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "A421rwpP7tI",
+     "title": "שלום אסייג - אסייג לחוכמה שתיקה (בטברנה) (1999)",
+     "duration": 332,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "_2PSQKFjC4I",
+     "title": "אבי גרייניק ועידן אלתרמן - חזי ואיציק (1993)",
+     "duration": 426,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "WBa6VdwmBzA",
+     "title": "אורי זוהר וטוביה צפיר - יצר הטוב, יצר הרע ומחיאות כפיים",
+     "duration": 290,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yNz18yIi4VA",
+     "title": "ספי ריבלין - נחמן זליקסון זוכה בלוטו",
+     "duration": 571,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Z9obYL59K_A",
+     "title": "נאור ציון בהופעת בכורה",
+     "duration": 285,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "EBlk-ys0Zng",
+     "title": "רועי בר נתן - הטיול המאורגן (2007)",
+     "duration": 276,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rFYA-s85pcQ",
+     "title": "ספי ריבלין - אשתי ברירת קנס (גרסת מוצש 1990)",
+     "duration": 229,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vPWLPOx8zYI",
+     "title": "הופעת הבכורה של צביקה הדר וז'וז'ו חלסטרה (1993)",
+     "duration": 275,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ofcvMH1hQ4w",
+     "title": "מוטי גלעדי ובבר פורטל - בבר (1999)",
+     "duration": 272,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Nl0EaXFnMFc",
+     "title": "יוסי חן - מבחר חיקויים (1993)",
+     "duration": 459,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "IpH4WaglipI",
+     "title": "אבי קושניר - כשהאשה לא בבית",
+     "duration": 922,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "S-D5YcL05nk",
+     "title": "יהורם גאון ושייקה אופיר - מצבנו הבטחוני (יוסקה איש הצבא) (1972)",
+     "duration": 918,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "gqTkclxNOwg",
+     "title": "ספי ריבלין - גדליה והבובה (1995)",
+     "duration": 298,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HLXNGOtCvjk",
+     "title": "מייק בורשטיין וחנה לסלאו - קוני למל בקהיר (מתוך שעה טובה עם אבי אתגר)",
+     "duration": 273,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4981y8X69MU",
+     "title": "בומבה צור ושייקה אופיר - פרשנות כדורגל (1974)",
+     "duration": 601,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "nlYq6ECyyYg",
+     "title": "ספי ריבלין - יורם (1995)",
+     "duration": 229,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kbGUSwRiKjE",
+     "title": "שמואל רודנסקי ושמוליק סגל - בניין ההסתדרות נהרס (1984)",
+     "duration": 235,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "JJAVJhOlTiA",
+     "title": "ספי ריבלין - הופעת יחיד (1995)",
+     "duration": 197,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "f9jf03C6oR8",
+     "title": "מתי כספי - האיטלקי",
+     "duration": 160,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "TGWIin3Yczw",
+     "title": "מתי כספי - השפה",
+     "duration": 268,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0r7VAEhhcdU",
+     "title": "ספי ריבלין ומושיק טימור - מקהלת הצבא האדום",
+     "duration": 722,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "MhVejHp9Cls",
+     "title": "דני רובס - ג'ימי אוחנה",
+     "duration": 485,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fan5I5nmcwM",
+     "title": "התאומים - אדון בר אדון (עם יוסי בנאי) (1972)",
+     "duration": 482,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "sVy0-vEqa3I",
+     "title": "אבי קושניר - נוסעים לחתונה",
+     "duration": 700,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "sB3NsReJ83w",
+     "title": "מוצש - המשפחה בחדר האטום חלק א (1991)",
+     "duration": 124,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HKup4KujNd4",
+     "title": "דני סנדרסון - החייל האמיץ סנדרסון (טירונות)",
+     "duration": 209,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XnK94B9q08Q",
+     "title": "שמוליק סגל - רונדו בונבוניירה (1989)",
+     "duration": 220,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fXk9ame-b2Q",
+     "title": "שמעון ישראלי - בומבה של שחקן",
+     "duration": 541,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "DcgzGSvbuW0",
+     "title": "דורון נשר - כל דבר פעמיים (1992)",
+     "duration": 174,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LKP2mzQf0pg",
+     "title": "התאומים - בן או בת (עם יוסי בנאי) (1972)",
+     "duration": 601,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "31vnhajoYF8",
+     "title": "אבי קושניר - אמא פולניה",
+     "duration": 425,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "J4lQquyl8dg",
+     "title": "אבי קושניר - החתונה (הכלה ציונה, אצל אלי יצפאן)",
+     "duration": 428,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "CGlrvGmox9E",
+     "title": "מוטי גלעדי ואסנת וישינסקי - הזוג העתיק ביותר בעולם (1999)",
+     "duration": 360,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "_wk1mKiOrNs",
+     "title": "אורי זוהר וחיים טופול - הפוקר היהודי",
+     "duration": 439,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "q0gQyqvULqA",
+     "title": "אבי קושניר - הדרכה לנישואים",
+     "duration": 505,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "CDp6DtLd7qI",
+     "title": "רבקה מיכאלי - הלו נאוה",
+     "duration": 278,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "df092BWFhGg",
+     "title": "ניקי גולדשטיין - כאן (2004)",
+     "duration": 190,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "H3KUFfePiG8",
+     "title": "אבי קושניר - רומן באינטרנט",
+     "duration": 431,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vVZK12WS2mQ",
+     "title": "מוטי גלעדי - השדרן הארגנטינאי",
+     "duration": 240,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LsYQVJCYJwg",
+     "title": "בומבה צור - מונולוג פתיחה, אוכל (1972)",
+     "duration": 449,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HIseI8ln9lQ",
+     "title": "נאור ציון ברשות הבידור (1993)",
+     "duration": 240,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "6HN4K_xFs-A",
+     "title": "מוצש - המשפחה בחדר האטום חלק ב (1991)",
+     "duration": 148,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "P2U9_or68ok",
+     "title": "פופיק ארנון ומתי כספי - שיח משוגעים",
+     "duration": 780,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "98DgLrw9Igg",
+     "title": "יאיר ניצני - האשם תמיד (1986)",
+     "duration": 457,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "UXzQHh616t4",
+     "title": "אבי קושניר - הרכבת בפריס",
+     "duration": 645,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vdFBudGnkoA",
+     "title": "ספי ריבלין - איך בוריס אברמוביץ' הגיע לארץ",
+     "duration": 332,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "lbYS5cbXWS0",
+     "title": "התאומים 1986 (1) ניסע לים 86'",
+     "duration": 237,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "CJGYYxt5cfk",
+     "title": "אושיק לוי ופופיק ארנון - ז'אק ברל (1972)",
+     "duration": 419,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wwYthHI-VsQ",
+     "title": "אריק לביא ושושיק שני - הסיגריה",
+     "duration": 299,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "GBeENJDw7ng",
+     "title": "רבקה מיכאלי - חגי ישראל או נס פורים (1968)",
+     "duration": 335,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "UdZXWnwZEnI",
+     "title": "יעקב כהן - זמר חתונות (1992)",
+     "duration": 110,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LCVi5NQUJKM",
+     "title": "יהודה ברקן - מברק לג'ולי אנדריוס",
+     "duration": 214,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "h0i_V8QSeAI",
+     "title": "דני רובס - ג'ימי אוחנה - התישבה ליד פנתר",
+     "duration": 61,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "OikTgf0yTx4",
+     "title": "אבי קושניר - ביבי מבקש מדוד לוי לחזור לליכוד",
+     "duration": 267,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "GwgGQBe_TEA",
+     "title": "דני סנדרסון ומאיר פניגשטיין - המדען קירי (1996)",
+     "duration": 194,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "PGSmQrrIyf4",
+     "title": "יהורם גאון ואבנר חזקיהו - המורה לזמרה",
+     "duration": 772,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "fT6vpwHK1PY",
+     "title": "מנחם זילברמן - משפחה במלון האורנג'דה",
+     "duration": 275,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "k2Url7nnXWQ",
+     "title": "חנה לסלאו וגדעון זינגר - העוזרת הרומניה",
+     "duration": 121,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bzLFx3LVazY",
+     "title": "יהורם גאון ולבנה פינקלשטיין - אהבה בבית הקברות (1972)",
+     "duration": 453,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yep2P65j5Tk",
+     "title": "דני רובס (ג'ימי אוחנה) - הפול על הגבעה",
+     "duration": 98,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "m5qaof5auoQ",
+     "title": "אלכסנדר יהלומי וענת עצמון - בלה בלה בלה",
+     "duration": 305,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "x4wmXwKE8YQ",
+     "title": "מוצש - המשפחה בחדר האטום חלק ג (1991)",
+     "duration": 81,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "I4F4l5tZYgo",
+     "title": "אורי זוהר - אבא ודני (1965)",
+     "duration": 250,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "-sO417uKvn0",
+     "title": "דני רובס (ג'ימי אוחנה) - קום והתהלך בארץ",
+     "duration": 91,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5ftHBO2ASYE",
+     "title": "אלי גורנשטיין וצחי נוי (צמד חומה ומגדל) - המכונית במוסך",
+     "duration": 265,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "PfAVmlc8p48",
+     "title": "יהורם גאון ועליזה רוזן - המשמר האזרחי",
+     "duration": 676,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ZMdZAbWjgWc",
+     "title": "ספי ריבלין - לא עכשיו (1987)",
+     "duration": 190,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "MMdScR4ph8E",
+     "title": "דני רובס (ג'ימי אוחנה) - זוהי יפו",
+     "duration": 87,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "S0IlnCEFGqM",
+     "title": "רבקה מיכאלי - עולה חדשה",
+     "duration": 346,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "jaS5R4f4ahE",
+     "title": "לויס אפוטה - הפתרון של ולדיק לבעיית החמאס בעזה",
+     "duration": 77,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "81nXlUVaNPM",
+     "title": "יהורם גאון ויהודה אפרוני - השחקן ירדן פודמניצקי",
+     "duration": 404,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "bonAh_lwf0Q",
+     "title": "מוטי גלעדי - פסטיבל ערד (1993)",
+     "duration": 385,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RHiwvRs3SmM",
+     "title": "\"ערב חד פעמי קונבנציונלי\" מתוך סופשבוע (1991)",
+     "duration": 1214,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xn_R1mBkFuA",
+     "title": "אבי קושניר - ספונטני",
+     "duration": 241,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "UER2-nSLlgY",
+     "title": "בומבה צור וגדעון זינגר - המהפנט (1974)",
+     "duration": 645,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rItQ2Jhd0LQ",
+     "title": "אברהם מור - צלחת פלא (1989)",
+     "duration": 88,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "UjlZE2RlTDQ",
+     "title": "אברהם מור, רבקה מיכאלי ואבנר חזקיהו - ביקור בגן החיות",
+     "duration": 384,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Zfx5XR1kM1c",
+     "title": "רבקה מיכאלי - החופש (תישן יוסף תישן) (1980)",
+     "duration": 215,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "p8x5IEr-cok",
+     "title": "אריק לביא ושושיק שני - הגירושין",
+     "duration": 236,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RimWI162B8s",
+     "title": "פופיק ארנון ומוני מושונוב - סיסמא",
+     "duration": 732,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "NrA9pqnMKnM",
+     "title": "בומבה צור - אליפות העולם בכדורגל (הבלדה ליוהאן קרוייף) (1974)",
+     "duration": 171,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "6FZcr4ENiZI",
+     "title": "יהודה ברקן - בית מרקחת",
+     "duration": 271,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2NoH3y3K-oA",
+     "title": "רבקה מיכאלי - הלו אדון פרח (1968)",
+     "duration": 247,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "JTimqyQp1Lg",
+     "title": "רבקה מיכאלי - המפתח אצל הג'ינג'י",
+     "duration": 224,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FWl2MwVSkeU",
+     "title": "צחי נוי מחקה את תיקי דיין",
+     "duration": 113,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "NS9dYYymi2w",
+     "title": "אבי קושניר - מכבס תולה (הקדמה)",
+     "duration": 87,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wo4H7ImB4rU",
+     "title": "אבי קושניר - פספוסים (מכבס ותולה)",
+     "duration": 196,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XMyS-qRIGEQ",
+     "title": "יהורם גאון - שלכם לשעה קלה (1972) חלק א",
+     "duration": 2397,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "kaz5Fcg1-xI",
+     "title": "רבקה מיכאלי - שלכם לשעה קלה (1971)",
+     "duration": 2166,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QIU0vJZ_HyQ",
+     "title": "בומבה צור - שלכם לשעה קלה (1972) חלק ב",
+     "duration": 1718,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "S0zKMSbh0m8",
+     "title": "הפרוייקט של גדעון רייכר - אזרחים נגד בואי (2002)",
+     "duration": 249,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "P03yrwy2cLM",
+     "title": "שמעון ישראלי - חם חם",
+     "duration": 413,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2nY_jXiNlKM",
+     "title": "שמעון ישראלי - ירדן פודמניצקי בדואר (1977)",
+     "duration": 837,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RGQa5iZQ9JA",
+     "title": "שמעון ישראלי - רחמו החייל",
+     "duration": 441,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "z2cuGcF03Ms",
+     "title": "אורי זוהר ושיקה אופיר - לאן נלך הערב",
+     "duration": 327,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "dmr49NWaKqk",
+     "title": "בומבה צור - חצי שעה לחיות (1974)",
+     "duration": 203,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oVTIKkEtkR4",
+     "title": "גידי גוב ומוני מושונוב - קומנדו צנזורה",
+     "duration": 512,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KNVSE4ZODAU",
+     "title": "יהודה ברקן - חידון להתאחדות המסגרים",
+     "duration": 934,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "6vLDJC7sIcM",
+     "title": "שמעון ישראלי - אדם שבור (מוזיאון השעווה) (1973)",
+     "duration": 428,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "YkHoOk6oOdg",
+     "title": "אבי גרייניק ועידן אלתרמן - דואט (2007)",
+     "duration": 182,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Ucd_rrhQNr0",
+     "title": "אורי זוהר - צחוק בארבע שפות",
+     "duration": 79,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "sQ7oRaP1qso",
+     "title": "יהורם גאון ושייקה אופיר - פליקס ומר פייגנבאום",
+     "duration": 237,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "gK2JkVQSrNA",
+     "title": "מודי בר און וגדי פור  - קרחת פאה, הודעה בקיבוץ (1992)",
+     "duration": 143,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "yFUmv-Z-OL4",
+     "title": "ניקוי ראש - פסטיבל הזמר (1996)",
+     "duration": 104,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "X_i2eKC2dQk",
+     "title": "בומבה צור - נחש נשך נחש",
+     "duration": 133,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "T_EYpq2Tn3o",
+     "title": "יהודה ברקן - הרמן שלוס עושה רמונט לכלבים",
+     "duration": 398,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "M9KWvTqBYso",
+     "title": "מוטי גלעדי - הוטרינר",
+     "duration": 109,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XgYAYq-UdBc",
+     "title": "איציק בן מלך, חני נחמיאס ובני נדלר - המרימים (1989)",
+     "duration": 183,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "oUHV0HOulwE",
+     "title": "בומבה צור ושוקולד מנטה מסטיק - בוא נרד לטבריה (1974)",
+     "duration": 275,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HQBf5qdUPgo",
+     "title": "ז'אק כהן ולילית נגר - מטוס טרנטה",
+     "duration": 779,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4wK3vGaiGVA",
+     "title": "יהודה ברקן - איך לקנות מכונית ב15 ל''י",
+     "duration": 320,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "gWkshvEXF9s",
+     "title": "יהודה ברקן - המוצץ נגמר",
+     "duration": 143,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9c9qcLrkZa0",
+     "title": "מוטי גלעדי - מר מנחם בגין",
+     "duration": 185,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "QOKSKTOL8hU",
+     "title": "דני סנדרסון - הסוסיתא שלי (מתוך \"סופשבוע\", 1991)",
+     "duration": 393,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "y1UaE_4bPB0",
+     "title": "יהודה ברקן - ריצ'רד פליישר מצלם אותך דרך הטלפון",
+     "duration": 302,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "wJPibMWy-rM",
+     "title": "יהורם גאון ויהודה אפרוני - מומחה לנשק (1972)",
+     "duration": 451,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Y9XYuTnbEcs",
+     "title": "עודד תאומי ועודד קוטלר - המגמגמים",
+     "duration": 416,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "E2zwU_lhtSM",
+     "title": "אורי זוהר - המשפט (הקורקבן)",
+     "duration": 376,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4THZqQCCDkw",
+     "title": "יהונתן גפן - המעיל",
+     "duration": 169,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "g8je2ctE4Zw",
+     "title": "שמעון ישראלי - תולדות התיאטרון (1977)",
+     "duration": 177,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "owr-rGAYVdg",
+     "title": "בומבה צור וגדעון זינגר - האורח הבא של התכנית (1972)",
+     "duration": 321,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "e-18r2lpRZ8",
+     "title": "גדעון זינגר וחנן גולדלבט - בשורה רעה",
+     "duration": 405,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xpf4RshToPg",
+     "title": "חיים בנאי - פינטול הקטן",
+     "duration": 306,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "9MnN1rCiVNM",
+     "title": "יהודה ברקן - סיפור בהמשכים על נייר טואלט",
+     "duration": 355,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FAF_LH9vt6w",
+     "title": "יהונתן גפן - גיל 39 (מתוך \"סיבה למסיבה\", 1986)",
+     "duration": 241,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Q5UNp-Bnlrs",
+     "title": "יהורם גאון ושרגא פרידמן - עצות לשחקן",
+     "duration": 544,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0k6fEewHX_Q",
+     "title": "יעקב כהן - מסעדות",
+     "duration": 243,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vqXlGRQeDxc",
+     "title": "בומבה צור - שלכם לשעה קלה (1974)",
+     "duration": 978,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "60z9qD0N31o",
+     "title": "מוני מושונוב ואלי ומריאנו - תכניות רדיו (אנשי השנה 2000)",
+     "duration": 385,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "SW9dLrVjRqQ",
+     "title": "יהודה ברקן - הזזת מחוגי השעון",
+     "duration": 345,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5p0RjEjUj1Q",
+     "title": "יהודה ברקן - שטיח מתכווץ",
+     "duration": 371,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0e1uEgvSzoE",
+     "title": "יהונתן גפן - שורשים",
+     "duration": 310,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2nTqmS7jGLw",
+     "title": "רבקה מיכאלי - הצינור",
+     "duration": 138,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1k9I_IAorsw",
+     "title": "רן לוי ורון שלום (דידי הררי) - הפועל המלכלך (1999)",
+     "duration": 204,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "si7M1TXxlfA",
+     "title": "חנן גולדבלט - שר בממשלה",
+     "duration": 189,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "tKHHWc9qZnw",
+     "title": "שלום אסייג ולהקת החדר האטום - לכבוד מיליארד טילים (1997)",
+     "duration": 186,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ZBibHxYxjdo",
+     "title": "אברהם מור - עולה חדש",
+     "duration": 129,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "if1KMp8TPiU",
+     "title": "מני פאר - הורים וילדים (1993)",
+     "duration": 299,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "98EJ7q8qYj8",
+     "title": "להקת פיקוד דיזינגוף - לופו רבינוביץ במשרד הרישוי",
+     "duration": 696,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "4BFYDwlqcFY",
+     "title": "להקת פיקוד דיזינגוף - שלום למורה לטבע (קרפדה)",
+     "duration": 527,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "cLDZBo9zzXI",
+     "title": "יהונתן גפן - מסיבות",
+     "duration": 353,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xjl3Y8UNqO0",
+     "title": "עודד תאומי - החיים היפים (1968)",
+     "duration": 183,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "Qh7BEFppDZM",
+     "title": "שרגא פרידמן - האף",
+     "duration": 197,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "6-b9o-VQtf4",
+     "title": "אושיק לוי וגבי עמרני - אליבי",
+     "duration": 266,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RkyzGOPoe4o",
+     "title": "זהרירה חריפאי - שומרי משקל (1970)",
+     "duration": 470,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "7Gy6mLqGG8w",
+     "title": "יהונתן גפן - חגיגות הארבעים ואחת",
+     "duration": 309,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "hZmR1tAaQNY",
+     "title": "זהרירה חריפאי ויהודה אפרוני - שידוכים (1970)",
+     "duration": 425,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HIn-vFCPtoM",
+     "title": "בומבה צור - פרישמן דיזנגוף (1974)",
+     "duration": 205,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "cO7O5CBRR2c",
+     "title": "שמעון בר ויעקב בן סירא - המתופף",
+     "duration": 178,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1aRbkbgu7i4",
+     "title": "שלום אסייג ולהקת החדר האטום - בגדד (1997)",
+     "duration": 229,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "zEnx9yPR4JM",
+     "title": "אושיק לוי וגבי עמרני - זא'ק ברל",
+     "duration": 207,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "n6cU7SZc4N4",
+     "title": "להקת פיקוד דיזינגוף - אמא לא מרשה להתחתן",
+     "duration": 118,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RMLLNUfRFSg",
+     "title": "מושיק טימור - הלו, חשמל נוזל לי מהשטקר",
+     "duration": 163,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FPWoZ3t9cJU",
+     "title": "חיים טופול ואליהו ברקאי (ברקו) - הפוטל",
+     "duration": 556,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "BDVTd8tNXRY",
+     "title": "עודד בן חור - הטיול השנתי של שנת 2500",
+     "duration": 356,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "HOi6_-bmMCw",
+     "title": "זאב רווח רוצה להיות מאמן נבחרת ישראל בכדורגל (2010)",
+     "duration": 178,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rxhPDiOrvAQ",
+     "title": "יהונתן גפן - השנים הטובות של משה",
+     "duration": 242,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "FsospyTJDpI",
+     "title": "אילי גורליצקי ויונה עטרי - סבון ומקלחת",
+     "duration": 232,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ujMmvRfCobk",
+     "title": "אילי גורליצקי ושושיק שני - מראה מעל הגשר",
+     "duration": 336,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "LxyY0541RC0",
+     "title": "יהונתן גפן - הבר לגברים מוכים (מתוך \"סיבה למסיבה\", 1986)",
+     "duration": 241,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "DB_OW7Fb_iQ",
+     "title": "יהונתן גפן - מתאים לי ומקובל עלי",
+     "duration": 315,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "ISykyhbLmMU",
+     "title": "גדעון זינגר - תודה רבה (1971)",
+     "duration": 99,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "RR7DiH6Gs80",
+     "title": "מני פאר ורבקה מיכאלי - זיכרון (1984)",
+     "duration": 300,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "KNFewGz8jAo",
+     "title": "רבקה מיכאלי ודורי בן זאב - קטעים מתוך התעריפון (1971)",
+     "duration": 213,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "xODK5FffzGU",
+     "title": "להקת המטאטא - מגדל בבל (המשפט)",
+     "duration": 405,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2JnQsu-MhBo",
+     "title": "יהונתן גפן - פאבים",
+     "duration": 92,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "1FKoI_eMyRA",
+     "title": "בומבה צור - יום הולדתי (1974)",
+     "duration": 343,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "u2WCxgfDev4",
+     "title": "עודד בן חור - הייתי ניצב בסרט",
+     "duration": 340,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "vvP_UIjM9jA",
+     "title": "אריק לביא ושושיק שני - הוא והיא (1963)",
+     "duration": 105,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "hEkOpMxc-QU",
+     "title": "בומבה צור - הקדמה לבלדה על יוהאן קרוייף (1974)",
+     "duration": 83,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "enEU3irGlyk",
+     "title": "אריק לביא ושושיק שני - דרבנו גרשום",
+     "duration": 142,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "XWra5i0WtJE",
+     "title": "גדעון זינגר - מונולוג חיי (מי אני)",
+     "duration": 115,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "0HJGRt7H6J4",
+     "title": "דין דין אביב - מעבר לגדר",
+     "duration": 248,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "rBRrMhdHwoM",
+     "title": "בומבה צור - אש יא ביבר",
+     "duration": 153,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "5jfr7rhGTQM",
+     "title": "יהונתן גפן - מעבר מורה בעניין מגש הכסף",
+     "duration": 89,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "2qiTv2f1bVA",
+     "title": "יהונתן גפן - מעבר מורות לבלוז",
+     "duration": 66,
+     "channel": "מערכונים ישראלים"
+    },
+    {
+     "id": "hvkBcNpmB-o",
+     "title": "יהונתן גפן - הצגת החברים",
+     "duration": 134,
+     "channel": "מערכונים ישראלים"
     }
    ]
   }
