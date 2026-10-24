@@ -1,0 +1,25 @@
+name: pdf-on-demand
+# When a reader opens a written shiur whose PDF has no copy yet, the app posts its uid to the ntfy topic in
+# data/ntfy_pdf_topic.txt. This job copies those PDFs into the repo's `pdf` branch (raw.githubusercontent.com serves them
+# with CORS, so the app shows them inside the page with pdf.js). No site deploy is needed.
+on:
+  schedule: [{cron: "*/5 * * * *"}]
+  workflow_dispatch:
+permissions: {contents: write}
+concurrency: {group: pdf-branch, cancel-in-progress: false}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Any requests?
+        id: peek
+        run: python3 importers/pdfmirror.py --peek
+      - name: Copy requested PDFs
+        if: steps.peek.outputs.pending != '0'
+        run: |
+          git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
+          pip install -q requests && python3 build.py >/dev/null
+          python3 importers/pdfmirror.py --requests
+          python3 ci_commit.py "pdf: on-demand copies" data/pdfreq_state.json || true

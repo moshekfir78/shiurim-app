@@ -297,7 +297,7 @@ const views = {
       ${isText(s) ? `<h2 class="sec">${s.txt ? 'השיעור' : 'השיעור בכתב'}</h2><div class="text article" id="body"><span class="muted">טוען…</span></div>` : ''}
       <div id="trbox"></div><div id="study"></div>
       ${isText(s) ? '' : `<h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>`}
-      <p class="prow">${s.doc ? `<a class="btn ${s.txt ? 'pri' : ''}" href="${esc(s.doc)}" target="_blank" rel="noopener">📄 ${s.txt || s.tx ? 'קריאה במקור (PDF)' : 'הדף הכתוב (PDF)'} ↗</a>` : ''}<a class="btn ${s.txt && s.doc ? '' : 'pri'}" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.txt ? (s.doc ? 'לעמוד השיעור ↗' : 'קריאה במקור ↗') : s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
+      <p class="prow">${s.doc ? `<a class="btn" href="${esc(s.doc)}" target="_blank" rel="noopener">📄 ${s.txt || s.tx ? 'קריאה במקור (PDF)' : 'הדף הכתוב (PDF)'} ↗</a>` : ''}<a class="btn ${s.txt && s.doc ? '' : 'pri'}" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.txt ? (s.doc ? 'לעמוד השיעור ↗' : 'קריאה במקור ↗') : s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
       ${(s.alsoAt || []).map(u => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">גם ב${u.includes('youtube') ? 'יוטיוב' : 'מקור נוסף'} ↗</a>`).join('')}</p>`;
   }
 };
@@ -384,6 +384,7 @@ async function setupShiur(s) {
     try {
       const c = await (await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' })).json();
       if (c.html) bd.innerHTML = c.html;
+      else if (s.doc) pdfView(bd, s);
       else { bd.classList.add('plain'); bd.innerHTML = (c.excerpt ? `<p>${esc(c.excerpt.trim())}</p>` : '') + `<p class="muted">${s.doc ? 'הטקסט המלא נמצא בקובץ ה־PDF באתר המקור.' : 'הטקסט המלא נמצא באתר המקור.'}</p><p><a class="btn pri" href="${esc(s.doc || s.pageUrl)}" target="_blank" rel="noopener">📄 קריאה במקור ↗</a></p>` }
     } catch { bd.innerHTML = `<span class="muted">לא ניתן לטעון את הטקסט · <a href="${esc(s.doc || s.pageUrl)}" target="_blank" rel="noopener">קריאה במקור ↗</a></span>` }
     return;
@@ -483,4 +484,50 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update());
   let reloaded = false; // when a new version takes over, reload once so fresh code + data are used
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded && navigator.serviceWorker.controller) { reloaded = true; location.reload() } });
+}
+
+// A written shiur kept as a PDF is shown INSIDE the app (pdf.js, bundled in vendor/pdfjs). The publishers' servers send
+// no CORS headers, so the file is read from the copy in the repo's `pdf` branch (raw.githubusercontent.com allows it);
+// a missing copy is requested from the pdf-on-demand job and shown as soon as it lands. The link to the original stays
+// as the fallback.
+const PDF_TOPIC = 'sh-pdf-3f86b91fc843691629ccb3f3b5e2a3bf';
+const pdfCopy = c => 'https://raw.githubusercontent.com/moshekfir78/shiurim-app/pdf/p/' + c + '.pdf';
+let _pdfjs;
+async function pdfLib() {
+  if (!_pdfjs) _pdfjs = import(new URL('vendor/pdfjs/pdf.min.mjs', location.href).href).then(m => { m.GlobalWorkerOptions.workerSrc = new URL('vendor/pdfjs/pdf.worker.min.mjs', location.href).href; return m });
+  return _pdfjs;
+}
+async function pdfBytes(s) {
+  for (const u of [pdfCopy(s.c), s.doc]) {
+    try { const r = await fetch(u, { cache: 'no-cache' }); if (r.ok) { const b = new Uint8Array(await r.arrayBuffer()); if (b[0] === 0x25 && b[1] === 0x50) return b } } catch (e) { }
+  }
+  return null;
+}
+async function pdfView(bd, s, tries = 0) {
+  const link = `<a class="btn" href="${esc(s.doc)}" target="_blank" rel="noopener">📄 פתיחת ה־PDF באתר המקור ↗</a>`;
+  if (!tries) bd.innerHTML = '<span class="muted">טוען את הקובץ…</span>';
+  const b = await pdfBytes(s);
+  if (!document.body.contains(bd)) return;
+  if (!b) {
+    if (!tries) { const k = 'pdfReq', r = LS.get(k, {}); if (!r[s.uid] || Date.now() - r[s.uid] > 3600e3) { try { await fetch('https://ntfy.sh/' + PDF_TOPIC, { method: 'POST', body: s.uid }); r[s.uid] = Date.now(); LS.set(k, r) } catch (e) { } } }
+    bd.innerHTML = `<p class="muted">הקובץ מועתק עכשיו כדי שיוצג כאן באפליקציה — זה לוקח בדרך כלל כמה דקות. אפשר להשאיר את העמוד פתוח; הוא ייטען לבד.</p><p>${link}</p>`;
+    if (tries < 40) setTimeout(() => document.body.contains(bd) && pdfView(bd, s, tries + 1), 30e3);
+    return;
+  }
+  try {
+    const lib = await pdfLib();
+    const doc = await lib.getDocument({ data: b, cMapUrl: 'vendor/pdfjs/cmaps/', cMapPacked: true, standardFontDataUrl: 'vendor/pdfjs/standard_fonts/', isEvalSupported: false }).promise;
+    bd.classList.add('pdfv'); bd.innerHTML = `<div class="pdfbar"><span class="muted">${doc.numPages} עמודים</span><span><button class="btn" data-z="-1" aria-label="הקטנה">−</button><button class="btn" data-z="1" aria-label="הגדלה">+</button></span></div><div class="pdfpages"></div><p>${link}</p>`;
+    const box = bd.querySelector('.pdfpages'); let zoom = 1; const done = new Map();
+    const draw = async (i, cv) => {
+      const pg = await doc.getPage(i), w = box.clientWidth || 600, v0 = pg.getViewport({ scale: 1 });
+      const sc = w * zoom / v0.width, dpr = Math.min(window.devicePixelRatio || 1, 2), v = pg.getViewport({ scale: sc * dpr });
+      cv.width = v.width; cv.height = v.height; cv.style.width = (v.width / dpr) + 'px'; cv.style.height = (v.height / dpr) + 'px';
+      await pg.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise;
+    };
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const cv = e.target, i = +cv.dataset.p; if (done.get(i) !== zoom) { done.set(i, zoom); draw(i, cv).catch(() => { }) } } }), { rootMargin: '600px 0px' });
+    const first = await doc.getPage(1), r0 = first.getViewport({ scale: 1 }), ratio = r0.height / r0.width;
+    for (let i = 1; i <= doc.numPages; i++) { const cv = document.createElement('canvas'); cv.dataset.p = i; cv.className = 'pdfpg'; cv.style.aspectRatio = `1 / ${ratio}`; box.appendChild(cv); io.observe(cv) }
+    bd.querySelectorAll('[data-z]').forEach(x => x.onclick = () => { zoom = Math.min(3, Math.max(1, zoom + (+x.dataset.z) * .5)); box.querySelectorAll('canvas').forEach(cv => { io.unobserve(cv); io.observe(cv) }) });
+  } catch (e) { bd.innerHTML = `<p class="muted">לא ניתן להציג את הקובץ כאן.</p><p>${link}</p>` }
 }

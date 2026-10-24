@@ -108,6 +108,8 @@ def run(slug):
             "date": heb2iso(x.get("HebrewDate")), "audio": [f"https://www.ybm.org.il/admin/uploaddata/LessonsFiles/Audio/{i}.mp3"],
             "pageUrl": f"https://www.ybm.org.il/lesson?lesson={i}"}
         if pdf: S[uid]["doc"] = pdf                         # the lesson's written sheet (PDF) on the site
+    from texts import keep_written
+    T = keep_written(T, f"ybm-{slug}")                  # only shiurim written in advance (real written article, not a sheet / transcript)
     save_json(tpath, {"source": {"id": f"text-ybm-{slug}", "name": "ישיבת ברכת משה – שיעורים כתובים", "site": "https://www.ybm.org.il", "rav": slug, "kind": "text"}, "shiurim": T})
     save_json(path, {"source": {"id": f"ybm-{slug}", "name": "ישיבת ברכת משה", "site": "https://www.ybm.org.il", "rav": slug}, "shiurim": S})
     print(f"ybm {slug}: {len(got)} listed -> {len(S)} kept, {len(T)} written (PDF)", st, flush=True)

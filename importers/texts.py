@@ -14,7 +14,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 UA = "Mozilla/5.0 (ShiurimAggregator personal study app)"
 CONTENT_ONLY = {"medan", "grossman", "lichtenstein", "amital", "spiegelman", "samet", "fargeon", "rosenberg"}
 EXCL = {k: v.get("excludeTitle", []) for k, v in load_json(os.path.join(ROOT, "data", "ravs.json"), {}).items()}
-NONSHIUR = re.compile(r'לידידי הישיבה|הספד|הסתלקות|פטירת|לזכר|לזכרו|לע"נ|אזכרה|יום השנה ל|ראיון|ריאיון|בגבורותיו|לכבודו של|דברי פתיחה|דברי ברכה|טקס |מודעה|הודעה|הרשמה|מוזמנים|'
+NONSHIUR = re.compile(r'לידידי הישיבה|^מכתב|הספד|הסתלקות|פטירת|לזכר|לזכרו|לע"נ|אזכרה|יום השנה ל|ראיון|ריאיון|בגבורותיו|לכבודו של|דברי פתיחה|דברי ברכה|טקס |מודעה|הודעה|הרשמה|מוזמנים|'
                       r'פרומו|טריילר|שיר |ניגון|קליפ|מזל טוב|ברכת מזל|חדשות|עדכון|תוכנית הלימודים|לוח זמנים|מבצע|מכרז|דרושים')
 GEMARA = re.compile(r'גמרא|תלמוד (בבלי|ירושלמי)|סוגי(ה|ית|א|ות) |סוגיית|מסכת|דף היומי|שיעור כללי|בבא (קמא|מציעא|בתרא)|^הלכות |הלכות (פסח|חנוכה|פורים|שבת|תפילה)|'
                     r'שו"ע|שולחן ערוך|משנה ברורה|רשב"א|ריטב"א|תוספות|קצות|הלכתי|פסיקה|בירור הלכה|דיני ')
@@ -50,8 +50,66 @@ def ok_title(slug, t, extra=""):
     if slug in CONTENT_ONLY and (GEMARA.search(t) or GEMARA.search(extra)): return False
     return True
 
+# ---- USER RULE: only shiurim WRITTEN in advance as text. No transcripts / summaries / edited talks, no blurbs or title-only stubs.
+MIN_CHARS = 2500        # ~400+ words: a real written shiur, not an abstract or a notice
+TR_MARK = re.compile(r'תמלול|תומלל|מתומלל|תמלל|שיקלט|שוכתב|'
+    r'השיחה (נאמרה|הועברה|ניתנה|נישאה)|השיעור (נאמר|הועבר|ניתן)|הדברים נאמרו|הדברים נישאו|(?:^|[.\s_*])דברים שנאמרו ב|נאמרו בשיחה|'
+    r'מתוך שיחה|מתוך שיעור|מתוך הרצאה|על פי שיחה|על פי שיעור|על פי הרצאה|ע"פ שיחה|ע"פ שיעור|עפ"י שיחה|עפ"י שיעור|בעקבות שיחה של|'
+    r'וסוכמ(ה|ו)?|וסיכמ(ה|ו)?|סיכם:|סיכמה:|סיכמו:|סוכמ(ה|ו)? (על ידי|ע"י|ע״י|בידי)|סיכום:|רשמ(ו|ה)?:|'
+    r'עריכה:|ערך:|ערכה:|ערכו:|וערכ(ו|ה)?:|נערכ(ה|ו)? (על ידי|ע"י|ע״י|בידי)|עובד(ה|ו)? (על ידי|ע"י)|עיבוד:|'
+    r'לא עבר(ה|ו)? (את )?(ביקורת|עריכת|הגהת)|'
+    r'בסעודה (ה)?שלישית|בסעודת (ליל )?שבת|בליל שבת (קודש )?פרשת|בערב שבת (קודש )?פרשת|בשיחת ליל|(הרצאה|הרצאתו|שיעור) שניתנ(ה)? ב|'
+    r'סיכום (ה)?(שיחת|שיחה|שיעור|דברי|הרצאת)|מורי ורבותי|^\s*רבותי[,: ]|קהל קדוש,|(דיברתי|דברתי) (לא פעם|בעבר|כבר)|כפי שאמרתי')   # spoken-address openers too
+TR_TITLE = re.compile(r'תמלול|סיכום (ה)?(שיעור|שיחה|הרצאה)|^שיחה |^שיחת |\| שיחה |הרצאה מוקלטת')
+SICHA_SERIES = re.compile(r'שיחות|^שיחה|קול יהודה|על לב אהרן|באור פניך|סיכומי')   # talks adapted from speech (VBM sichot etc.)
+_PDF_CACHE = os.path.join(ROOT, "data", "text_pdf_cache.json"); _PDF = None
+def pdf_check(url):
+    """characters of real text in the PDF + whether it is a transcript. Cached in data/text_pdf_cache.json (None = cannot check)."""
+    global _PDF
+    if _PDF is None: _PDF = load_json(_PDF_CACHE, {})
+    if url in _PDF: return _PDF[url]
+    import shutil, tempfile
+    if not shutil.which("pdftotext"): return None
+    b = get(url, raw=True, tries=2)
+    if not b or not b.startswith(b"%PDF"): return None
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as f:
+        f.write(b); f.flush()
+        t = subprocess.run(["pdftotext", "-q", f.name, "-"], capture_output=True).stdout.decode("utf-8", "replace")
+    t = re.sub(r"\s+", " ", t).strip()
+    v = _PDF[url] = {"c": len(re.findall(r"[\u0590-\u05FF]", t)), "tr": bool(TR_MARK.search(t[:900] + " " + t[-900:])), "b": len(b)}
+    return v
+def save_pdf_cache():
+    if _PDF is not None: save_json(_PDF_CACHE, _PDF)
+
+def written_reason(r):
+    """None when r is a shiur written in advance as text; otherwise why it is not (transcript / short / title-only / pdf-…)."""
+    t, ser = r.get("title") or "", ((r.get("path") or [{}])[-1].get("title") or "")
+    if TR_TITLE.search(t) or SICHA_SERIES.search(ser): return "transcript"
+    p = plain(r.get("contentHtml"))
+    if p:
+        if TR_MARK.search(p[:900] + " " + p[-900:]): return "transcript"
+        if len(p) >= MIN_CHARS: return None
+    if r.get("doc"):
+        v = pdf_check(r["doc"])
+        if v is None: return "pdf-unchecked"
+        if v["tr"]: return "transcript"
+        return None if v["c"] >= MIN_CHARS * 0.8 else "short"      # Hebrew letters only (~0.8 of all characters)
+    if not p and (r.get("chars") or 0) >= MIN_CHARS and not r.get("trMark"): return None   # verified full article, linked to the original
+    return "short" if p else "title-only"
+
+def keep_written(S, label=""):
+    out, why = {}, {}
+    for k, r in S.items():
+        w = written_reason(r)
+        if w: why[w] = why.get(w, 0) + 1
+        else: out[k] = r
+    save_pdf_cache()
+    if why: print(f"  {label} not written-in-advance, removed:", why, flush=True)
+    return out
+
 def store(src_id, name, site, rav, S, extra=None):
     path = os.path.join(ROOT, "data", "sources", f"text-{src_id}.json")
+    S = keep_written(S, src_id)
     save_json(path, {"source": {"id": f"text-{src_id}", "name": name, "site": site, "rav": rav, "kind": "text"}, "shiurim": S, **(extra or {})})
     print(f"text-{src_id}: {len(S)} text items", flush=True)
 
@@ -213,7 +271,7 @@ def siach():
         uid = f"siach:{p['id']}"
         if uid in OLD: S[uid] = OLD[uid]; continue
         c = content.get(p["id"])
-        if c is None or len(plain(c)) < 1000: continue          # short notices / announcements / not fetched (retried next run)
+        if c is None or len(plain(c)) < MIN_CHARS: continue          # short notices / announcements / not fetched (retried next run)
         t = html.unescape(p["title"]["rendered"])
         names = [cats[c2][0] for c2 in p["categories"] if c2 in cats]
         ravn = next((cats[c2][0] for c2 in p["categories"] if c2 in ravcats), None) or SI.rav_of(t)
@@ -248,7 +306,7 @@ def mikyab():
         uid = f"mikyab:{p['id']}"
         if uid in OLD: S[uid] = OLD[uid]; continue
         c = content.get(p["id"])
-        if not c or len(plain(c)) < 1500: continue
+        if not c or len(plain(c)) < MIN_CHARS: continue
         t = html.unescape(p["title"]["rendered"])
         S[uid] = item(uid, f"text-{sid}", "avraham", t, [{"id": "mikyab", "title": "טורים באתר הרב מיכאל אברהם"}], p["date"] + "+00:00", p["link"], body=clean_html(c))
     store(sid, "אתר הרב מיכאל אברהם – טורים", site, "avraham", S)
@@ -272,9 +330,9 @@ def shabaton():
         S, seen = {}, set()
         for x in sorted(posts, key=lambda x: x["id"]):
             t = html.unescape(x["title"]["rendered"]).strip(); c = x["content"]["rendered"]
-            if not ok_title(slug, t) or t in seen or len(plain(c)) < 1000: continue
+            if not ok_title(slug, t) or t in seen or len(plain(c)) < MIN_CHARS: continue
             seen.add(t); uid = f"shabaton:{x['id']}"
-            S[uid] = OLD.get(uid) or item(uid, f"text-{sid}", slug, t, [{"id": f"shabaton:{slug}", "title": "שבתון – מאמרים לפרשת השבוע"}], x["date"] + "+00:00", x["link"])   # newspaper column: rights unclear -> title + link to the original only
+            S[uid] = item(uid, f"text-{sid}", slug, t, [{"id": f"shabaton:{slug}", "title": "שבתון – מאמרים לפרשת השבוע"}], x["date"] + "+00:00", x["link"]) | {"chars": len(plain(c)), "trMark": bool(TR_MARK.search(plain(c)[:900] + " " + plain(c)[-900:]))}   # newspaper column: rights unclear -> title + link to the original only
         store(sid, "שבתון – מאמרים", site, slug, S)
 
 RUN = {"etzion": etzion, "hatanakh": hatanakh, "rosenberg": rosenberg, "siach": siach, "mikyab": mikyab, "shabaton": shabaton}

@@ -6,7 +6,7 @@ Lessons whose YouTube video is already in data/sources/youtube-<rav>.json are sk
 Writes data/sources/ostlv-<rav>.json"""
 import sys, os, re, json, time, html, urllib.request
 sys.path.insert(0, os.path.dirname(__file__))
-from texts import ok_title, clean_html
+from texts import ok_title, clean_html, written_reason
 from common import load_json, save_json, sanitize_html
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 API = "https://ostlv.co.il/wp-json/wp/v2/"
@@ -50,6 +50,7 @@ def run(slug):
                       "excerpt": re.sub(r"\s+", " ", plain)[:1500], "contentHtml": sanitize_html(text) if len(plain) >= 200 else None,
                       "tags": [], "path": [{"id": f"ostlv:{slug}", "title": "ישיבת אורות שאול"}, {"id": f"ostlv:{slug}:{cat}", "title": cat}],
                       "date": x["date"], "audio": audio, "pageUrl": x["link"], **({"youtube": vids[0]} if vids else {}), **({"text": 1, "contentHtml": clean_html(text)} if txt else {})}
+        for k in [k for k, v in S.items() if v.get("text") and written_reason(v)]: del S[k]   # written-in-advance only
         print(slug, "page", page, len(S), flush=True)
         if len(items) < 100: break
         page += 1; time.sleep(20)

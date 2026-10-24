@@ -13,7 +13,7 @@ jobs:
     outputs: {deploy: '1'}
     steps:
       - uses: actions/checkout@v4
-      - run: pip install -q requests yt-dlp
+      - run: pip install -q requests yt-dlp && (sudo apt-get install -y -qq poppler-utils >/dev/null || true)
       - name: Import all sources + build
         run: |
           if [ "${{ inputs.quick }}" = "true" ]; then python3 build.py; else ./ci_update.sh; fi
@@ -31,6 +31,8 @@ jobs:
         run: |
           git config user.name shiurim-bot; git config user.email orikfir10@users.noreply.github.com
           python3 ci_commit.py "daily update $(date -u +%F)" data   # 3-way merge onto latest main; never overwrites newer pushes
+      - name: Copies of written shiurim's PDFs for in-app reading (publishers send no CORS; separate `pdf` branch, only missing files)
+        run: PDF_MINUTES=40 python3 importers/pdfmirror.py --all || echo "::warning::pdf copies failed"
   deploy:
     needs: run
     runs-on: ubuntu-latest
@@ -42,7 +44,7 @@ jobs:
       - name: Build from latest main
         run: |
           git fetch -q origin main && git reset -q --hard origin/main && git log -1 --oneline
-          pip install -q requests && python3 build.py >/dev/null
+          pip install -q requests && (sudo apt-get install -y -qq poppler-utils >/dev/null || true) && python3 build.py >/dev/null
           SRC_MINUTES=6 SRC_CACHE=/tmp/srccache.json node importers/srclinks.js || echo 'source linking skipped'
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

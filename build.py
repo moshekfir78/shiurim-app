@@ -81,10 +81,7 @@ def _dedupe(raw):
             for k in ("youtube", "spotify", "spotifyVideo", "soundcloud", "duration"):
                 if r.get(k) and not tgt.get(k): tgt[k] = r[k]
             if r.get("audio") and not tgt.get("audio"): tgt["audio"] = r["audio"]
-            if r.get("text"):                       # the same shiur also exists in writing: attach the text / document
-                if r.get("doc") and not tgt.get("doc"): tgt["doc"] = r["doc"]
-                if r.get("contentHtml") and len(r["contentHtml"]) > len(tgt.get("contentHtml") or ""): tgt["contentHtml"] = r["contentHtml"]
-                if not tgt.get("text"): tgt["tx"] = 1
+            # a written item that matches an audio/video shiur is its transcript/summary: dropped (user rule: written-in-advance only)
             if r.get("pageUrl") and r["pageUrl"] != tgt.get("pageUrl"): tgt["alsoAt"] = tgt.get("alsoAt", []) + [r["pageUrl"]]
             pairs[(tgt["rav"], tgt["source"], r["source"])] += 1
         out.append((min(g), tgt))
@@ -120,15 +117,18 @@ print("youtube not playable:", dict(_ytg) or 0)
 has_media = lambda r: bool(r.get("audio") or r.get("youtube") or r.get("spotify") or r.get("spotifyVideo") or r.get("soundcloud"))
 _NONSHIUR = re.compile(r'הספד|לזכר|לע"נ|אזכרה|ראיון|ריאיון|בגבורותיו|לכבודו של|דברי פתיחה|מודעה|הודעה|הרשמה')
 _plain = lambda h: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h or "")).strip()
-dropped, _tx = {}, collections.Counter()
+dropped, _tx, _txno = {}, collections.Counter(), collections.Counter()
+sys.path.insert(0, os.path.join(ROOT, "importers")); from texts import written_reason as _written, save_pdf_cache as _savepdf
 for r in items:
     if has_media(r): r.pop("text", None); continue
     if not r.get("text") and len(_plain(r.get("contentHtml"))) >= 1500 and not _NONSHIUR.search(r["title"]): r["text"] = 1
-    if r.get("text") and (r.get("contentHtml") or r.get("doc") or r.get("pageUrl")): _tx[r["rav"]] += 1; continue
+    if r.get("text") and not _written(r): _tx[r["rav"]] += 1; continue      # written in advance as text (importers/texts.py rule)
+    if r.get("text"): _txno[_written(r) or "?"] += 1
     r.pop("text", None); k = f'{r["rav"]}/{r["source"]}'; dropped[k] = dropped.get(k, 0) + 1
 items = [r for r in items if has_media(r) or r.get("text")]
 print("dropped text-only:", dropped or 0)
-print("written (text) shiurim:", sum(_tx.values()), dict(_tx))
+_savepdf()
+print("written (text) shiurim:", sum(_tx.values()), dict(_tx), "| not written-in-advance:", dict(_txno))
 
 # GLOBAL RULE: Hebrew shiurim only. Drop titles that are mainly Latin script (English etc.) and items in
 # English-language categories/sources (e.g. Hendler "English", Torah in Motion, Herzog English, VBM English).
@@ -237,7 +237,6 @@ for r in items:
     if tp: s["tp"] = tp
     if f in TRANSCRIPTS: s["tr"] = 1
     if r.get("text"): s["txt"] = 1                  # a written shiur (no audio/video)
-    elif r.get("tx"): s["tx"] = 1                   # audio/video that also exists in writing
     if r.get("doc"): s["doc"] = r["doc"]
     for k in ("youtube", "ytNoEmbed", "ytAlt", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
         if r.get(k): s[k] = r[k]

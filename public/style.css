@@ -320,3 +320,6 @@ h1.page+.muted+.badges{margin:6px 0 10px}
 .text.article{font-size:1.06rem;line-height:1.85;max-width:72ch}
 .text.article p{margin:0 0 .9em}.text.article h2,.text.article h3,.text.article h4{margin:1.2em 0 .5em;font-size:1.1rem}
 .text.article blockquote{margin:.6em 0;padding:.2em 1em;border-inline-start:3px solid var(--line,#ddd);color:var(--muted)}
+
+.text.pdfv{max-width:none}.pdfbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5em}.pdfbar .btn{min-width:2.4em;margin-inline-start:.3em}
+.pdfpages{overflow-x:auto}.pdfpg{display:block;width:100%;margin:0 auto .7em;background:#fff;border:1px solid var(--line,#ddd);border-radius:4px}
