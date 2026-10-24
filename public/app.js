@@ -498,7 +498,8 @@ async function pdfLib() {
   return _pdfjs;
 }
 async function pdfBytes(s) {
-  for (const u of [pdfCopy(s.c), s.doc]) {
+  // jsDelivr mirrors the same branch (also CORS *) in case raw.githubusercontent.com is unreachable from this network
+  for (const u of [pdfCopy(s.c), 'https://cdn.jsdelivr.net/gh/moshekfir78/shiurim-app@pdf/p/' + s.c + '.pdf', s.doc]) {
     try { const r = await fetch(u, { cache: 'no-cache' }); if (r.ok) { const b = new Uint8Array(await r.arrayBuffer()); if (b[0] === 0x25 && b[1] === 0x50) return b } } catch (e) { }
   }
   return null;
