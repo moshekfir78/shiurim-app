@@ -15,6 +15,7 @@ const trWhen = iso => { if (!iso) return ''; const d = new Date(/^\d{4}-\d{2}-\d
   return d.toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) };
 const hasMine = uid => !!(window.Study && Study.mine && Study.mine(uid));
 const badges = s => { const b = []; if (s.tr || (window.PTR && PTR._has && PTR._has(s.uid))) b.push('<span class="badge trb">📝 תמלול</span>');
+  if (s.txt) b.push('<span class="badge txb">📄 טקסט</span>'); else if (s.tx) b.push('<span class="badge txb">📄 גם בכתב</span>');
   if (hasMine(s.uid)) b.push('<span class="badge mineb">📎 שלי</span>'); return b.length ? `<div class="badges">${b.join('')}</div>` : '' };
 window.touchShiur = touch;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -73,7 +74,7 @@ function item(s) {
   const pct = p && p.d ? Math.min(100, p.t / p.d * 100) : 0;
   // title rendered verbatim (white-space:pre-wrap keeps leading/trailing/multiple spaces)
   return `<a class="item" href="#/s/${encodeURIComponent(s.uid)}">
-    <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : '') : ''}">${s.audio.length || s.youtube || s.spotify || s.soundcloud ? '▶' : '📄'}</div>
+    <div style="--c:${ravColor(s.rav)}" class="play ${!s.audio.length ? (s.youtube ? 'yt' : s.spotify ? 'sp' : s.txt ? 'txp' : '') : ''}">${s.audio.length || s.youtube || s.spotify || s.soundcloud ? '▶' : '📄'}</div>
     <div class="body"><div class="title">${esc(s.title)}</div>${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ''}${badges(s)}${p && p.at ? `<div class="sub heard">${esc(lastHeard(s.uid))}</div>` : ''}
     <div class="meta">${s.duration ? fmtTime(s.duration).replace(/:\d\d$/, '') + (s.duration >= 3600 ? ' שע׳' : ' דק׳') + ' · ' : ''}${esc(fmtDate(s.date))}${c ? ' · ' + esc(c) : ''}</div>
     ${pct ? `<div class="prog"><i style="width:${pct}%"></i></div>` : ''}</div></a>`;
@@ -107,24 +108,33 @@ function parCard() {
 // ---------- filters (persisted in URL query: #/view/arg?r=&t=&m=&len=&from=&to=&src=&sort=) ----------
 const LEN = [['0', 'עד 15 דק׳', 0, 900], ['1', '15–30 דק׳', 900, 1800], ['2', '30–60 דק׳', 1800, 3600], ['3', 'מעל שעה', 3600, 1e9]];
 const topicName = id => (DB.topics.find(t => t.id === id) || {}).name || id;
-const isVideo = s => !!(s.youtube || s.spotifyVideo), isAudio = s => !!(s.audio.length || s.soundcloud || (s.spotify && !s.spotifyVideo));
+const isVideo = s => !!(s.youtube || s.spotifyVideo), isAudio = s => !!(s.audio.length || s.soundcloud || (s.spotify && !s.spotifyVideo)), isText = s => !!(s.txt || s.tx);
+// media type (הכל / שמע / וידאו / טקסט): remembered on this device, applies to every list until changed
+const mOf = () => Q.has('m') ? Q.get('m') : LS.get('mt', '');
+const MT = [['', 'הכל'], ['a', '🎧 שמע'], ['v', '🎬 וידאו'], ['t', '📄 טקסט']];
+const mOk = (s, m) => !m || (m === 'v' ? isVideo(s) : m === 't' ? isText(s) : isAudio(s));
 const year = s => (s.date || '').slice(0, 4);
 function setF(k, v) {
+  if (k === 'm') LS.set('mt', v || '');
   if (v === '' || v == null) Q.delete(k); else Q.set(k, v);
-  const base = location.hash.split('?')[0] || '#/'; const qs = Q.toString();
-  location.hash = base + (qs ? '?' + qs : '');
+  const base = location.hash.split('?')[0] || '#/'; const qs = Q.toString(), h = base + (qs ? '?' + qs : '');
+  if (h === location.hash || (h === '#/' && !location.hash)) render(); else location.hash = h;   // same URL (e.g. remembered media type changed): re-render in place
 }
 window.setF = setF;
-window.clearF = () => { ['t', 'm', 'len', 'from', 'to', 'src', 'sort', 'tr'].forEach(k => Q.delete(k)); setF('x', '') };
+window.clearF = () => { LS.set('mt', ''); ['t', 'm', 'len', 'from', 'to', 'src', 'sort', 'tr'].forEach(k => Q.delete(k)); setF('x', '') };
 function applyF(arr) {
-  const t = Q.get('t'), m = Q.get('m'), len = LEN.find(l => l[0] === Q.get('len')), from = Q.get('from'), to = Q.get('to'), src = Q.get('src'), tr = Q.get('tr');
-  let out = byRav(arr).filter(s => (!t || (s.tp || []).includes(t)) && (!m || (m === 'v' ? isVideo(s) : isAudio(s))) &&
+  const t = Q.get('t'), m = mOf(), len = LEN.find(l => l[0] === Q.get('len')), from = Q.get('from'), to = Q.get('to'), src = Q.get('src'), tr = Q.get('tr');
+  let out = byRav(arr).filter(s => (!t || (s.tp || []).includes(t)) && mOk(s, m) &&
     (!len || (s.duration && s.duration >= len[2] && s.duration < len[3])) && (!from || year(s) >= from) && (!to || (year(s) && year(s) <= to)) && (!src || s.source === src) &&
     (!tr || (tr === '1' && (s.tr || (window.PTR && PTR._has && PTR._has(s.uid)))) || (tr === 'mine' && hasMine(s.uid))));
   if (Q.get('sort') === 'old') out = out.slice().sort((a, b) => (a.date || '9').localeCompare(b.date || '9'));
   return out;
 }
-const fKey = () => ['r', 't', 'm', 'len', 'from', 'to', 'src', 'sort', 'tr'].map(k => Q.get(k) || '').join('|');
+const fKey = () => ['r', 't', 'len', 'from', 'to', 'src', 'sort', 'tr'].map(k => Q.get(k) || '').join('|') + '|' + mOf();
+function mseg(base) {   // calm switch: הכל / שמע / וידאו / טקסט (with counts; empty types hidden)
+  const m = mOf(), mc = {}; MT.forEach(([v]) => mc[v] = v ? base.filter(s => mOk(s, v)).length : base.length);
+  return `<div class="mseg" role="group" aria-label="סוג">${MT.filter(([v]) => !v || mc[v] || m === v).map(([v, l]) => `<button class="${m === v ? 'on' : ''}" aria-pressed="${m === v}" onclick="setF('m','${v}')">${l}${v ? ` <b>${mc[v]}</b>` : ''}</button>`).join('')}</div>`;
+}
 function filterUI(base) {
   base = byRav(base);
   const cnt = {}; base.forEach(s => (s.tp || []).forEach(t => cnt[t] = (cnt[t] || 0) + 1));
@@ -133,17 +143,16 @@ function filterUI(base) {
   const opt = (k, v, label, n) => `<option value="${esc(v)}" ${(Q.get(k) || '') === v ? 'selected' : ''}>${esc(label)}${n != null ? ' (' + n + ')' : ''}</option>`;
   const sel = (k, label, opts) => `<label class="fl"><span>${label}</span><select onchange="setF('${k}',this.value)">${opts}</select></label>`;
   const tops = DB.topics.filter(t => cnt[t.id]).map(t => opt('t', t.id, (t.parent ? '— ' : '') + t.name, cnt[t.id])).join('');
-  const active = [['r', v => ravName(v)], ['t', topicName], ['m', v => v === 'v' ? 'וידאו' : 'שמע'], ['len', v => (LEN.find(l => l[0] === v) || [])[1]],
+  const active = [['r', v => ravName(v)], ['t', topicName], ['len', v => (LEN.find(l => l[0] === v) || [])[1]],
     ['from', v => 'משנת ' + v], ['to', v => 'עד ' + v], ['src', srcName], ['sort', v => v === 'old' ? 'מהישן לחדש' : ''],
     ['tr', v => v === '1' ? 'עם תמלול' : v === 'mine' ? 'שלי' : '']].filter(([k]) => Q.get(k));
-  const n = active.filter(([k]) => k !== 'r').length;
-  return `<div class="fbar"><button class="btn ${n ? 'on' : ''}" onclick="document.getElementById('fsheet').classList.add('open')">⚙ סינון${n ? ' (' + n + ')' : ''}</button>
+  const n = active.filter(([k]) => k !== 'r').length, m = mOf();
+  return mseg(base) + `<div class="fbar"><button class="btn ${n ? 'on' : ''}" onclick="document.getElementById('fsheet').classList.add('open')">⚙ סינון${n ? ' (' + n + ')' : ''}</button>
     <div class="chips act">${active.map(([k, f]) => `<a class="chip sel" onclick="setF('${k}','')">${esc(f(Q.get(k)))} ✕</a>`).join('')}</div></div>
   <div id="fsheet" class="sheet" onclick="if(event.target===this)this.classList.remove('open')"><div class="sheet-in">
     <div class="sheet-h"><b>סינון ומיון</b><button class="btn" onclick="document.getElementById('fsheet').classList.remove('open')">סגור</button></div>
     ${sel('r', 'רב', opt('r', '', 'כל הרבנים') + DB.ravs.filter(x => x.count).map(x => opt('r', x.id, x.name)).join(''))}
     ${sel('t', 'נושא', opt('t', '', 'כל הנושאים') + tops)}
-    ${sel('m', 'סוג מדיה', opt('m', '', 'הכול') + opt('m', 'a', 'שמע') + opt('m', 'v', 'וידאו'))}
     ${sel('len', 'אורך', opt('len', '', 'כל אורך') + LEN.map(l => opt('len', l[0], l[1])).join(''))}
     <div class="frow">${sel('from', 'משנה', opt('from', '', '—') + years.map(y => opt('from', y, y)).join(''))}${sel('to', 'עד שנה', opt('to', '', '—') + years.map(y => opt('to', y, y)).join(''))}</div>
     ${sel('sort', 'מיון', opt('sort', '', 'מהחדש לישן') + opt('sort', 'old', 'מהישן לחדש'))}
@@ -233,7 +242,8 @@ const views = {
     else if (cont.length) h += `<h2 class="sec">המשך האזנה</h2><div class="list">${cont.map(item).join('')}</div>`;
     if (r) h += `<h2 class="sec">נושאים <a href="#/cat/rav:${r}">הכול</a></h2>` + tiles(DB.categories['rav:' + r].children.slice(0, 12));
     else h += `<h2 class="sec">רבנים</h2>` + tiles(DB.ravs.filter(x => x.count).map(x => 'rav:' + x.id)) + extrasSec();
-    h += `<h2 class="sec">שיעורים אחרונים</h2>` + pagedList(byRav(DB.shiurim), 'home' + r, 15);
+    const all = byRav(DB.shiurim), hm = mOf();
+    h += `<h2 class="sec">שיעורים אחרונים</h2>` + mseg(all) + pagedList(all.filter(s => mOk(s, hm)), 'home' + r + hm, 15);
     return h;
   },
   cat(id) {
@@ -284,9 +294,10 @@ const views = {
         <div class="muted" id="resume" style="margin-top:6px"></div></div>` :
         `<div class="prow" style="margin:12px 0"><button class="btn ${isFav ? 'on' : ''}" id="fav">${isFav ? '★ במועדפים' : '☆ למועדפים'}</button></div>`}
       <div class="muted heard" id="heard">${esc(lastHeard(uid))}${s.youtube && !s.audio.length && ytStart(uid) ? ' · ממשיכים מ־' + fmtTime(positions()[uid].t) : ''}</div>
+      ${isText(s) ? `<h2 class="sec">${s.txt ? 'השיעור' : 'השיעור בכתב'}</h2><div class="text article" id="body"><span class="muted">טוען…</span></div>` : ''}
       <div id="trbox"></div><div id="study"></div>
-      <h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>
-      <p class="prow"><a class="btn pri" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
+      ${isText(s) ? '' : `<h2 class="sec">${s.source.startsWith('haravhendler') ? 'מקורות השיעור' : 'תיאור'}</h2><div class="text" id="txt"><span class="muted">טוען…</span></div>`}
+      <p class="prow">${s.doc ? `<a class="btn ${s.txt ? 'pri' : ''}" href="${esc(s.doc)}" target="_blank" rel="noopener">📄 ${s.txt || s.tx ? 'קריאה במקור (PDF)' : 'הדף הכתוב (PDF)'} ↗</a>` : ''}<a class="btn ${s.txt && s.doc ? '' : 'pri'}" href="${esc(s.pageUrl)}" target="_blank" rel="noopener">${s.txt ? (s.doc ? 'לעמוד השיעור ↗' : 'קריאה במקור ↗') : s.youtube && !s.audio.length ? 'צפייה ביוטיוב ↗' : s.spotify && !s.audio.length ? 'האזנה בספוטיפיי ↗' : 'לעמוד המקורי ↗'}</a>
       ${(s.alsoAt || []).map(u => `<a class="btn" href="${esc(u)}" target="_blank" rel="noopener">גם ב${u.includes('youtube') ? 'יוטיוב' : 'מקור נוסף'} ↗</a>`).join('')}</p>`;
   }
 };
@@ -368,7 +379,15 @@ async function setupShiur(s) {
     if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: ravName(s.rav), artwork: [{ src: 'icons/icon-512.png', sizes: '512x512' }] });
   }
   Promise.resolve(renderTr(s)).then(() => window.Study && Study.mount(s));
-  const t = $('#txt');
+  const t = $('#txt'), bd = $('#body');
+  if (bd) {   // a written shiur: the text itself is the page (sanitized by the importer whitelist); otherwise a link to the original
+    try {
+      const c = await (await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' })).json();
+      if (c.html) bd.innerHTML = c.html;
+      else { bd.classList.add('plain'); bd.innerHTML = (c.excerpt ? `<p>${esc(c.excerpt.trim())}</p>` : '') + `<p class="muted">${s.doc ? 'הטקסט המלא נמצא בקובץ ה־PDF באתר המקור.' : 'הטקסט המלא נמצא באתר המקור.'}</p><p><a class="btn pri" href="${esc(s.doc || s.pageUrl)}" target="_blank" rel="noopener">📄 קריאה במקור ↗</a></p>` }
+    } catch { bd.innerHTML = `<span class="muted">לא ניתן לטעון את הטקסט · <a href="${esc(s.doc || s.pageUrl)}" target="_blank" rel="noopener">קריאה במקור ↗</a></span>` }
+    return;
+  }
   try {
     const c = await (await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' })).json();
     if (c.html) t.innerHTML = c.html; // sanitized by importer whitelist
@@ -382,6 +401,7 @@ const trStatus = async () => TRST || (TRST = await fetch('data/transcripts-statu
 const canTr = s => s.audio.length || s.youtube;
 async function renderTr(s) {
   const box = $('#trbox'); if (!box) return;
+  if (s.txt) { box.innerHTML = ''; return }   // written shiur: nothing to transcribe
   const st = (await trStatus())[s.uid], asked = LS.get('trReq', {})[s.uid];
   const c = window.PTR ? await PTR.content(s) : await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   if (PTRJOB[s.uid]) { box.innerHTML = `<p class="trst" id="ptrSt">⏳ ${esc(PTRJOB[s.uid])}</p>`; return }

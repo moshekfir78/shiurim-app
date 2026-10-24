@@ -309,3 +309,14 @@ main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-ins
 .badge.trb,.badge.mineb{display:inline-block;font-size:.72rem;font-weight:500;border:1px solid var(--line);border-radius:999px;padding:1px 8px;background:#fff;color:var(--muted)}
 .badge.trb{color:#0f3d4a;border-color:#c5d5da}.badge.mineb{color:#6b4a12;border-color:#e2d0a8;background:#fbf6ea}
 h1.page+.muted+.badges{margin:6px 0 10px}
+
+/* media type switch (הכל / שמע / וידאו / טקסט) + written shiurim */
+.mseg{display:flex;flex-wrap:wrap;gap:2px;padding:3px;margin:10px 0 4px;background:var(--card,#fff);border:1px solid var(--line,#e6e2f3);border-radius:20px;max-width:520px}
+.mseg button{flex:1 1 auto;border:0;background:transparent;font:inherit;font-size:.87rem;padding:6px 7px;border-radius:999px;color:inherit;cursor:pointer;white-space:nowrap}
+.mseg button b{font-weight:500;color:var(--muted);font-size:.78rem;margin-inline-start:3px}
+.mseg button.on{background:var(--pri);color:#fff}.mseg button.on b{color:#ffffffcc}
+.item .play.txp{background:linear-gradient(135deg,#8a7a5c,#c2b28f)}
+.badge.txb{background:linear-gradient(135deg,#8a7a5c,#b5a37c)}
+.text.article{font-size:1.06rem;line-height:1.85;max-width:72ch}
+.text.article p{margin:0 0 .9em}.text.article h2,.text.article h3,.text.article h4{margin:1.2em 0 .5em;font-size:1.1rem}
+.text.article blockquote{margin:.6em 0;padding:.2em 1em;border-inline-start:3px solid var(--line,#ddd);color:var(--muted)}

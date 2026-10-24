@@ -15,5 +15,6 @@ run python3 importers/shalomrosenberg.py
 T=2400 run python3 importers/ybm.py samet spiegelman medan
 T=3600 run python3 importers/hatanakh.py
 T=3600 run python3 importers/siach.py
+T=3600 run python3 importers/texts.py      # written shiurim (articles / VBM text / PDFs) for the same rabbis
 run python3 importers/sketches.py
 python3 build.py

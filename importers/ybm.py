@@ -83,6 +83,7 @@ def run(slug):
     import glob
     pod = {(r.get("title") or "").split(" | ")[0].strip() for f in glob.glob(os.path.join(ROOT, "data", "sources", f"podcast-*-{slug}.json"))
            for r in load_json(f, {"shiurim": {}})["shiurim"].values() if " | " in (r.get("title") or "")}
+    tpath = os.path.join(ROOT, "data", "sources", f"text-ybm-{slug}.json"); old_t = load_json(tpath, {"shiurim": {}})["shiurim"]; T = {}
     S, st = {}, {"podcast-dup": 0, "bad-cat": 0, "gemara/halacha": 0, "skip": 0, "short/no-audio": 0}
     for i, (x, c) in got.items():
         t = (x.get("LessonName") or "").strip()            # verbatim
@@ -92,15 +93,24 @@ def run(slug):
         if i in bad: st["bad-cat"] += 1; continue
         if co and (GEMARA.search(t) or GEMARA.search(ser)): st["gemara/halacha"] += 1; continue
         if SKIP.search(t) or SKIP.search(ser) or any(k in t for k in EXCL.get(slug, [])): st["skip"] += 1; continue
-        if not x.get("HasAudio") or (x.get("LessonLength") or 0) < MIN_LEN: st["short/no-audio"] += 1; continue
         uid = f"ybm:{i}"
+        pdf = f"https://www.ybm.org.il/admin/uploaddata/LessonsFiles/Pdf/{i}.pdf" if x.get("HasPdf") else None
+        if not x.get("HasAudio") and not x.get("HasVideo") and pdf:   # a written lesson (PDF only): text item, link to the PDF
+            T[uid] = old_t.get(uid) or {"uid": uid, "source": f"text-ybm-{slug}", "sourceId": i, "rav": slug, "title": t, "text": 1, "doc": pdf,
+                "excerpt": (x.get("ShortDescription") or "").strip()[:600], "tags": [],
+                "path": [{"id": "ybm", "title": "ישיבת ברכת משה"}, {"id": f"ybm:{slug}:{ser or c}", "title": ser or {26: 'תנ"ך', 60: "מחשבה", 53: "חגים וזמנים", 322: "סדרות", 57: "גמרא", 1674: "הלכה", 41: 'רמב"ם'}.get(c, "שיעורים")}],
+                "date": heb2iso(x.get("HebrewDate")), "audio": [], "pageUrl": f"https://www.ybm.org.il/lesson?lesson={i}"}
+            continue
+        if not x.get("HasAudio") or (x.get("LessonLength") or 0) < MIN_LEN: st["short/no-audio"] += 1; continue
         S[uid] = old.get(uid) or {"uid": uid, "source": f"ybm-{slug}", "sourceId": i, "rav": slug, "title": t,
             "excerpt": (x.get("ShortDescription") or "").strip()[:1500], "tags": [], "duration": x.get("LessonLength"),
             "path": [{"id": "ybm", "title": "ישיבת ברכת משה"}, {"id": f"ybm:{slug}:{ser or c}", "title": ser or {26: 'תנ"ך', 60: "מחשבה", 53: "חגים וזמנים", 322: "סדרות", 57: "גמרא", 1674: "הלכה", 41: 'רמב"ם'}.get(c, "שיעורים")}],
             "date": heb2iso(x.get("HebrewDate")), "audio": [f"https://www.ybm.org.il/admin/uploaddata/LessonsFiles/Audio/{i}.mp3"],
             "pageUrl": f"https://www.ybm.org.il/lesson?lesson={i}"}
+        if pdf: S[uid]["doc"] = pdf                         # the lesson's written sheet (PDF) on the site
+    save_json(tpath, {"source": {"id": f"text-ybm-{slug}", "name": "ישיבת ברכת משה – שיעורים כתובים", "site": "https://www.ybm.org.il", "rav": slug, "kind": "text"}, "shiurim": T})
     save_json(path, {"source": {"id": f"ybm-{slug}", "name": "ישיבת ברכת משה", "site": "https://www.ybm.org.il", "rav": slug}, "shiurim": S})
-    print(f"ybm {slug}: {len(got)} listed -> {len(S)} kept", st, flush=True)
+    print(f"ybm {slug}: {len(got)} listed -> {len(S)} kept, {len(T)} written (PDF)", st, flush=True)
 
 if __name__ == "__main__":
     for s in sys.argv[1:] or RAVS: run(s)

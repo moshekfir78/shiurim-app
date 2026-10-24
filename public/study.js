@@ -135,7 +135,7 @@ async function mount(s) {
   box.innerHTML = `<h2 class="sec">אזור לימוד <span class="muted">נשמר רק במכשיר הזה</span></h2>
   <div class="card study">
     <div class="st-tabs" role="tablist">
-      <button class="btn on" data-p="sum">הסיכום שלי</button><button class="btn" data-p="src">מקורות</button><button class="btn" data-p="tr">תמלול</button><button class="btn" data-p="notes">הערות (${notes.length})</button><button class="btn" data-p="exp">ייצוא ושיתוף</button>
+      <button class="btn on" data-p="sum">הסיכום שלי</button><button class="btn" data-p="src">מקורות</button>${s.txt ? '' : '<button class="btn" data-p="tr">תמלול</button>'}<button class="btn" data-p="notes">הערות (${notes.length})</button><button class="btn" data-p="exp">ייצוא ושיתוף</button>
     </div>
     <section data-pane="sum">
       <div class="row"><label class="btn">📄 העלאת קובץ<input type="file" id="stFile" accept=".txt,.docx,.pdf,.srt,.vtt,text/plain" hidden></label>

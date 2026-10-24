@@ -74,13 +74,17 @@ def _dedupe(raw):
     for i in range(n): groups[f(i)].append(i)
     out, pairs = [], collections.Counter()
     for g in groups.values():
-        g.sort(key=lambda i: (kind(raw[i]["source"]), not raw[i].get("audio"), i))
+        g.sort(key=lambda i: (bool(raw[i].get("text")), kind(raw[i]["source"]), not raw[i].get("audio"), i))   # media items first, written items last
         tgt = dict(raw[g[0]])  # canonical: site metadata/categories + verbatim title
         for i in g[1:]:
             r = raw[i]
             for k in ("youtube", "spotify", "spotifyVideo", "soundcloud", "duration"):
                 if r.get(k) and not tgt.get(k): tgt[k] = r[k]
             if r.get("audio") and not tgt.get("audio"): tgt["audio"] = r["audio"]
+            if r.get("text"):                       # the same shiur also exists in writing: attach the text / document
+                if r.get("doc") and not tgt.get("doc"): tgt["doc"] = r["doc"]
+                if r.get("contentHtml") and len(r["contentHtml"]) > len(tgt.get("contentHtml") or ""): tgt["contentHtml"] = r["contentHtml"]
+                if not tgt.get("text"): tgt["tx"] = 1
             if r.get("pageUrl") and r["pageUrl"] != tgt.get("pageUrl"): tgt["alsoAt"] = tgt.get("alsoAt", []) + [r["pageUrl"]]
             pairs[(tgt["rav"], tgt["source"], r["source"])] += 1
         out.append((min(g), tgt))
@@ -111,13 +115,20 @@ for r in items:
     elif e["s"] in ("noembed", "age"): _ytg["noembed"] += 1; r["ytNoEmbed"] = 1
 print("youtube not playable:", dict(_ytg) or 0)
 
-# GLOBAL RULE: only shiurim with playable media (audio file / YouTube / Spotify / podcast player). Text-only items are dropped.
+# GLOBAL RULE: shiurim with playable media (audio file / YouTube / Spotify / podcast player), or WRITTEN shiurim (text items:
+# importers/texts.py etc. mark them "text"; a site page that is itself a long written shiur counts too). Other text-only items are dropped.
 has_media = lambda r: bool(r.get("audio") or r.get("youtube") or r.get("spotify") or r.get("spotifyVideo") or r.get("soundcloud"))
-dropped = {}
+_NONSHIUR = re.compile(r'הספד|לזכר|לע"נ|אזכרה|ראיון|ריאיון|בגבורותיו|לכבודו של|דברי פתיחה|מודעה|הודעה|הרשמה')
+_plain = lambda h: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h or "")).strip()
+dropped, _tx = {}, collections.Counter()
 for r in items:
-    if not has_media(r): k = f'{r["rav"]}/{r["source"]}'; dropped[k] = dropped.get(k, 0) + 1
-items = [r for r in items if has_media(r)]
+    if has_media(r): r.pop("text", None); continue
+    if not r.get("text") and len(_plain(r.get("contentHtml"))) >= 1500 and not _NONSHIUR.search(r["title"]): r["text"] = 1
+    if r.get("text") and (r.get("contentHtml") or r.get("doc") or r.get("pageUrl")): _tx[r["rav"]] += 1; continue
+    r.pop("text", None); k = f'{r["rav"]}/{r["source"]}'; dropped[k] = dropped.get(k, 0) + 1
+items = [r for r in items if has_media(r) or r.get("text")]
 print("dropped text-only:", dropped or 0)
+print("written (text) shiurim:", sum(_tx.values()), dict(_tx))
 
 # GLOBAL RULE: Hebrew shiurim only. Drop titles that are mainly Latin script (English etc.) and items in
 # English-language categories/sources (e.g. Hendler "English", Torah in Motion, Herzog English, VBM English).
@@ -225,6 +236,9 @@ for r in items:
     if r.get("o") is not None: s["o"] = r["o"]
     if tp: s["tp"] = tp
     if f in TRANSCRIPTS: s["tr"] = 1
+    if r.get("text"): s["txt"] = 1                  # a written shiur (no audio/video)
+    elif r.get("tx"): s["tx"] = 1                   # audio/video that also exists in writing
+    if r.get("doc"): s["doc"] = r["doc"]
     for k in ("youtube", "ytNoEmbed", "ytAlt", "spotify", "spotifyVideo", "soundcloud", "alsoAt", "duration"):
         if r.get(k): s[k] = r[k]
     shiurim.append(s)

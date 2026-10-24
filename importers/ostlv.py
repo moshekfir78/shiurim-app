@@ -6,6 +6,7 @@ Lessons whose YouTube video is already in data/sources/youtube-<rav>.json are sk
 Writes data/sources/ostlv-<rav>.json"""
 import sys, os, re, json, time, html, urllib.request
 sys.path.insert(0, os.path.dirname(__file__))
+from texts import ok_title, clean_html
 from common import load_json, save_json, sanitize_html
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 API = "https://ostlv.co.il/wp-json/wp/v2/"
@@ -37,7 +38,8 @@ def run(slug):
             plain = html.unescape(re.sub(r"<[^>]+>", " ", text)).strip()
             if not re.search(r"[\u0590-\u05FF]", html.unescape(x["title"]["rendered"] if isinstance(x["title"], dict) else x["title"] or "")): continue   # Hebrew only (user rule)
             audio = sorted(set(re.findall(r'https?://[^"\'\s<>]+\.(?:mp3|m4a)', c)))
-            if not vids and not audio: continue                    # media only (user rule)
+            txt = not vids and not audio
+            if txt and (len(plain) < 1000 or not ok_title(slug, html.unescape(x["title"]["rendered"]))): continue   # written lessons only when it is a real text
             cat = next((cats[i] for i in x.get("categories", []) if i in cats and cats[i] != "Uncategorized"), "שיעורים")
             if cat in SKIP_CATS: continue
             if vids and vids[0] in yt and not audio:              # already imported from YouTube: give it the site's organization
@@ -47,7 +49,7 @@ def run(slug):
                       "title": html.unescape(x["title"]["rendered"]),
                       "excerpt": re.sub(r"\s+", " ", plain)[:1500], "contentHtml": sanitize_html(text) if len(plain) >= 200 else None,
                       "tags": [], "path": [{"id": f"ostlv:{slug}", "title": "ישיבת אורות שאול"}, {"id": f"ostlv:{slug}:{cat}", "title": cat}],
-                      "date": x["date"], "audio": audio, "pageUrl": x["link"], **({"youtube": vids[0]} if vids else {})}
+                      "date": x["date"], "audio": audio, "pageUrl": x["link"], **({"youtube": vids[0]} if vids else {}), **({"text": 1, "contentHtml": clean_html(text)} if txt else {})}
         print(slug, "page", page, len(S), flush=True)
         if len(items) < 100: break
         page += 1; time.sleep(20)
