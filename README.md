@@ -1,4 +1,4 @@
-# בית השיעורים — Torah shiurim aggregator (PWA)
+# אוהל משה — Torah shiurim aggregator (PWA)
 - `./serve.sh` → http://localhost:8080 (PORT env to change)
 - `./update.sh` → incremental import (latest lessons) + full-text fetch + rebuild
 - `python3 importers/haravhendler.py full --content` → full recrawl
