@@ -1,1 +1,1 @@
-{"haravhendler:fFV8QcGWI4WobqtZAgEJ": {"status": "working", "at": "2026-10-25T09:15:58.823576+00:00", "issue": null}}
+{"haravhendler:fFV8QcGWI4WobqtZAgEJ": {"status": "done", "at": "2026-10-25T09:41:41.797425+00:00", "issue": null, "seconds": 1531, "audioSeconds": 2714, "model": "ivrit-ai/whisper-large-v3-turbo-ct2 + gemini-3-flash-preview", "source": "ivrit.ai · מדויק", "mode": "accurate"}}
