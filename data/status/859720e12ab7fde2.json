@@ -1,1 +1,1 @@
-{"haravhendler:1w4rG6IK0SzpO8X1GjxQ": {"status": "working", "at": "2026-11-02T19:49:13.196529+00:00", "issue": null}}
+{"haravhendler:1w4rG6IK0SzpO8X1GjxQ": {"status": "done", "at": "2026-11-02T19:53:52.430026+00:00", "issue": null, "seconds": 258, "audioSeconds": 3785, "model": "gemini-3.8-flash", "source": "Gemini · מהיר", "mode": "fast"}}
