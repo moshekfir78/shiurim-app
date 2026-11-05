@@ -323,3 +323,18 @@ h1.page+.muted+.badges{margin:6px 0 10px}
 
 .text.pdfv{max-width:none}.pdfbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5em}.pdfbar .btn{min-width:2.4em;margin-inline-start:.3em}
 .pdfpages{overflow-x:auto}.pdfpg{display:block;width:100%;margin:0 auto .7em;background:#fff;border:1px solid var(--line,#ddd);border-radius:4px}
+/* דף המקורות שלי */
+.sh-add{float:left;margin:-2px 8px 0 0;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--pri,#0f3d4a);font-size:1.05rem;line-height:1;cursor:pointer;padding:0}
+.sh-add.on{background:var(--pri,#0f3d4a);color:#fff;border-color:transparent}
+.mys-hint{padding:8px 2px 12px;font-size:.92rem}
+.mys-hint .lnk{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.card.mysheet{margin:6px 0 14px;padding:12px 14px}
+.mys-top{align-items:center;gap:6px}
+.mys-lbl{display:block;margin:10px 0 6px;font-size:.9rem;color:var(--muted)}
+.mys-lbl .inp{display:block;width:100%;margin-top:4px}
+.mys-list{list-style:none;margin:6px 0;padding:0}
+.mys-list li{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line)}
+.mys-n{font-weight:700;min-width:1.6em}.mys-h{flex:1;font-family:"Frank Ruhl Libre","David",serif}
+.card.mysheet textarea{width:100%;box-sizing:border-box;margin-top:6px}
+.card.mysheet #shOwnH{width:100%;box-sizing:border-box;margin-top:6px}
+.mys-cols{gap:6px;align-items:center;margin-top:8px}
