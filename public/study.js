@@ -128,6 +128,7 @@ async function mount(s) {
   const c = window.PTR ? await PTR.content(s) : await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   const autoTr = c.transcript ? c.transcript.map(g => /^\s*>/.test(g.t) ? `<blockquote>${esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</blockquote>` : `<p>[${fmt(g.s)}] ${esc(g.t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}</p>`).join('') : '';
   const hasT = nowT() !== null;
+  const hasTr = !!(cur.trEdit || (c.transcript && c.transcript.length));
   const notes = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
   // keep references to page parts that live inside tabs (auto transcript box, site's own source text)
   const trbEl = $('#trbox'), txtEl = $('#txt'), txtHead = txtEl && txtEl.previousElementSibling && txtEl.previousElementSibling.tagName === 'H2' ? txtEl.previousElementSibling : (box.querySelector('#stSiteHead') || null);
@@ -155,7 +156,16 @@ async function mount(s) {
       ${autoTr ? `<details class="grp"><summary>תיקון התמלול <b>עותק מקומי</b></summary><p class="muted">עורכים עותק מקומי; התמלול המקורי נשמר.${cur.trEdit ? ' <button class="btn" id="stTrReset">חזרה למקור</button>' : ''}</p>
       ${toolbar('stTr')}<div id="stTr" class="text editor" contenteditable="true" dir="rtl">${cur.trEdit || autoTr}</div></details>` : ''}${(c.trStories || []).length ? `<h3 class="sub-h">נספח סיפורים</h3><ul>${c.trStories.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</section>
     <section data-pane="src" hidden><h3 class="sub-h">מקורות ומראי מקומות</h3><div id="stSheet"></div><div id="stRefs"><p class="muted">טוען…</p></div>${(c.trSources || []).length ? `<details class="grp"><summary>רשימת המקורות מהתמלול (טקסט מלא)</summary><ul class="muted">${c.trSources.map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''}<h3 class="sub-h" id="stSiteHead">${esc(siteLabel)}</h3><div id="stSiteSrc"></div></section>
-    <section data-pane="exp" hidden><div class="row"><button class="btn" id="stDocx">Word (.docx)</button><button class="btn" id="stPdf">PDF</button><button class="btn" id="stShare">שיתוף…</button><a class="btn" id="stWa" target="_blank" rel="noopener">וואטסאפ</a></div></section>
+    <section data-pane="exp" hidden>
+      ${hasTr ? `<div class="ex-opts">
+        <label class="row"><input type="checkbox" id="exTr" checked> לכלול את התמלול</label>
+        <div id="exTrMode" class="ex-mode">
+          <label class="row"><input type="radio" name="exTrMode" value="shiur" checked> כשיעור (טקסט רציף, בלי זמנים)</label>
+          <label class="row"><input type="radio" name="exTrMode" value="timed"> עם הזמנים שמופיעים בתמלול</label>
+        </div>
+      </div>` : '<p class="muted">מייצאים את הסיכום ואת ההערות שלכם. לשיעור הזה עדיין אין תמלול.</p>'}
+      <div class="row"><button class="btn" id="stDocx">Word (.docx)</button><button class="btn" id="stPdf">PDF</button><button class="btn" id="stShare">שיתוף…</button><a class="btn" id="stWa" target="_blank" rel="noopener">וואטסאפ</a></div>
+    </section>
   </div>`;
   // move the auto transcript box and the site's source text into their tabs (no copying into the user's summary)
   if (trbEl) $('#stTrHost').appendChild(trbEl);
@@ -191,10 +201,12 @@ async function mount(s) {
     $('#stTrReset') && ($('#stTrReset').onclick = async () => { if (!confirm('למחוק את העריכה המקומית ולחזור לתמלול המקורי?')) return; delete cur.trEdit; await putRec(cur); location.reload() }); }
   showEditedTr();
   // export / share
-  $('#stDocx').onclick = () => exportDocx(s).then(f => download(f));
-  $('#stPdf').onclick = () => printPdf(s);
-  $('#stShare').onclick = async () => { const f = await exportDocx(s); if (navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: s.title }).catch(() => {}); else if (navigator.share) navigator.share({ title: s.title, text: plain(s) }).catch(() => {}); else download(f) };
-  $('#stWa').href = 'https://wa.me/?text=' + encodeURIComponent(plain(s).slice(0, 3500));
+  const exTr = $('#exTr'); if (exTr) exTr.onchange = () => { const m = $('#exTrMode'); if (m) m.hidden = !exTr.checked };
+  const runExp = async fn => { try { await fn() } catch (err) { alert('הייצוא נכשל: ' + (err.message || err)) } };
+  $('#stDocx').onclick = () => runExp(async () => download(await exportDocx(s, c)));
+  $('#stPdf').onclick = () => printPdf(s, c);
+  $('#stShare').onclick = () => runExp(async () => { const f = await exportDocx(s, c); if (navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: s.title }).catch(() => {}); else if (navigator.share) navigator.share({ title: s.title, text: plain(s, c) }).catch(() => {}); else download(f) });
+  $('#stWa').href = 'https://wa.me/?text=' + encodeURIComponent(plain(s, c).slice(0, 3500));
   // deep link ?t=123 from "my notes"
   const qt = new URLSearchParams(location.hash.split('?')[1] || '').get('t'); if (qt) setTimeout(() => seek(+qt), 1200);
 }
@@ -205,30 +217,110 @@ function showEditedTr() { // show the corrected transcript (if any) in the trans
     t.querySelector('a').onclick = () => { orig.hidden = !orig.hidden; ed.hidden = !orig.hidden; t.querySelector('a').textContent = orig.hidden ? 'הצג מקור' : 'הצג מתוקן' } }
   ed.innerHTML = timed(cur.trEdit);
 }
-const plain = s => { const n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9)); return s.title + '\n\n' + (strip(cur.summary).trim() ? 'סיכום:\n' + htmlToLines(cur.summary).join('\n') + '\n\n' : '') + (n.length ? 'הערות:\n' + n.map(x => (x.t != null ? fmt(x.t) + ' – ' : '') + x.text).join('\n') : '') };
-function htmlToLines(h) { const d = document.createElement('div'); d.innerHTML = h || ''; const out = []; d.querySelectorAll('h2,h3,p,li').forEach(e => { const t = e.textContent.trim(); if (t) out.push((e.tagName === 'LI' ? '• ' : '') + t) }); if (!out.length && d.textContent.trim()) out.push(d.textContent.trim()); return out }
+function htmlToLines(h, stripTs) { const d = document.createElement('div'); d.innerHTML = h || ''; const out = []; d.querySelectorAll('h2,h3,p,li,blockquote,div').forEach(e => { if (e.tagName === 'DIV' && e.querySelector('h2,h3,p,li,blockquote,div')) return; const t = e.textContent.trim(); if (t) out.push((e.tagName === 'LI' ? '• ' : '') + t) }); if (!out.length && d.textContent.trim()) out.push(d.textContent.trim()); return stripTs ? out.map(x => x.replace(TSRE, '').trim()).filter(Boolean) : out }
 const download = f => { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000) };
 const safeName = t => t.replace(/[\\/:*?"<>|]+/g, ' ').trim().slice(0, 60) || 'shiur';
-async function exportDocx(s) {
+const expOpt = () => ({
+  tr: !$('#exTr') || $('#exTr').checked,
+  shiur: (document.querySelector('input[name="exTrMode"]:checked') || { value: 'shiur' }).value !== 'timed'
+});
+const TR_META = /להלן\s+תמלול|Clean\s*Verbatim|תמלול\s+מלא[,،]?\s+מדויק/i;
+function segsFromHtml(html) {
+  const d = document.createElement('div'); d.innerHTML = html || '';
+  const out = [];
+  d.querySelectorAll('p,li,blockquote,div,h2,h3').forEach(el => {
+    if (el.tagName === 'DIV' && el.querySelector('p,li,blockquote,div,h2,h3')) return;
+    let t = (el.textContent || '').replace(/\s+/g, ' ').trim(); if (!t) return;
+    let sec = 0; const m = t.match(TSRE);
+    if (m) { sec = parseTs(m[1]); t = t.slice(m[0].length).trim() }
+    if (!t) return;
+    if (el.tagName === 'BLOCKQUOTE' && !/^\s*>/.test(t)) t = '> ' + t;
+    out.push({ s: sec, t });
+  });
+  if (!out.length) { const t = (d.textContent || '').trim(); if (t) out.push({ s: 0, t }) }
+  return out;
+}
+function trSegs(c) { return (cur && cur.trEdit) ? segsFromHtml(cur.trEdit) : ((c && c.transcript) || []).map(g => ({ s: g.s, t: g.t })) }
+function trLines(c) {
+  const out = [];
+  for (const g of trSegs(c)) {
+    let t = String(g.t || '').trim();
+    if (!t || TR_META.test(t)) continue;
+    const quote = /^\s*>/.test(t);
+    t = t.replace(/^\s*>\s*/, '').trim();
+    if (t) out.push({ s: g.s, quote, text: t });
+  }
+  return out;
+}
+const mdPlain = t => String(t || '').replace(/\*\*(.+?)\*\*/g, '$1');
+const plain = (s, c) => {
+  const o = expOpt(), n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
+  const parts = [s.title, (window.DBravName || (() => ''))(s.rav)];
+  const sum = htmlToLines(cur.summary, o.shiur && o.tr);
+  if (sum.length) parts.push('', 'סיכום:', ...sum);
+  if (n.length) parts.push('', 'הערות:', ...n.map(x => (x.t != null ? fmt(x.t) + ' – ' : '') + x.text));
+  if (o.tr) {
+    const lines = trLines(c);
+    if (lines.length) {
+      parts.push('', o.shiur ? '' : 'תמלול:');
+      lines.forEach(x => parts.push(mdPlain(o.shiur ? x.text : (fmt(x.s) + '  ' + x.text))));
+    }
+  }
+  return parts.filter((x, i, a) => x !== '' || a[i - 1] !== '').join('\n');
+};
+async function exportDocx(s, c) {
   await loadScript('https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js');
   const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
-  const P = (text, o = {}) => new Paragraph({ bidirectional: true, alignment: AlignmentType.RIGHT, ...o, children: [new TextRun({ text, rightToLeft: true, bold: o.bold, font: 'Arial' })] });
-  const kids = [P(s.title, { heading: HeadingLevel.HEADING_1 }), P((window.DBravName || (() => ''))(s.rav))];
-  const d = document.createElement('div'); d.innerHTML = cur.summary || '';
-  if (d.textContent.trim()) { kids.push(P('סיכום', { heading: HeadingLevel.HEADING_2 }));
-    d.querySelectorAll('h2,h3,p,li').forEach(e => { const t = e.textContent.trim(); if (!t) return; kids.push(e.tagName === 'H2' ? P(t, { heading: HeadingLevel.HEADING_2 }) : e.tagName === 'H3' ? P(t, { heading: HeadingLevel.HEADING_3 }) : e.tagName === 'LI' ? P('• ' + t) : P(t)) }) }
+  const o = expOpt();
+  const runs = (text, opt = {}) => {
+    const parts = [], re = /\*\*(.+?)\*\*/g; let last = 0, m;
+    const mk = (t, bold) => new TextRun({ text: t, rightToLeft: true, bold: !!(bold || opt.bold), font: 'Arial', italics: !!opt.italics });
+    text = String(text ?? '');
+    while ((m = re.exec(text))) {
+      if (m.index > last) parts.push(mk(text.slice(last, m.index)));
+      parts.push(mk(m[1], true));
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) parts.push(mk(text.slice(last)));
+    if (!parts.length) parts.push(mk(''));
+    return parts;
+  };
+  const P = (text, opt = {}) => new Paragraph({ bidirectional: true, alignment: AlignmentType.RIGHT, spacing: { after: opt.after ?? 200 },
+    indent: opt.quote ? { right: 360 } : undefined, heading: opt.heading, children: runs(text, opt) });
+  const kids = [P(s.title, { heading: HeadingLevel.HEADING_1, bold: true, after: 80 }), P((window.DBravName || (() => ''))(s.rav), { after: 280 })];
+  const sum = htmlToLines(cur.summary, o.shiur && o.tr);
+  if (sum.length) { kids.push(P('סיכום', { heading: HeadingLevel.HEADING_2, bold: true })); sum.forEach(t => kids.push(P(t))) }
   const n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
-  if (n.length) { kids.push(P('הערות', { heading: HeadingLevel.HEADING_2 })); n.forEach(x => kids.push(P((x.t != null ? fmt(x.t) + ' – ' : '') + x.text))) }
+  if (n.length) { kids.push(P('הערות', { heading: HeadingLevel.HEADING_2, bold: true })); n.forEach(x => kids.push(P((x.t != null ? fmt(x.t) + ' – ' : '') + x.text))) }
+  const lines = o.tr ? trLines(c) : [];
+  if (lines.length) {
+    if (!o.shiur || sum.length || n.length) kids.push(P(o.shiur ? 'השיעור' : 'תמלול', { heading: HeadingLevel.HEADING_2, bold: true }));
+    lines.forEach(x => kids.push(P(o.shiur ? x.text : (fmt(x.s) + '  ' + x.text), { quote: x.quote, italics: x.quote })));
+  }
   const blob = await Packer.toBlob(new Document({ sections: [{ properties: {}, children: kids }] }));
-  return new File([blob], safeName(s.title) + '.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  const tag = lines.length ? (o.shiur ? ' - שיעור' : ' - תמלול') : '';
+  return new File([blob], safeName(s.title) + tag + '.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
-function printPdf(s) {
+function printPdf(s, c) {
   const w = window.open('', '_blank'); if (!w) return alert('אפשרו חלונות קופצים כדי לייצא PDF');
+  const o = expOpt();
   const n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
-  w.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>${esc(s.title)}</title><style>body{font-family:Rubik,Arial,sans-serif;max-width:720px;margin:24px auto;line-height:1.7;color:#1f2633}h1{font-size:1.4rem;white-space:pre-wrap}h2{font-size:1.15rem;margin-top:1.4em}.t{color:#22385c;font-family:monospace}</style></head><body>
-    <h1>${esc(s.title)}</h1>${(cur.summary || '').trim() ? '<h2>סיכום</h2>' + clean(cur.summary) : ''}${n.length ? '<h2>הערות</h2>' + n.map(x => `<p>${x.t != null ? `<span class="t">${fmt(x.t)}</span> – ` : ''}${esc(x.text)}</p>`).join('') : ''}
+  const sum = htmlToLines(cur.summary, o.shiur && o.tr);
+  const lines = o.tr ? trLines(c) : [];
+  const md = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const sumHtml = sum.length ? '<h2>סיכום</h2>' + sum.map(t => `<p>${esc(t)}</p>`).join('') : '';
+  const notesHtml = n.length ? '<h2>הערות</h2>' + n.map(x => `<p>${x.t != null ? `<span class="t">${fmt(x.t)}</span> – ` : ''}${esc(x.text)}</p>`).join('') : '';
+  const trHead = lines.length && (!o.shiur || sum.length || n.length) ? `<h2>${o.shiur ? 'השיעור' : 'תמלול'}</h2>` : '';
+  const trHtml = lines.map(x => {
+    const body = md(x.text);
+    if (x.quote) return `<blockquote>${body}</blockquote>`;
+    return `<p>${o.shiur ? '' : `<span class="t">${fmt(x.s)}</span> `}${body}</p>`;
+  }).join('');
+  w.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>${esc(s.title)}</title><style>body{font-family:David,"Frank Ruhl Libre",Rubik,Arial,sans-serif;max-width:720px;margin:24px auto;line-height:1.7;color:#1f2633}h1{font-size:1.4rem;white-space:pre-wrap}h2{font-size:1.15rem;margin-top:1.4em}p{margin:0 0 .85em}blockquote{margin:.6em 0;padding:.15em 1em;border-inline-start:3px solid #c9c1a8;color:#333}.t{color:#22385c;font-family:monospace;margin-inline-end:.4em}</style></head><body>
+    <h1>${esc(s.title)}</h1><p class="t">${esc((window.DBravName || (() => ''))(s.rav))}</p>${sumHtml}${notesHtml}${trHead}${trHtml}
     <script>onload=()=>{print()}<\/script></body></html>`); w.document.close();
 }
+
 
 // ---------- "my notes" page + backup/restore ----------
 async function notesView(app) {

@@ -338,3 +338,7 @@ h1.page+.muted+.badges{margin:6px 0 10px}
 .card.mysheet textarea{width:100%;box-sizing:border-box;margin-top:6px}
 .card.mysheet #shOwnH{width:100%;box-sizing:border-box;margin-top:6px}
 .mys-cols{gap:6px;align-items:center;margin-top:8px}
+
+.ex-opts{margin:4px 0 12px;display:flex;flex-direction:column;gap:6px}
+.ex-mode{padding-inline-start:22px;display:flex;flex-direction:column;gap:4px}
+.ex-opts label.row,.ex-mode label.row{align-items:center;gap:8px;cursor:pointer}
