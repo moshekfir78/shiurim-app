@@ -54,24 +54,43 @@ async function apply(M) {
   await idbWrite(puts.filter(r => JSON.stringify(cur[r.uid]) !== JSON.stringify(r)), dels.filter(u => cur[u]));
 }
 
-// ---------- Google auth (GIS token client) ----------
+// ---------- Google auth (short-lived access token + silent renew on the same device) ----------
 const useRedirect = () => /Android|iPhone|iPad/i.test(navigator.userAgent) || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const iosStandalone = () => !!navigator.standalone || (/iPhone|iPad|iPod/i.test(navigator.userAgent) && matchMedia('(display-mode: standalone)').matches);
 const loadGis = () => gisP || (gisP = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = () => no(new Error('טעינת Google נכשלה')); document.head.appendChild(s) }));
-function token(interactive) {
-  const t = jget(LSK.tok, null); if (t && t.exp > Date.now() + 60e3) return Promise.resolve(t.at);
-  if (!interactive) return Promise.reject(new Error('need-login'));
-  if (useRedirect()) {                    // installed app / Android: popups leave a blank screen, so use a full-page redirect
-    const st = Math.random().toString(36).slice(2); _set.call(localStorage, 'sync_oauth_state', st); _set.call(localStorage, 'sync_return', location.hash || '');
-    const ru = new URL('oauth.html', location.href.split('#')[0]).href;
-    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({ client_id: CID, redirect_uri: ru, response_type: 'token', scope: SCOPE, state: st, include_granted_scopes: 'true', prompt: jget(LSK.on, false) ? '' : 'consent' }).toString().replace(/&prompt=$/, '');
-    return new Promise(() => {});
-  }
+const tokValid = () => { const t = jget(LSK.tok, null); return t && t.at && t.exp > Date.now() + 60e3 ? t.at : null };
+function startRedirect(promptVal) {
+  const st = Math.random().toString(36).slice(2); _set.call(localStorage, 'sync_oauth_state', st); _set.call(localStorage, 'sync_return', location.hash || '');
+  const ru = new URL('oauth.html', location.href.split('#')[0]).href;
+  const p = { client_id: CID, redirect_uri: ru, response_type: 'token', scope: SCOPE, state: st, include_granted_scopes: 'true' };
+  if (promptVal) p.prompt = promptVal;
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams(p);
+  return new Promise(() => {});
+}
+function gisToken(promptVal) {
   return loadGis().then(() => new Promise((ok, no) => {
-    tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CID, scope: SCOPE, prompt: jget(LSK.on, false) ? '' : 'consent',
+    tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CID, scope: SCOPE, prompt: promptVal || '',
       callback: r => { if (r.error) return no(new Error(r.error)); jset(LSK.tok, { at: r.access_token, exp: Date.now() + (r.expires_in - 60) * 1000 }); ok(r.access_token) },
       error_callback: e => no(new Error(e.type || 'auth')) });
     tokenClient.requestAccessToken();
   }));
+}
+function token(interactive) {
+  const at = tokValid(); if (at) return Promise.resolve(at);
+  if (!interactive) {
+    if (!useRedirect()) return gisToken('none');  // desktop: renew quietly if Google session is still here
+    return Promise.reject(new Error('need-login'));
+  }
+  if (useRedirect()) return startRedirect(jget(LSK.on, false) ? '' : 'consent');
+  return gisToken(jget(LSK.on, false) ? '' : 'consent');
+}
+function maybeSilentRedirect() {
+  if (iosStandalone() || !useRedirect() || !jget(LSK.on, false) || tokValid()) return false;
+  try { if (sessionStorage.getItem('sync_silent_tried')) return false } catch {}
+  if (localStorage.getItem('sync_silent_ok') === 'false') return false;
+  try { sessionStorage.setItem('sync_silent_tried', '1') } catch {}
+  startRedirect('none');
+  return true;
 }
 async function api(url, opt = {}, at) {
   const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + at, ...(opt.headers || {}) } });
@@ -143,14 +162,17 @@ Storage.prototype.setItem = function (k, v) { _set.call(this, k, v); if (this ==
 const _put = IDBObjectStore.prototype.put;
 IDBObjectStore.prototype.put = function (...a) { if (this.name === 'study') schedule(); return _put.apply(this, a) };
 setInterval(() => document.visibilityState === 'visible' && schedule(0), 3 * 60e3);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(timer); sync(false) } else schedule(500) });
-window.addEventListener('load', () => { if (localStorage.getItem('sync_after_login')) { localStorage.removeItem('sync_after_login'); sync(true) } else schedule(1500) });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(timer); sync(false) } else if (!maybeSilentRedirect()) schedule(500) });
+window.addEventListener('load', () => {
+  if (localStorage.getItem('sync_after_login')) { localStorage.removeItem('sync_after_login'); sync(true) }
+  else if (!maybeSilentRedirect()) schedule(1500)
+});
 window.addEventListener('ptr-changed', () => schedule(1000));
 
 function disconnect() {
   const t = jget(LSK.tok, null);
   if (t && window.google && google.accounts) try { google.accounts.oauth2.revoke(t.at, () => {}) } catch { }
-  [LSK.on, LSK.tok, LSK.state, LSK.last, LSK.fid, 'sync_ptr'].forEach(k => localStorage.removeItem(k)); setStatus('idle');
+  [LSK.on, LSK.tok, LSK.state, LSK.last, LSK.fid, 'sync_ptr', 'sync_silent_ok'].forEach(k => localStorage.removeItem(k)); setStatus('idle');
 }
 
 // ---------- UI (in the "my notes" / backup area) ----------

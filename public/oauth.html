@@ -1,9 +1,27 @@
 <!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>מתחבר…</title>
 <style>body{font-family:system-ui,sans-serif;background:#f6f3ee;color:#333;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head>
 <body><div id="m">מתחבר ל-Google…</div><script>
-(function(){var p=new URLSearchParams(location.hash.slice(1)),back='./'+(localStorage.getItem('sync_return')||'');localStorage.removeItem('sync_return');
-var exp=localStorage.getItem('sync_oauth_state');localStorage.removeItem('sync_oauth_state');
-if(p.get('access_token')&&(!exp||p.get('state')===exp)){localStorage.setItem('sync_tok',JSON.stringify({at:p.get('access_token'),exp:Date.now()+((+p.get('expires_in')||3600)-60)*1000}));localStorage.setItem('sync_on','true');localStorage.setItem('sync_after_login','1')}
-else if(p.get('error')){document.getElementById('m').textContent='ההתחברות בוטלה: '+p.get('error')}
-setTimeout(function(){location.replace(back)},p.get('error')?2500:50)})();
+(function(){
+  var h=new URLSearchParams(location.hash.slice(1)), q=new URLSearchParams(location.search);
+  var back='./'+(localStorage.getItem('sync_return')||'');
+  localStorage.removeItem('sync_return');
+  var exp=localStorage.getItem('sync_oauth_state');
+  localStorage.removeItem('sync_oauth_state');
+  var st=h.get('state')||q.get('state');
+  var at=h.get('access_token');
+  var err=h.get('error')||q.get('error');
+  var silent=false;
+  try{silent=!!sessionStorage.getItem('sync_silent_tried')}catch(e){}
+  var skip=/^(login_required|interaction_required|consent_required|none)$/.test(err||'');
+  if(at&&(!exp||st===exp)){
+    localStorage.setItem('sync_tok',JSON.stringify({at:at,exp:Date.now()+((+h.get('expires_in')||3600)-60)*1000}));
+    localStorage.setItem('sync_on','true');
+    localStorage.setItem('sync_after_login','1');
+    if(silent)try{localStorage.setItem('sync_silent_ok','true')}catch(e){}
+  }else if(err){
+    if(silent)try{localStorage.setItem('sync_silent_ok','false')}catch(e){}
+    if(!skip)document.getElementById('m').textContent='ההתחברות בוטלה: '+err;
+  }
+  setTimeout(function(){location.replace(back)},(err&&!skip)?2500:50);
+})();
 </script></body></html>
