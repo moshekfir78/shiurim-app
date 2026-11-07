@@ -490,6 +490,83 @@ if ('serviceWorker' in navigator) {
 // no CORS headers, so the file is read from the copy in the repo's `pdf` branch (raw.githubusercontent.com allows it);
 // a missing copy is requested from the pdf-on-demand job and shown as soon as it lands. The link to the original stays
 // as the fallback.
+function joinPdfLine(items) {
+  if (!items.length) return '';
+  let s = items[0].str;
+  for (let i = 1; i < items.length; i++) {
+    const a = items[i - 1], b = items[i];
+    const ax = a.transform[4], bx = b.transform[4];
+    const gap = ax >= bx ? ax - (bx + (b.width || 0)) : bx - (ax + (a.width || 0));
+    const em = Math.max(Math.abs(a.transform[0]) || 0, Math.abs(b.transform[0]) || 0, a.height || 0, b.height || 0, 8);
+    const aEnd = s.slice(-1), b0 = b.str[0] || '';
+    const punctNext = /[\s.,;:!?%)\]\}”’"״׳-]/.test(b0);
+    const punctPrev = /[(\[\{“‘"״׳]/.test(aEnd);
+    const sentence = /[.!?]/.test(aEnd) && /[\u0590-\u05FFa-zA-Z0-9]/.test(b0);
+    const beforeSlash = b0 === '/' && /[\u0590-\u05FFa-zA-Z0-9]/.test(aEnd);
+    const needSpace = sentence || beforeSlash || !(gap < em * 0.12 || punctNext || punctPrev || /[\s\u00a0]$/.test(s));
+    s += (needSpace ? ' ' : '') + b.str;
+  }
+  return s.replace(/[ \t\u00a0]+/g, ' ').trim();
+}
+function pdfItemsToHtml(items) {
+  const lines = [];
+  let buf = [];
+  const flush = () => { if (buf.length) { lines.push(buf); buf = [] } };
+  for (const it of items) {
+    if (it.str) buf.push(it);
+    if (it.hasEOL) flush();
+  }
+  flush();
+  const objs = lines.map(its => ({
+    y: its[0].transform[5],
+    fs: Math.abs(its[0].transform[0]) || 12,
+    x0: Math.min(...its.map(i => i.transform[4])),
+    x1: Math.max(...its.map(i => i.transform[4] + (i.width || 0))),
+    text: joinPdfLine(its)
+  })).filter(l => l.text);
+  if (!objs.length) return '';
+  const sizes = objs.map(l => l.fs).sort((a, b) => a - b);
+  const bodyFs = sizes[Math.floor(sizes.length / 2)] || 12;
+  const gaps = [];
+  for (let i = 1; i < objs.length; i++) gaps.push(Math.abs(objs[i - 1].y - objs[i].y));
+  gaps.sort((a, b) => a - b);
+  const medLh = gaps[Math.floor(gaps.length / 2)] || bodyFs * 1.3;
+  const minX = Math.min(...objs.map(l => l.x0));
+  const maxX = Math.max(...objs.map(l => l.x1));
+  const mid = (minX + maxX) / 2;
+  const width = maxX - minX || 1;
+  let html = '', para = [];
+  const flushPara = () => {
+    const t = para.join(' ').replace(/ +/g, ' ').trim();
+    para = [];
+    if (t) html += `<p>${esc(t)}</p>`;
+  };
+  for (let i = 0; i < objs.length; i++) {
+    const L = objs[i], prev = objs[i - 1];
+    const gap = prev ? Math.abs(prev.y - L.y) : 0;
+    const short = (L.x1 - L.x0) < width * 0.64;
+    const centered = Math.abs((L.x0 + L.x1) / 2 - mid) < width * 0.2 && short;
+    const heading = (L.fs > bodyFs * 1.12 || centered) && short && L.text.length < 90;
+    if (heading) {
+      flushPara();
+      html += `<p class="pdfc">${esc(L.text)}</p>`;
+    } else {
+      if (prev && gap > medLh * 1.55) flushPara();
+      para.push(L.text);
+    }
+  }
+  flushPara();
+  return html;
+}
+async function pdfToArticle(doc) {
+  let html = '';
+  for (let i = 1; i <= doc.numPages; i++) {
+    const pg = await doc.getPage(i);
+    html += pdfItemsToHtml((await pg.getTextContent()).items);
+  }
+  return html;
+}
+
 const PDF_TOPIC = 'sh-pdf-3f86b91fc843691629ccb3f3b5e2a3bf';
 const pdfCopy = c => 'https://raw.githubusercontent.com/moshekfir78/shiurim-app/pdf/p/' + c + '.pdf';
 let _pdfjs;
@@ -517,14 +594,21 @@ async function pdfView(bd, s, tries = 0) {
   }
   try {
     const lib = await pdfLib();
-    const doc = await lib.getDocument({ data: b, cMapUrl: 'vendor/pdfjs/cmaps/', cMapPacked: true, standardFontDataUrl: 'vendor/pdfjs/standard_fonts/', isEvalSupported: false }).promise;
+    const base = new URL('vendor/pdfjs/', location.href).href;
+    const doc = await lib.getDocument({ data: b, cMapUrl: base + 'cmaps/', cMapPacked: true, standardFontDataUrl: base + 'standard_fonts/', isEvalSupported: false }).promise;
+    const article = await pdfToArticle(doc);
+    if ((article.match(/[\u0590-\u05FF]/g) || []).length > 40) {
+      bd.classList.add('article');
+      bd.innerHTML = article + `<p>${link}</p>`;
+      return;
+    }
     bd.classList.add('pdfv'); bd.innerHTML = `<div class="pdfbar"><span class="muted">${doc.numPages} עמודים</span><span><button class="btn" data-z="-1" aria-label="הקטנה">−</button><button class="btn" data-z="1" aria-label="הגדלה">+</button></span></div><div class="pdfpages"></div><p>${link}</p>`;
     const box = bd.querySelector('.pdfpages'); let zoom = 1; const done = new Map();
     const draw = async (i, cv) => {
       const pg = await doc.getPage(i), w = box.clientWidth || 600, v0 = pg.getViewport({ scale: 1 });
       const sc = w * zoom / v0.width, dpr = Math.min(window.devicePixelRatio || 1, 2), v = pg.getViewport({ scale: sc * dpr });
       cv.width = v.width; cv.height = v.height; cv.style.width = (v.width / dpr) + 'px'; cv.style.height = (v.height / dpr) + 'px';
-      await pg.render({ canvasContext: cv.getContext('2d'), viewport: v }).promise;
+      await pg.render({ canvasContext: cv.getContext('2d'), canvas: cv, viewport: v }).promise;
     };
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { const cv = e.target, i = +cv.dataset.p; if (done.get(i) !== zoom) { done.set(i, zoom); draw(i, cv).catch(() => { }) } } }), { rootMargin: '600px 0px' });
     const first = await doc.getPage(1), r0 = first.getViewport({ scale: 1 }), ratio = r0.height / r0.width;
