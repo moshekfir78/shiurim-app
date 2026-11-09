@@ -278,6 +278,41 @@ TAX = taxonomy()
 for t in TAX: t["count"] = sum(1 for s in shiurim if t["id"] in s.get("tp", ()))
 TAX = [t for t in TAX if t["count"]]
 print("topics: classified", sum(1 for s in shiurim if s.get("tp")), "/", len(shiurim))
+# Sketches belong in the radio app, not in אוהל משה: publish a separate feed and drop them from index.json.
+_sk_ravs = {r["id"] for r in ravs if r.get("kind") == "sketches"}
+_sk_items = [s for s in shiurim if s.get("rav") in _sk_ravs]
+_sk_root = cats.get("rav:sketches") or {}
+_sk_folders = []
+for _fid in _sk_root.get("children") or []:
+    _c = cats.get(_fid) or {}
+    _sk_folders.append({"id": _fid, "title": _c.get("title") or _fid})
+_seen = {f["id"] for f in _sk_folders}
+for s in _sk_items:
+    fid = s.get("cat")
+    if fid and fid not in _seen:
+        _c = cats.get(fid) or {}
+        _sk_folders.append({"id": fid, "title": _c.get("title") or fid})
+        _seen.add(fid)
+_sk_out = []
+for s in _sk_items:
+    yt = s.get("youtube") or ""
+    if not yt: continue
+    rec = {"id": yt, "title": s.get("title") or yt, "folder": s.get("cat") or ""}
+    if s.get("duration"): rec["duration"] = int(s["duration"])
+    alts = [a for a in (s.get("ytAlt") or []) if a and a != yt]
+    if alts: rec["alts"] = alts
+    _sk_out.append(rec)
+json.dump({"updated": datetime.date.today().isoformat(), "folders": _sk_folders, "items": _sk_out},
+          open(os.path.join(PUB, "sketches.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+print(f"sketches feed: {len(_sk_out)} items in {len(_sk_folders)} folders (for the radio app)")
+_sk_cats = {"rav:sketches"} | {f["id"] for f in _sk_folders} | {s.get("cat") for s in _sk_items if s.get("cat")}
+shiurim = [s for s in shiurim if s.get("rav") not in _sk_ravs]
+ravs = [r for r in ravs if r["id"] not in _sk_ravs]
+cats = {k: v for k, v in cats.items() if k not in _sk_cats}
+for v in cats.values():
+    if v.get("children"):
+        v["children"] = [c for c in v["children"] if c not in _sk_cats]
+TAX = [t for t in TAX if t["id"] not in _sk_cats]
 json.dump({"topics": TAX, "parashot": [{"name": p[0], "book": p[1]} for p in PARASHOT], "schedule": SCH, "ravs": ravs, "sources": sources, "categories": cats, "shiurim": shiurim},
           open(os.path.join(PUB, "index.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 print(f"parasha: {sum(1 for x in shiurim if x.get('par'))} shiurim classified, {len({i for x in shiurim for i in x.get('par', [])})}/54 parashot, schedule {len(SCH)} weeks")

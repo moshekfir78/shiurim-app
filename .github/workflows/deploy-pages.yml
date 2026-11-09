@@ -26,6 +26,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with: {ref: main}
+      - name: Build catalog into public
+        run: |
+          git fetch -q origin main && git reset -q --hard origin/main && git log -1 --oneline
+          pip install -q requests && (sudo apt-get install -y -qq poppler-utils >/dev/null || true) && python3 build.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: public}

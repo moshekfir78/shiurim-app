@@ -24,8 +24,8 @@ const fmtTime = t => { t = Math.floor(t || 0); const h = Math.floor(t / 3600), m
 const catPath = id => { const out = []; while (id) { const c = DB.categories[id]; if (!c) break; out.unshift(c); id = c.parent } return out };
 const srcName = id => (DB.sources.find(s => s.id === id) || {}).name || id;
 const isSk = id => { const p = catPath(id)[0]; return !!(p && DB.extras && DB.extras.some(r => 'rav:' + r.id === p.id)) };
-const extrasSec = () => (DB.extras || []).length ? `<h2 class="sec">פנאי</h2>` + tiles(DB.extras.map(x => 'rav:' + x.id)) : '';
-const skCard = () => (DB.extras || []).length ? `<div class="skrow">${DB.extras.map(x => `<a class="skchip" href="#/cat/rav:${x.id}">🎭 ${esc(x.name)}</a>`).join('')}</div>` : '';
+const extrasSec = () => '';  // sketches moved to the radio app
+const skCard = () => '';
 const ravName = id => (DB.ravs.find(r => r.id === id) || {}).name || '';
 let Q = new URLSearchParams();
 const curRav = () => Q.has('r') ? Q.get('r') : LS.get('rav', '');
