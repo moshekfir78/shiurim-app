@@ -255,7 +255,7 @@ function trLines(c) {
 const mdPlain = t => String(t || '').replace(/\*\*(.+?)\*\*/g, '$1');
 const plain = (s, c) => {
   const o = expOpt(), n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
-  const parts = [s.title, (window.DBravName || (() => ''))(s.rav)];
+  const M = exMeta(s), parts = [s.title, M.rav, M.line].filter(Boolean);
   const sum = htmlToLines(cur.summary, o.shiur && o.tr);
   if (sum.length) parts.push('', 'סיכום:', ...sum);
   if (n.length) parts.push('', 'הערות:', ...n.map(x => (x.t != null ? fmt(x.t) + ' – ' : '') + x.text));
@@ -268,57 +268,104 @@ const plain = (s, c) => {
   }
   return parts.filter((x, i, a) => x !== '' || a[i - 1] !== '').join('\n');
 };
+// ---------- professional export (Word / PDF): centered title block, RTL justified body, page numbers ----------
+const exDate = iso => iso ? new Date(iso).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jerusalem' }) : '';
+const exDur = sec => { sec = +sec || 0; if (!sec) return ''; const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60); return h ? `${h}:${String(m).padStart(2, '0')} שע׳` : `${m} דק׳` };
+function exMeta(s) {
+  const rav = (window.DBravName || (() => ''))(s.rav) || '';
+  const bits = [];
+  if (s.date) bits.push('נמסר ב־' + exDate(s.date));
+  if (exDur(s.duration)) bits.push('אורך ' + exDur(s.duration));
+  return { rav, line: bits.join('  ·  '), made: 'יוצא מאוהל משה · ' + exDate(new Date().toISOString()) };
+}
 async function exportDocx(s, c) {
   await loadScript('https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js');
-  const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
-  const o = expOpt();
+  const { Document, Packer, Paragraph, TextRun, AlignmentType, Footer, Header, PageNumber, BorderStyle, LineRuleType } = window.docx;
+  const o = expOpt(), M = exMeta(s);
+  const FONT = { ascii: 'David', hAnsi: 'David', cs: 'David', eastAsia: 'David' };
+  const INK = '1F2633', ACC = '22385C', MUTED = '6B7280';
+  const run = (text, opt = {}) => new TextRun({ text, rightToLeft: true, font: FONT, size: opt.size || 25, sizeComplexScript: opt.size || 25,
+    bold: !!opt.bold, boldComplexScript: !!opt.bold, italics: !!opt.italics, italicsComplexScript: !!opt.italics, color: opt.color || INK });
   const runs = (text, opt = {}) => {
-    const parts = [], re = /\*\*(.+?)\*\*/g; let last = 0, m;
-    const mk = (t, bold) => new TextRun({ text: t, rightToLeft: true, bold: !!(bold || opt.bold), font: 'Arial', italics: !!opt.italics });
-    text = String(text ?? '');
-    while ((m = re.exec(text))) {
-      if (m.index > last) parts.push(mk(text.slice(last, m.index)));
-      parts.push(mk(m[1], true));
-      last = m.index + m[0].length;
-    }
-    if (last < text.length) parts.push(mk(text.slice(last)));
-    if (!parts.length) parts.push(mk(''));
-    return parts;
+    const parts = [], re = /\*\*(.+?)\*\*/g; let last = 0, m; text = String(text ?? '');
+    while ((m = re.exec(text))) { if (m.index > last) parts.push(run(text.slice(last, m.index), opt)); parts.push(run(m[1], { ...opt, bold: true })); last = m.index + m[0].length }
+    if (last < text.length) parts.push(run(text.slice(last), opt));
+    return parts.length ? parts : [run('', opt)];
   };
-  const P = (text, opt = {}) => new Paragraph({ bidirectional: true, alignment: AlignmentType.RIGHT, spacing: { after: opt.after ?? 200 },
-    indent: opt.quote ? { right: 360 } : undefined, heading: opt.heading, children: runs(text, opt) });
-  const kids = [P(s.title, { heading: HeadingLevel.HEADING_1, bold: true, after: 80 }), P((window.DBravName || (() => ''))(s.rav), { after: 280 })];
+  const P = (text, opt = {}) => new Paragraph({ bidirectional: true, alignment: opt.align || AlignmentType.BOTH,
+    spacing: { before: opt.before || 0, after: opt.after ?? 160, line: opt.line || 360, lineRule: LineRuleType.AUTO },
+    indent: opt.quote ? { start: 567, end: 567 } : (opt.first ? { firstLine: 0 } : undefined),
+    border: opt.rule ? { bottom: { style: BorderStyle.SINGLE, size: 8, color: 'C9C1A8', space: 8 } } : (opt.quote ? { right: { style: BorderStyle.SINGLE, size: 12, color: 'C9C1A8', space: 10 } } : undefined),
+    keepNext: !!opt.keepNext, children: runs(text, opt) });
+  const H2 = text => P(text, { align: AlignmentType.RIGHT, bold: true, size: 29, color: ACC, before: 360, after: 160, keepNext: true, line: 300 });
+  const C = AlignmentType.CENTER;
+  const kids = [P(s.title, { align: C, bold: true, size: 40, color: ACC, after: 120, line: 320 })];
+  if (M.rav) kids.push(P(M.rav, { align: C, size: 28, after: 80, line: 300 }));
+  if (M.line) kids.push(P(M.line, { align: C, size: 21, color: MUTED, after: 60, line: 280 }));
+  kids.push(P('', { rule: true, after: 360, line: 240 }));
   const sum = htmlToLines(cur.summary, o.shiur && o.tr);
-  if (sum.length) { kids.push(P('סיכום', { heading: HeadingLevel.HEADING_2, bold: true })); sum.forEach(t => kids.push(P(t))) }
+  if (sum.length) { kids.push(H2('סיכום')); sum.forEach(t => kids.push(P(t))) }
   const n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
-  if (n.length) { kids.push(P('הערות', { heading: HeadingLevel.HEADING_2, bold: true })); n.forEach(x => kids.push(P((x.t != null ? fmt(x.t) + ' – ' : '') + x.text))) }
+  if (n.length) { kids.push(H2('הערות')); n.forEach(x => kids.push(new Paragraph({ bidirectional: true, alignment: AlignmentType.BOTH, spacing: { after: 120, line: 340 },
+    children: [...(x.t != null ? [run(fmt(x.t) + '   ', { color: ACC, bold: true, size: 22 })] : []), ...runs(x.text)] }))) }
   const lines = o.tr ? trLines(c) : [];
   if (lines.length) {
-    if (!o.shiur || sum.length || n.length) kids.push(P(o.shiur ? 'השיעור' : 'תמלול', { heading: HeadingLevel.HEADING_2, bold: true }));
-    lines.forEach(x => kids.push(P(o.shiur ? x.text : (fmt(x.s) + '  ' + x.text), { quote: x.quote, italics: x.quote })));
+    if (!o.shiur || sum.length || n.length) kids.push(H2(o.shiur ? 'השיעור' : 'תמלול'));
+    lines.forEach(x => {
+      if (x.quote) return kids.push(P(x.text, { quote: true, italics: true, color: '333333', size: 24, after: 200 }));
+      if (o.shiur) return kids.push(P(x.text, { after: 200 }));
+      kids.push(new Paragraph({ bidirectional: true, alignment: AlignmentType.BOTH, spacing: { after: 140, line: 340 },
+        children: [run(fmt(x.s) + '   ', { color: ACC, bold: true, size: 20 }), ...runs(x.text)] }));
+    });
   }
-  const blob = await Packer.toBlob(new Document({ sections: [{ properties: {}, children: kids }] }));
+  const small = (text, extra = []) => new Paragraph({ bidirectional: true, alignment: C, children: [run(text, { size: 18, color: MUTED }), ...extra] });
+  const doc = new Document({
+    creator: 'אוהל משה', title: s.title, description: M.rav,
+    styles: { default: { document: { run: { font: FONT, size: 25, sizeComplexScript: 25, rightToLeft: true }, paragraph: { bidirectional: true } } } },
+    sections: [{
+      properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1440, bottom: 1300, left: 1440, right: 1440, header: 600, footer: 600 } } },
+      headers: { default: new Header({ children: [small([s.title.length > 70 ? s.title.slice(0, 68) + '…' : s.title, M.rav].filter(Boolean).join('  ·  '))] }) },
+      footers: { default: new Footer({ children: [new Paragraph({ bidirectional: true, alignment: C, children: [
+        run('עמוד ', { size: 18, color: MUTED }), new TextRun({ children: [PageNumber.CURRENT], size: 18, color: MUTED, font: FONT }),
+        run(' מתוך ', { size: 18, color: MUTED }), new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 18, color: MUTED, font: FONT }),
+        run('   ·   ' + M.made, { size: 18, color: MUTED })] })] }) },
+      children: kids
+    }]
+  });
+  const blob = await Packer.toBlob(doc);
   const tag = lines.length ? (o.shiur ? ' - שיעור' : ' - תמלול') : '';
   return new File([blob], safeName(s.title) + tag + '.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
 function printPdf(s, c) {
   const w = window.open('', '_blank'); if (!w) return alert('אפשרו חלונות קופצים כדי לייצא PDF');
-  const o = expOpt();
+  const o = expOpt(), M = exMeta(s);
   const n = (cur.notes || []).slice().sort((a, b) => (a.t ?? 1e9) - (b.t ?? 1e9));
   const sum = htmlToLines(cur.summary, o.shiur && o.tr);
   const lines = o.tr ? trLines(c) : [];
   const md = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
-  const sumHtml = sum.length ? '<h2>סיכום</h2>' + sum.map(t => `<p>${esc(t)}</p>`).join('') : '';
-  const notesHtml = n.length ? '<h2>הערות</h2>' + n.map(x => `<p>${x.t != null ? `<span class="t">${fmt(x.t)}</span> – ` : ''}${esc(x.text)}</p>`).join('') : '';
+  const sumHtml = sum.length ? '<h2>סיכום</h2>' + sum.map(t => `<p>${md(t)}</p>`).join('') : '';
+  const notesHtml = n.length ? '<h2>הערות</h2>' + n.map(x => `<p>${x.t != null ? `<span class="t">${fmt(x.t)}</span>` : ''}${esc(x.text)}</p>`).join('') : '';
   const trHead = lines.length && (!o.shiur || sum.length || n.length) ? `<h2>${o.shiur ? 'השיעור' : 'תמלול'}</h2>` : '';
-  const trHtml = lines.map(x => {
-    const body = md(x.text);
-    if (x.quote) return `<blockquote>${body}</blockquote>`;
-    return `<p>${o.shiur ? '' : `<span class="t">${fmt(x.s)}</span> `}${body}</p>`;
-  }).join('');
-  w.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>${esc(s.title)}</title><style>body{font-family:David,"Frank Ruhl Libre",Rubik,Arial,sans-serif;max-width:720px;margin:24px auto;line-height:1.7;color:#1f2633}h1{font-size:1.4rem;white-space:pre-wrap}h2{font-size:1.15rem;margin-top:1.4em}p{margin:0 0 .85em}blockquote{margin:.6em 0;padding:.15em 1em;border-inline-start:3px solid #c9c1a8;color:#333}.t{color:#22385c;font-family:monospace;margin-inline-end:.4em}</style></head><body>
-    <h1>${esc(s.title)}</h1><p class="t">${esc((window.DBravName || (() => ''))(s.rav))}</p>${sumHtml}${notesHtml}${trHead}${trHtml}
-    <script>onload=()=>{print()}<\/script></body></html>`); w.document.close();
+  const trHtml = lines.map(x => x.quote ? `<blockquote>${md(x.text)}</blockquote>` : `<p>${o.shiur ? '' : `<span class="t">${fmt(x.s)}</span>`}${md(x.text)}</p>`).join('');
+  w.document.write(`<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>${esc(s.title)}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700&display=swap">
+<style>
+@page{size:A4;margin:22mm 20mm 20mm;@bottom-center{content:"עמוד " counter(page) " מתוך " counter(pages);font:9pt "Frank Ruhl Libre",David,serif;color:#6b7280}}
+html{direction:rtl}body{font-family:"Frank Ruhl Libre",David,"Times New Roman",serif;font-size:12.5pt;line-height:1.75;color:#1f2633;max-width:720px;margin:28px auto;padding:0 18px}
+header{text-align:center;padding-bottom:14px;margin-bottom:26px;border-bottom:1.5px solid #c9c1a8}
+h1{font-size:22pt;line-height:1.3;color:#22385c;margin:0 0 8px;font-weight:700}
+.rav{font-size:14pt;margin:0 0 4px}.meta{font-size:10.5pt;color:#6b7280;margin:0}
+h2{font-size:14.5pt;color:#22385c;margin:1.6em 0 .5em;break-after:avoid}
+p{margin:0 0 .8em;text-align:justify;orphans:3;widows:3}
+blockquote{margin:.8em 2.2em;padding:.2em 1em;border-inline-start:3px solid #c9c1a8;font-style:italic;color:#333;text-align:justify}
+.t{color:#22385c;font-weight:700;font-size:10pt;font-family:Arial,sans-serif;margin-inline-end:.7em;direction:ltr;unicode-bidi:isolate}
+footer{margin-top:36px;padding-top:8px;border-top:1px solid #e5e1d6;text-align:center;font-size:9pt;color:#6b7280}
+@media print{body{margin:0;max-width:none;padding:0}}
+</style></head><body>
+<header><h1>${esc(s.title)}</h1>${M.rav ? `<p class="rav">${esc(M.rav)}</p>` : ''}${M.line ? `<p class="meta">${esc(M.line)}</p>` : ''}</header>
+${sumHtml}${notesHtml}${trHead}${trHtml}
+<footer>${esc(M.made)}</footer>
+<script>onload=()=>{(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(print,150))}<\/script></body></html>`); w.document.close();
 }
 
 
