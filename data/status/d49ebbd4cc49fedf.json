@@ -1,1 +1,1 @@
-{"podcast:ypt-pshat-granot:7de3f14d-8c5b-40a9-ae22-a85badfdd3cc": {"status": "working", "at": "2026-11-21T20:31:26.381694+00:00", "issue": null}}
+{"podcast:ypt-pshat-granot:7de3f14d-8c5b-40a9-ae22-a85badfdd3cc": {"status": "done", "at": "2026-11-21T20:36:59.461334+00:00", "issue": null, "seconds": 314, "audioSeconds": 3105, "model": "gemini-3.5-transcribe", "source": "Gemini · מהיר", "mode": "fast"}}
