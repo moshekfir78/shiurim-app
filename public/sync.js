@@ -10,7 +10,7 @@ const jget = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d }
 const jset = (k, v) => _set.call(localStorage, k, JSON.stringify(v));
 const _set = Storage.prototype.setItem;
 const WATCH = new Set(['favs', 'pos', 'trReq', 'speed', 'rav', 'recent']);
-let status = 'idle', err = '', busy = false, applying = false, timer = null, tokenClient = null, gisP = null;
+let status = 'idle', err = '', busy = false, applying = false, timer = null;
 
 // ---------- IndexedDB (same DB as study.js) ----------
 const idb = () => new Promise((ok, no) => { const r = indexedDB.open('shiurim-study', 1);
@@ -54,47 +54,56 @@ async function apply(M) {
   await idbWrite(puts.filter(r => JSON.stringify(cur[r.uid]) !== JSON.stringify(r)), dels.filter(u => cur[u]));
 }
 
-// ---------- Google auth (short-lived access token + silent renew on the same device) ----------
-const useRedirect = () => /Android|iPhone|iPad/i.test(navigator.userAgent) || matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-const iosStandalone = () => !!navigator.standalone || (/iPhone|iPad|iPod/i.test(navigator.userAgent) && matchMedia('(display-mode: standalone)').matches);
-const loadGis = () => gisP || (gisP = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true; s.onload = ok; s.onerror = () => no(new Error('טעינת Google נכשלה')); document.head.appendChild(s) }));
+// ---------- Google auth ----------
+// Sign in ONCE per device. We remember who is signed in (email/name) and show the user as connected forever (until "התנתק").
+// Google's access token lives ~1h; when it is stale we renew it quietly with a full-page redirect (prompt=none + login_hint),
+// which works in Chrome, installed PWAs and the Android app's WebView (no popups, no third-party cookies). Only if Google
+// truly needs the user (signed out of Google / consent revoked) do we show a one-tap "חדש חיבור" – still with login_hint,
+// so no account chooser.
+const UK = 'sync_user', FAILK = 'sync_silent_fail', TRYK = 'sync_silent_at';
+const user = () => jget(UK, null);
 const tokValid = () => { const t = jget(LSK.tok, null); return t && t.at && t.exp > Date.now() + 60e3 ? t.at : null };
-function startRedirect(promptVal) {
+function startRedirect(promptVal, silent) {
   const st = Math.random().toString(36).slice(2); _set.call(localStorage, 'sync_oauth_state', st); _set.call(localStorage, 'sync_return', location.hash || '');
+  _set.call(localStorage, 'sync_oauth_silent', silent ? '1' : '');
+  if (silent) _set.call(localStorage, TRYK, String(Date.now()));
   const ru = new URL('oauth.html', location.href.split('#')[0]).href;
   const p = { client_id: CID, redirect_uri: ru, response_type: 'token', scope: SCOPE, state: st, include_granted_scopes: 'true' };
+  const u = user(); if (u && u.email) p.login_hint = u.email;
   if (promptVal) p.prompt = promptVal;
   location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams(p);
   return new Promise(() => {});
 }
-function gisToken(promptVal) {
-  return loadGis().then(() => new Promise((ok, no) => {
-    tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CID, scope: SCOPE, prompt: promptVal || '',
-      callback: r => { if (r.error) return no(new Error(r.error)); jset(LSK.tok, { at: r.access_token, exp: Date.now() + (r.expires_in - 60) * 1000 }); ok(r.access_token) },
-      error_callback: e => no(new Error(e.type || 'auth')) });
-    tokenClient.requestAccessToken();
-  }));
-}
 function token(interactive) {
   const at = tokValid(); if (at) return Promise.resolve(at);
-  if (!interactive) {
-    if (!useRedirect()) return gisToken('none');  // desktop: renew quietly if Google session is still here
-    return Promise.reject(new Error('need-login'));
-  }
-  if (useRedirect()) return startRedirect(jget(LSK.on, false) ? '' : 'consent');
-  return gisToken(jget(LSK.on, false) ? '' : 'consent');
+  if (!interactive) return Promise.reject(new Error('stale'));       // keep "connected"; renew at a safe moment
+  return startRedirect(jget(LSK.on, false) ? '' : 'select_account consent', false);
+}
+// A quiet renew navigates away for ~1s, so only do it when nothing would be interrupted.
+function safeMoment() {
+  if ([...document.querySelectorAll('audio,video')].some(m => !m.paused)) return false;
+  if (document.querySelector('iframe[src*="youtube"]') || /^#\/s\//.test(location.hash)) return false;
+  const a = document.activeElement; if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return false;
+  return true;
 }
 function maybeSilentRedirect() {
-  if (iosStandalone() || !useRedirect() || !jget(LSK.on, false) || tokValid()) return false;
-  try { if (sessionStorage.getItem('sync_silent_tried')) return false } catch {}
-  if (localStorage.getItem('sync_silent_ok') === 'false') return false;
-  try { sessionStorage.setItem('sync_silent_tried', '1') } catch {}
-  startRedirect('none');
+  if (!jget(LSK.on, false) || tokValid() || !navigator.onLine) return false;
+  const now = Date.now(), last = +localStorage.getItem(TRYK) || 0, f = jget(FAILK, null);
+  if (now - last < 10 * 60e3) return false;                         // at most once per 10 minutes
+  if (f && f.hard && now - f.at < 6 * 3600e3) return false;          // Google said "needs the user": wait for a tap (retry in 6h)
+  if (!safeMoment()) return false;
+  startRedirect('none', true);
   return true;
+}
+// remember who is signed in (drive.appdata is enough for about.get)
+async function rememberUser(at) {
+  if (user() && user().email) return;
+  try { const r = await (await api('https://www.googleapis.com/drive/v3/about?fields=user(displayName,emailAddress)', {}, at)).json();
+    if (r.user && r.user.emailAddress) jset(UK, { email: r.user.emailAddress, name: r.user.displayName || '' }) } catch (e) { }
 }
 async function api(url, opt = {}, at) {
   const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + at, ...(opt.headers || {}) } });
-  if (r.status === 401) { localStorage.removeItem(LSK.tok); throw new Error('need-login') }
+  if (r.status === 401) { localStorage.removeItem(LSK.tok); throw new Error('stale') }
   if (!r.ok) throw new Error('Drive ' + r.status);
   return r;
 }
@@ -147,41 +156,45 @@ async function syncPtr(at) {
 async function sync(interactive = false) {
   if (busy || (!interactive && !jget(LSK.on, false))) return; busy = true; setStatus('syncing');
   try {
-    const at = await token(interactive);
+    const at = await token(interactive); rememberUser(at);
     const S = await stamp(), R = await download(at), M = merge(S, R || {});
     applying = true; try { await apply(M) } finally { applying = false }
     if (!R || JSON.stringify(M) !== JSON.stringify(R)) await upload(at, M);
     const pc = await syncPtr(at).catch(e => { console.warn('ptr sync', e); return false });
     jset(LSK.state, M); jset(LSK.on, true); jset(LSK.last, Date.now()); setStatus('ok');
     if (((R && JSON.stringify(M) !== JSON.stringify(S)) || pc) && window.render && !/^#\/s\//.test(location.hash)) window.render();
-  } catch (e) { err = e.message; setStatus(e.message === 'need-login' ? 'login' : 'error') }
+  } catch (e) { err = e.message;
+    if (e.message === 'stale') { setStatus(hardFail() ? 'login' : 'idle'); if (!maybeSilentRedirect() && interactive) token(true) }
+    else setStatus('error') }
   finally { busy = false }
 }
+const hardFail = () => { const f = jget(FAILK, null); return !!(f && f.hard) };
 const schedule = (ms = 4000) => { if (applying || !jget(LSK.on, false)) return; clearTimeout(timer); timer = setTimeout(() => sync(false), ms) };
 Storage.prototype.setItem = function (k, v) { _set.call(this, k, v); if (this === localStorage && WATCH.has(k)) schedule() };
 const _put = IDBObjectStore.prototype.put;
 IDBObjectStore.prototype.put = function (...a) { if (this.name === 'study') schedule(); return _put.apply(this, a) };
 setInterval(() => document.visibilityState === 'visible' && schedule(0), 3 * 60e3);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(timer); sync(false) } else if (!maybeSilentRedirect()) schedule(500) });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { clearTimeout(timer); if (tokValid()) sync(false) } else if (!maybeSilentRedirect()) schedule(500) });
 window.addEventListener('load', () => {
   if (localStorage.getItem('sync_after_login')) { localStorage.removeItem('sync_after_login'); sync(true) }
   else if (!maybeSilentRedirect()) schedule(1500)
 });
+window.addEventListener('online', () => { if (!maybeSilentRedirect()) schedule(1000) });
 window.addEventListener('ptr-changed', () => schedule(1000));
 
 function disconnect() {
   const t = jget(LSK.tok, null);
-  if (t && window.google && google.accounts) try { google.accounts.oauth2.revoke(t.at, () => {}) } catch { }
-  [LSK.on, LSK.tok, LSK.state, LSK.last, LSK.fid, 'sync_ptr', 'sync_silent_ok'].forEach(k => localStorage.removeItem(k)); setStatus('idle');
+  if (t && t.at) fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(t.at), { method: 'POST' }).catch(() => {});
+  [LSK.on, LSK.tok, LSK.state, LSK.last, LSK.fid, 'sync_ptr', 'sync_silent_ok', UK, FAILK, TRYK].forEach(k => localStorage.removeItem(k)); setStatus('idle');
 }
 
 // ---------- UI (in the "my notes" / backup area) ----------
 function label() {
   const last = jget(LSK.last, 0), on = jget(LSK.on, false);
   if (status === 'syncing') return 'מסנכרן…';
-  if (status === 'login') return 'צריך להתחבר שוב ל-Google כדי להמשיך לסנכרן';
+  if (status === 'login') return 'Google ביקש אישור מחדש – לחיצה אחת על "חדש חיבור" והסנכרון ימשיך (הנתונים שמורים במכשיר)';
   if (status === 'error') return 'הסנכרון נכשל: ' + err;
-  return on ? '✓ מסונכרן' + (last ? ' · לאחרונה ' + new Date(last).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'short' }) : '') : 'לא מחובר';
+  const u = user(); return on ? (u && u.email ? '✓ מחובר כ־' + u.email + ' · ' : '✓ ') + 'מסונכרן' + (last ? ' · לאחרונה ' + new Date(last).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem', dateStyle: 'short', timeStyle: 'short' }) : '') : 'לא מחובר';
 }
 function setStatus(s) { status = s; topBtn(); const el = document.getElementById('syncBox'); if (el) fill(el); const dot = document.getElementById('syncDot'); if (dot) dot.className = 'syncdot ' + s }
 function fill(el) {
@@ -189,8 +202,8 @@ function fill(el) {
   el.innerHTML = `<b>סנכרון בין מכשירים (Google Drive)</b>
     <div class="muted">הנתונים נשמרים בתיקייה מוסתרת של האפליקציה ב-Google Drive שלך בלבד: סיכומים, הערות, תמלולים אישיים, תיקוני תמלול, מועדפים, התקדמות והעדפות.</div>
     <div class="muted" id="syncSt">${label()}</div>
-    <div class="row">${on && status !== 'login' ? `<button class="btn" id="syncNow">סנכרן עכשיו</button><button class="btn" id="syncOff">התנתק</button>`
-      : `<button class="btn on" id="syncIn">התחבר עם Google לסנכרון</button>${on ? '<button class="btn" id="syncOff">התנתק</button>' : ''}`}</div>`;
+    <div class="row">${on ? `<button class="btn${status === 'login' ? ' on' : ''}" id="syncNow">${status === 'login' ? 'חדש חיבור' : 'סנכרן עכשיו'}</button><button class="btn" id="syncOff">התנתק</button>`
+      : `<button class="btn on" id="syncIn">התחבר עם Google לסנכרון</button>`}</div>`;
   const b = (id, f) => { const x = el.querySelector('#' + id); x && (x.onclick = f) };
   b('syncIn', () => sync(true)); b('syncNow', () => sync(true));
   b('syncOff', () => { if (confirm('להפסיק לסנכרן? הנתונים במכשיר וב-Drive יישארו.')) disconnect() });
@@ -199,15 +212,14 @@ function topBtn() {
   let b = document.getElementById('gLogin');
   if (!b) { const h = document.querySelector('header.top'); if (!h) return; b = document.createElement('button'); b.id = 'gLogin'; b.className = 'glogin'; h.appendChild(b);
     b.onclick = () => { if (jget(LSK.on, false) && status !== 'login') location.hash = '#/notes'; else sync(true) } }
-  const on = jget(LSK.on, false) && status !== 'login';
+  const on = jget(LSK.on, false);
   b.classList.toggle('on', on);
-  b.innerHTML = on ? (status === 'syncing' ? '⟳ מסנכרן' : '✓ מחובר') : '<svg viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg> התחבר עם Google';
-  b.title = on ? 'הנתונים שלך נשמרים ב-Google Drive שלך' : 'התחברות: הסיכומים, ההערות והמועדפים יישמרו ב-Google Drive שלך ויסונכרנו בין המכשירים';
+  b.innerHTML = on ? (status === 'syncing' ? '⟳ מסנכרן' : status === 'login' ? '⟳ חדש חיבור' : '✓ מחובר') : '<svg viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg> התחבר עם Google';
+  const u = user(); b.title = on && u && u.email ? 'מחובר כ־' + u.email + ' · הנתונים נשמרים ב-Google Drive שלך' : on ? 'הנתונים שלך נשמרים ב-Google Drive שלך' : 'התחברות: הסיכומים, ההערות והמועדפים יישמרו ב-Google Drive שלך ויסונכרנו בין המכשירים';
 }
 document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', topBtn) : topBtn();
-const preload = () => loadGis().catch(() => {});
 const wrap = () => { if (!window.Study || Study._syncWrapped) return; const orig = Study.notesView; Study._syncWrapped = true;
-  Study.notesView = async app => { await orig(app); const box = document.createElement('div'); box.className = 'card syncbox'; box.id = 'syncBox'; fill(box); preload();
+  Study.notesView = async app => { await orig(app); const box = document.createElement('div'); box.className = 'card syncbox'; box.id = 'syncBox'; fill(box);
     const anchor = app.querySelector('.row'); anchor ? anchor.after(box) : app.prepend(box) } };
 wrap(); window.ShiurimSync = { sync, disconnect, _merge: merge };
 })();

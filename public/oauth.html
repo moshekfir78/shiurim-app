@@ -4,24 +4,20 @@
 (function(){
   var h=new URLSearchParams(location.hash.slice(1)), q=new URLSearchParams(location.search);
   var back='./'+(localStorage.getItem('sync_return')||'');
-  localStorage.removeItem('sync_return');
-  var exp=localStorage.getItem('sync_oauth_state');
-  localStorage.removeItem('sync_oauth_state');
-  var st=h.get('state')||q.get('state');
-  var at=h.get('access_token');
-  var err=h.get('error')||q.get('error');
-  var silent=false;
-  try{silent=!!sessionStorage.getItem('sync_silent_tried')}catch(e){}
-  var skip=/^(login_required|interaction_required|consent_required|none)$/.test(err||'');
+  var exp=localStorage.getItem('sync_oauth_state'), silent=localStorage.getItem('sync_oauth_silent')==='1';
+  ['sync_return','sync_oauth_state','sync_oauth_silent','sync_silent_ok'].forEach(function(k){localStorage.removeItem(k)});
+  var st=h.get('state')||q.get('state'), at=h.get('access_token'), err=h.get('error')||q.get('error');
+  // errors that only mean "Google needs a tap from you" – never a reason to sign the user out
+  var soft=/^(login_required|interaction_required|consent_required|account_selection_required|none|access_denied)$/.test(err||'');
   if(at&&(!exp||st===exp)){
     localStorage.setItem('sync_tok',JSON.stringify({at:at,exp:Date.now()+((+h.get('expires_in')||3600)-60)*1000}));
     localStorage.setItem('sync_on','true');
     localStorage.setItem('sync_after_login','1');
-    if(silent)try{localStorage.setItem('sync_silent_ok','true')}catch(e){}
+    localStorage.removeItem('sync_silent_fail');
   }else if(err){
-    if(silent)try{localStorage.setItem('sync_silent_ok','false')}catch(e){}
-    if(!skip)document.getElementById('m').textContent='ההתחברות בוטלה: '+err;
+    if(silent)localStorage.setItem('sync_silent_fail',JSON.stringify({at:Date.now(),hard:true,err:err}));
+    else if(!soft)document.getElementById('m').textContent='ההתחברות לא הושלמה: '+err;
   }
-  setTimeout(function(){location.replace(back)},(err&&!skip)?2500:50);
+  setTimeout(function(){location.replace(back)},(err&&!silent&&!soft)?2500:30);
 })();
 </script></body></html>
