@@ -1,1 +1,1 @@
-{"siach:4573": {"status": "working", "at": "2026-11-26T03:31:12.374572+00:00", "issue": null}}
+{"siach:4573": {"status": "done", "at": "2026-11-26T03:35:37.534742+00:00", "issue": null, "seconds": 248, "audioSeconds": 2222, "model": "gemini-3.8-flash", "source": "Gemini · מהיר", "mode": "fast"}}
