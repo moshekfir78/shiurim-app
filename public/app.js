@@ -400,6 +400,30 @@ const REPO = 'moshekfir78/shiurim-app';
 let TRST = null;
 const trStatus = async () => TRST || (TRST = await fetch('data/transcripts-status.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({})));
 const canTr = s => s.audio.length || s.youtube;
+async function clearTrEdit(uid) {
+  if (!window.Study || !Study._db) return false;
+  const rec = await Study._db.getRec(uid).catch(() => null);
+  if (!rec || !rec.trEdit) return false;
+  delete rec.trEdit;
+  await Study._db.putRec(rec);
+  return true;
+}
+async function refreshTrView(s) {
+  if (!location.hash.includes(s.uid) && !location.hash.includes(encodeURIComponent(s.uid))) return;
+  const old = document.querySelector('.badges');
+  const html = badges(s);
+  if (old) { if (html) old.outerHTML = html; else old.remove(); }
+  else if (html) {
+    const m = document.querySelector('h1.page + .muted');
+    if (m) m.insertAdjacentHTML('afterend', html);
+  }
+  await renderTr(s);
+  if (window.Study && Study.mount) {
+    await Study.mount(s);
+    const tab = document.querySelector('#study [data-p="tr"]');
+    if (tab) tab.click();
+  }
+}
 async function renderTr(s) {
   const box = $('#trbox'); if (!box) return;
   if (s.txt) { box.innerHTML = ''; return }   // written shiur: nothing to transcribe
@@ -407,15 +431,41 @@ async function renderTr(s) {
   const c = window.PTR ? await PTR.content(s) : await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   if (PTRJOB[s.uid]) { box.innerHTML = `<p class="trst" id="ptrSt">⏳ ${esc(PTRJOB[s.uid])}</p>`; return }
   if (c.transcript) {
-    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}${c.trAt || c.trDate ? `<span class="trsrc">נוסף: ${esc(trWhen(c.personal && c.trAt ? c.trAt : (c.trAt || c.trDate)))}</span>` : ''}${c.trRaw ? '<span class="trsrc">טרם עוצב</span>' : ''}</h2><div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
+    const rec = window.Study && Study._db ? await Study._db.getRec(s.uid).catch(() => null) : null;
+    const hasEdit = !!(rec && rec.trEdit);
+    const pubUnder = !!(c.personal && c.publicTranscript && c.publicTranscript.length);
+    const acts = [];
+    if (canTr(s)) acts.push('<button class="btn" id="trRedo">תמלל מחדש</button>');
+    if (c.personal || hasEdit) acts.push('<button class="btn" id="trDel">מחק תמלול</button>');
+    const upWait = !c.personal && c.trMode !== 'accurate' && s.audio.length && asked && asked.mode === 'accurate' && Date.now() - asked.at < 24 * 3600e3;
+    if (!c.personal && c.trMode !== 'accurate' && s.audio.length && !upWait) acts.push('<button class="btn" id="trUp">🎯 שדרג לתמלול מדויק</button>');
+    let note = '';
+    if (c.personal && pubUnder) note = 'התמלול האישי שלך מוצג במקום התמלול הציבורי. אפשר למחוק אותו כדי לחזור לציבורי, או לתמלל מחדש.';
+    else if (c.personal) note = 'זה התמלול האישי שלך, שמור במכשיר וב-Google Drive שלך.';
+    box.innerHTML = `<h2 class="sec">תמלול <span class="muted">(אוטומטי, עשוי להכיל שגיאות)</span> ${c.trSource ? `<span class="trsrc">מקור: ${esc(c.trSource)}</span>` : ''}${c.trAt || c.trDate ? `<span class="trsrc">נוסף: ${esc(trWhen(c.personal && c.trAt ? c.trAt : (c.trAt || c.trDate)))}</span>` : ''}${c.trRaw ? '<span class="trsrc">טרם עוצב</span>' : ''}</h2>${acts.length ? `<p class="prow tr-actions">${acts.join('')}</p>` : ''}${note ? `<p class="muted tr-note" style="font-size:.8rem">${note}</p>` : ''}${upWait ? '<p class="trst">⏳ ביקשת תמלול מדויק — הוא יחליף את הנוכחי כשיסתיים.</p>' : ''}<div class="text tr">${c.transcript.map(g => { const q = /^\s*>/.test(g.t), h = esc(g.t.replace(/^\s*>\s*/, '')).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); return q ? `<blockquote class="trq">${h}</blockquote>` : `<p><a class="ts" data-t="${g.s}">${fmtTime(g.s)}</a> ${h}</p>` }).join('')}</div>`;
     box.querySelectorAll('.ts').forEach(x => x.onclick = () => { const au = $('#au'); if (au) { au.currentTime = +x.dataset.t; au.play() } });
-    if (c.personal) box.insertAdjacentHTML('beforeend', `<p class="muted" style="font-size:.8rem">התמלול האישי שלך מוצג במקום התמלול הציבורי.</p>`);
-    else if (window.PTR && PTR.hasKey()) { box.insertAdjacentHTML('beforeend', `<p class="prow"><button class="btn" id="trMine">⚡ תמלול אישי עם המפתח שלי</button></p>`); $('#trMine').onclick = () => personalTr(s) }
-    if (!c.personal && c.trMode !== 'accurate' && s.audio.length) {
-      const up = asked && asked.mode === 'accurate' && Date.now() - asked.at < 24 * 3600e3;
-      box.insertAdjacentHTML('beforeend', up ? `<p class="trst">⏳ ביקשת תמלול מדויק — הוא יחליף את הנוכחי כשיסתיים.</p>` : `<p class="prow"><button class="btn" id="trUp">🎯 שדרג לתמלול מדויק</button></p>`);
-      $('#trUp') && ($('#trUp').onclick = () => reqTr(s, 'accurate'));
-    }
+    $('#trUp') && ($('#trUp').onclick = () => reqTr(s, 'accurate'));
+    $('#trDel') && ($('#trDel').onclick = async () => {
+      let msg;
+      if (c.personal && pubUnder) msg = 'למחוק את התמלול האישי? יוצג שוב התמלול הציבורי של השיעור. המחיקה תסונכרן ל-Google Drive שלך.';
+      else if (c.personal) msg = 'למחוק את התמלול האישי? לא יוצג תמלול עד שתתמלל שוב. המחיקה תסונכרן ל-Google Drive שלך.';
+      else msg = 'למחוק את העריכה המקומית ולחזור לתמלול המקורי?';
+      if (c.personal && hasEdit) msg += ' גם העריכה המקומית תימחק.';
+      if (!confirm(msg)) return;
+      if (c.personal && window.PTR && PTR.del) await PTR.del(s.uid);
+      if (hasEdit) await clearTrEdit(s.uid);
+      await refreshTrView(s);
+    });
+    $('#trRedo') && ($('#trRedo').onclick = async () => {
+      if (!canTr(s)) return;
+      if (!(window.PTR && PTR.hasKey())) { alert('כדי לתמלל מחדש יש להזין מפתח Gemini בהערות שלי (נשמר רק במכשיר הזה). התמלול החדש יישמר אצלך ולא ישנה את התמלול הציבורי.'); return }
+      const msg = c.personal
+        ? 'לתמלל מחדש? התמלול האישי הנוכחי יוחלף בתמלול חדש, ויישמר אצלך וב-Google Drive שלך.'
+        : 'לתמלל מחדש עם המפתח שלך? התמלול החדש יישמר אצלך בלבד ויוצג במקום התמלול הציבורי.';
+      if (!confirm(msg)) return;
+      if (hasEdit) await clearTrEdit(s.uid);
+      personalTr(s);
+    });
     return;
   }
   if (!canTr(s)) { box.innerHTML = `<p class="muted">תמלול לא זמין: השיעור זמין רק בספוטיפיי ואין גישה ציבורית לקובץ השמע.</p>`; return }

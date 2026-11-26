@@ -92,7 +92,7 @@ async function content(s) {
   const c = await fetch('data/content/' + s.c + '.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => ({}));
   const p = await get(s.uid).catch(() => null);
   if (c.transcript) c.transcript = trClean.segs(c.transcript);
-  if (p && p.segments && p.segments.length) Object.assign(c, { transcript: trClean.segs(p.segments), trSources: p.sources || [], trStories: p.stories || [],
+  if (p && !p.deleted && p.segments && p.segments.length) Object.assign(c, { transcript: trClean.segs(p.segments), trSources: p.sources || [], trStories: p.stories || [],
     trSource: LABEL, trModel: p.model, trMode: 'personal', trRaw: false, personal: true, trAt: p.at ? new Date(p.at).toISOString() : null, publicTranscript: c.transcript || null });
   return c;
 }
@@ -225,5 +225,10 @@ wrap();
 const PHAS = {}; all().then(rs => rs.forEach(r => { if (r.segments && r.segments.length) PHAS[r.uid] = 1 })).catch(() => {});
 const _put0 = put; 
 async function put2(rec, fromSync) { await _put0(rec, fromSync); if (rec.segments && rec.segments.length) PHAS[rec.uid] = 1; else delete PHAS[rec.uid]; if (!fromSync && window.render) try { render() } catch {} }
-window.PTR = { clean: trClean, get, all, put: put2, content, transcribe, hasKey: () => !!key(), Busy, Cors, LABEL, _wrap: wrap, _has: uid => !!PHAS[uid] };
+// tombstone: empty segments + deleted, so Drive sync (newer `at`) keeps the removal on every device
+async function del(uid) {
+  await put({ uid, segments: [], sources: [], stories: [], deleted: true, at: Date.now() }, false);
+  delete PHAS[uid];
+}
+window.PTR = { clean: trClean, get, all, put: put2, del, content, transcribe, hasKey: () => !!key(), Busy, Cors, LABEL, _wrap: wrap, _has: uid => !!PHAS[uid] };
 })();

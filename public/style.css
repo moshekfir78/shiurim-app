@@ -271,6 +271,7 @@ h2.sec a,.crumbs a{color:var(--pri)}
 .lnk{color:var(--pri);cursor:pointer;text-decoration:underline}
 .sub-h{font-size:.95rem;font-weight:600;color:var(--ink);margin:14px 2px 8px}
 .study [data-pane="tr"] #trbox h2.sec{margin-top:4px}
+.tr-actions{margin:6px 0 10px}.tr-note{margin:0 0 10px}
 
 /* v13: wide layout + rav chips fully visible */
 main{max-width:min(1400px,94vw);padding:16px 14px calc(110px + env(safe-area-inset-bottom))}
