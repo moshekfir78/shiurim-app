@@ -1,1 +1,1 @@
-{"youtube:89aodQmm7yU": {"status": "done", "at": "2026-11-26T03:25:25.315270+00:00", "issue": null, "seconds": 5, "audioSeconds": 903, "model": "captions", "source": "כתוביות יוטיוב (אוטומטיות)", "mode": "fast"}}
+{"youtube:89aodQmm7yU": {"status": "done", "at": "2026-11-26T03:30:36.881135+00:00", "issue": null, "seconds": 28, "audioSeconds": 908, "model": "gemini-3-flash-preview", "source": "כתוביות יוטיוב (אוטומטיות)", "mode": "fast"}}
