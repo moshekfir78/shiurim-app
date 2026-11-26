@@ -21,7 +21,7 @@ jobs:
         run: node importers/srcreq.js --peek
       - name: Tools
         if: steps.peek.outputs.pending != '0'
-        run: (sudo apt-get install -y -qq poppler-utils >/dev/null || true) && pip install -q requests yt-dlp
+        run: ( (sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1 || (sudo apt-get update -qq >/dev/null && sudo apt-get install -y -qq poppler-utils >/dev/null)) || true) && pip install -q requests yt-dlp
       - name: Source links cache
         if: steps.peek.outputs.pending != '0'
         uses: actions/cache@v4

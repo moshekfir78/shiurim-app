@@ -68,7 +68,16 @@ const trClean = (() => {
     if (s === t.trim() && t2 === t) return t;
     return s.replace(/ {2,}/g, ' ').trim();
   }
-  const text = t => { for (let k = 0; k < 4; k++) { const c = once(t); if (c === t) return t; t = c } return t };
+  // stray Arabic letters (Gemini drift on Hebrew speech) -> Hebrew letters; same as tr_clean.de_arabic
+  const AR_ANY = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/, AR_MAP = {}, FIN = { 'כ': 'ך', 'מ': 'ם', 'נ': 'ן', 'פ': 'ף', 'צ': 'ץ' };
+  Object.entries({ 'א': 'اأإآٱ', 'ב': 'ب', 'ג': 'جغگ', 'ד': 'دذ', 'ה': 'هة', 'ו': 'وؤ', 'ז': 'ز', 'ח': 'حخ', 'ט': 'طظ', 'י': 'يىئی', 'כ': 'كک', 'ל': 'ل',
+    'מ': 'م', 'נ': 'ن', 'ס': 'س', 'ע': 'ع', 'פ': 'فپ', 'צ': 'صضچ', 'ק': 'ق', 'ר': 'ر', 'ש': 'ش', 'ת': 'تث' }).forEach(([h, a]) => [...a].forEach(c => AR_MAP[c] = h));
+  Object.assign(AR_MAP, { 'ء': '', 'ـ': '', '،': ',', '؛': ';', '؟': '?', '٪': '%' });
+  const deAr = t => !t || !AR_ANY.test(t) ? t : t.split(/(\s+)/).map(tok => { if (!AR_ANY.test(tok)) return tok;
+    tok = [...tok].map(c => c >= '\uFB50' && c <= '\uFEFF' ? c.normalize('NFKC') : c).join('').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '');
+    tok = [...tok].map(c => c in AR_MAP ? AR_MAP[c] : c).join('').replace(new RegExp(AR_ANY.source, 'g'), '');
+    return tok.replace(/([כמנפצ])(?=[^א-ת\u0591-\u05C7]*$)/, (m, c) => FIN[c]) }).join('').replace(/ {2,}/g, ' ');
+  const text = t => { t = deAr(t); for (let k = 0; k < 4; k++) { const c = once(t); if (c === t) return t; t = c } return t };
   const segs = a => { const o = (a || []).map(g => ({ ...g, t: text(g.t || '') })); const f = o.filter(g => (g.t || '').trim()); return f.length ? f : o };
   return { text, segs };
 })();
@@ -90,7 +99,7 @@ async function content(s) {
 // ---------- prompt + output parsing (same as the worker) ----------
 let PROMPT = null, MODELS = null;
 const prompt = async ref => (PROMPT = PROMPT || await fetch('data/prompt_he.txt').then(r => r.text())).replace('{referenceText}', ref);
-const models = async () => MODELS = MODELS || await fetch('data/gemini_models.json').then(r => r.json()).catch(() => [['gemini-3.8-flash', false], ['gemini-3-flash-preview', false], ['gemini-flash-latest', false]]);
+const models = async () => MODELS = MODELS || await fetch('data/gemini_models.json').then(r => r.json()).catch(() => [['gemini-3.1-pro-preview', false], ['gemini-3.8-flash', false], ['gemini-3-flash-preview', false], ['gemini-flash-latest', false]]);
 function split3(text) {
   const sec = { tr: [], src: [], st: [] }; let cur = 'tr';
   for (const ln of text.split('\n')) { const h = ln.trim().replace(/^#+/, '').trim();
@@ -117,19 +126,38 @@ async function req(url, opt = {}) {
   if (!r.ok) { const t = await r.text().catch(() => ''); const e = new Error(`Gemini ${r.status}: ${t.slice(0, 160)}`); e.status = r.status; throw e }
   return r;
 }
-async function generate(part, ref, onStep) {
-  const txt = await prompt(ref.slice(0, 8000)), errs = [];
+// every answer is checked like the worker's quality(): Arabic letters, unformatted text, loops, truncation -> next model
+const AR = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
+function quality(out, span) {
+  const tr = split3(out)[0], he = (tr.match(/[א-ת]/g) || []).length, bad = [];
+  if (!he) return ['empty'];
+  if (AR.test(out)) bad.push('arabic');
+  const paras = tr.split(/\n+/).map(p => p.trim()).filter(Boolean);
+  if ((tr.match(/[.,?!:;]/g) || []).length * 1000 < he * 4 || Math.max(...paras.map(p => p.length)) > 4000) bad.push('unformatted');
+  const long = paras.filter(p => p.length > 25).map(p => p.replace(/^\[?[\d:]+\]?\s*/, ''));
+  if (long.length && long.length - new Set(long).size >= Math.max(3, Math.floor(long.length / 10))) bad.push('loop');
+  if (span > 300 && he / (span / 60) < 200) bad.push('short');
+  return bad;
+}
+async function generate(part, ref, onStep, span = 0) {
+  const txt = await prompt(ref.slice(0, 8000)), errs = [], cands = [];
   for (const [m, search] of await models()) {
+    if (cands.length >= 3) break;
     onStep && onStep(m);
     const body = { contents: [{ parts: [part, { text: txt }] }], generationConfig: { temperature: 0, maxOutputTokens: 65536 } };
     if (search) body.tools = [{ google_search: {} }];
+    let t = '';
     try {
       const j = await (await req(`${API}/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json();
-      const out = ((j.candidates || [])[0] || {}).content; const t = out ? out.parts.filter(p => !p.thought).map(p => p.text || '').join('') : '';
-      if (t.trim()) return { text: t, model: m + (search ? ' +search' : '') };
-      errs.push(m + ':empty');
-    } catch (e) { if (e.status === 400 && /API key/i.test(e.message)) throw new Error('מפתח Gemini לא תקין'); if (e.status === 403) throw new Error('המפתח חסום לשימוש הזה (403)'); errs.push(m + ':' + (e.status || 'net')) }
+      const out = ((j.candidates || [])[0] || {}).content; t = out ? out.parts.filter(p => !p.thought).map(p => p.text || '').join('') : '';
+    } catch (e) { if (e.status === 400 && /API key/i.test(e.message)) throw new Error('מפתח Gemini לא תקין'); if (e.status === 403) throw new Error('המפתח חסום לשימוש הזה (403)'); errs.push(m + ':' + (e.status || 'net')); continue }
+    const bad = t.trim() ? quality(t, span) : ['empty'];
+    if (bad[0] === 'empty') { errs.push(m + ':empty'); continue }
+    if (!bad.length) return { text: t, model: m + (search ? ' +search' : '') };
+    errs.push(m + ':' + bad.join('/')); cands.push({ bad, text: t, model: m + (search ? ' +search' : '') });
   }
+  if (cands.length) { const W = { arabic: 1, short: 3, unformatted: 4, loop: 5 }, sc = c => c.bad.reduce((a, b) => a + (W[b] || 2), 0);
+    return cands.sort((a, b) => sc(a) - sc(b))[0] }   // least-bad answer; stray Arabic letters are mapped to Hebrew by trClean
   if (errs.every(e => /:(429|503|500|404|empty)$/.test(e))) throw new Busy('כל המודלים החינמיים של Gemini עמוסים או שהמכסה היומית נגמרה. נסו שוב מאוחר יותר.');
   throw new Error('Gemini: ' + errs.join(', '));
 }
@@ -158,7 +186,7 @@ async function transcribe(s, onStep) {
   const add = (res, off, span) => { const [tr, a, b] = split3(res.text); segs = segs.concat(parse(tr, off, span)); src = src.concat(a); st = st.concat(b); used = res.model };
   if (s.youtube && !s.audio.length) {
     onStep('שולח את קישור היוטיוב ל־Gemini…');
-    add(await generate({ file_data: { file_uri: 'https://www.youtube.com/watch?v=' + s.youtube } }, ref, m => onStep('מתמלל עם ' + m + '…')), 0, s.duration || 0);
+    add(await generate({ file_data: { file_uri: 'https://www.youtube.com/watch?v=' + s.youtube } }, ref, m => onStep('מתמלל עם ' + m + '…'), s.duration || 0), 0, s.duration || 0);
   } else {
     onStep('מוריד את קובץ השמע…');
     const blob = await fetchAudio(s.audio), mime = blob.type && blob.type.startsWith('audio') ? blob.type : 'audio/mpeg';
@@ -167,7 +195,7 @@ async function transcribe(s, onStep) {
       const part = n === 1 ? blob : blob.slice(Math.floor(blob.size * i / n), Math.floor(blob.size * (i + 1) / n), mime);
       onStep(`מעלה ל־Gemini${n > 1 ? ` (חלק ${i + 1}/${n})` : ''}…`);
       const f = await upload(part, mime);
-      try { add(await generate({ file_data: { mime_type: f.mimeType, file_uri: f.uri } }, ref, m => onStep(`מתמלל${n > 1 ? ` חלק ${i + 1}/${n}` : ''} עם ${m}…`)), n === 1 ? 0 : dur * i / n, n === 1 ? dur : dur / n) }
+      try { add(await generate({ file_data: { mime_type: f.mimeType, file_uri: f.uri } }, ref, m => onStep(`מתמלל${n > 1 ? ` חלק ${i + 1}/${n}` : ''} עם ${m}…`), n === 1 ? dur : dur / n), n === 1 ? 0 : dur * i / n, n === 1 ? dur : dur / n) }
       finally { delFile(f) }
     }
   }

@@ -79,7 +79,10 @@ def build_prompt(ref, speakers=False):
     i = t.index("7. זיהוי דוברים:"); j = t.index("להלן טקסט הסימוכין")
     sec = [l for l in t[i:j].splitlines() if ("אם נדרש" in l) == speakers and "תגיות" in l][0]
     t = t[:i] + "7. זיהוי דוברים:\n" + sec.split(":", 1)[1].strip().strip('"') + "\n\n" + t[j:]
-    return t.replace("{language}", "עברית").replace("{referenceText}", ref)
+    return HE_RULE + t.replace("{language}", "עברית").replace("{referenceText}", ref)
+HE_RULE = """כלל עליון: ההקלטה היא בעברית. כתוב את כל התמלול באותיות עבריות בלבד. אסור בהחלט להשתמש באותיות ערביות או בכתב אחר, גם לא באות בודדת בתוך מילה. מילים בארמית, ביידיש או בערבית שנאמרו כותבים באותיות עבריות. אל תנחש ואל תמציא: מה שלא נשמע ברור, כתוב כפי שהוא נשמע בעברית. התמלול חייב להיות מפוסק ומחולק לפסקאות.
+
+"""
 def gem_key():
     if os.environ.get("GEMINI_API_KEY"): return os.environ["GEMINI_API_KEY"]
     try:
@@ -93,30 +96,59 @@ def gem_req(method, url, key, **kw):
 _gem_model = None
 def gem_model(key):
     global _gem_model
+    if GEM_USED: return " / ".join(dict.fromkeys(GEM_USED))
     if not _gem_model:
         names = {m["name"].split("/")[-1] for m in gem_req("GET", GEM_API + "/v1beta/models?pageSize=200", key).json().get("models", [])}
         _gem_model = next((m for m in GEM_PREF if m in names), None) or sorted(n for n in names if n.startswith("gemini") and "pro" in n)[-1]
     return _gem_model
-GEM_CASCADE = [("gemini-3.5-transcribe", False), ("gemini-3.1-pro-preview", True), ("gemini-3.1-pro-preview", False),
-               ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-3.7-flash", False), ("gemini-3.6-flash", False), ("gemini-3.5-flash", False), ("gemini-flash-latest", False), ("gemini-flash-lite-latest", False), ("gemini-2.5-flash", False)]
-def gem_generate(key, part, ctx="", pre=""):
-    """User's prompt; transcribe model, then Pro (+Google Search), then Flash. Busy if all fail on quota/overload."""
+# Formatting-capable models only, best first. NOT here: gemini-3.5-transcribe (raw speech-to-text: ignores the prompt,
+# no punctuation/paragraphs, drifts into Arabic letters) and the flash-lite models (weak Hebrew, Arabic leaks).
+GEM_CASCADE = [("gemini-3.1-pro-preview", True), ("gemini-3.1-pro-preview", False), ("gemini-pro-latest", False),
+               ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-3.7-flash", False), ("gemini-3.6-flash", False),
+               ("gemini-3.5-flash", False), ("gemini-flash-latest", False), ("gemini-2.5-flash", False)]
+AR = re.compile(r"[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]")
+def quality(out, span=0, src_chars=0):
+    """Problems in one Gemini answer (empty list = good). span: seconds of audio in this chunk; src_chars: Hebrew letters
+    in the input text (captions / whisper formatting). Arabic letters, unformatted text, loops and truncation are rejected."""
+    tr = split3(out)[0]; he = len(re.findall(r"[א-ת]", tr)); bad = []
+    if not he: return ["empty"]
+    if AR.search(out): bad.append("arabic")
+    paras = [p.strip() for p in re.split(r"\n+", tr) if p.strip()]
+    if len(re.findall(r"[.,?!:;]", tr)) * 1000 < he * 4 or max(len(p) for p in paras) > 4000: bad.append("unformatted")
+    long = [re.sub(r"^\[?[\d:]+\]?\s*", "", p) for p in paras if len(p) > 25]
+    if long and len(long) - len(set(long)) >= max(3, len(long) // 10): bad.append("loop")
+    if span > 300 and he / (span / 60) < 200: bad.append("short")
+    if src_chars > 2000 and he < src_chars * 0.55: bad.append("short")
+    return bad
+GEM_USED = []                   # models that produced the current shiur (all chunks)
+MAX_GOOD_TRIES = 3              # answers checked per chunk before settling for the best one (protects the free quota)
+def gem_generate(key, part, ctx="", pre="", span=0, src_chars=0):
+    """User's prompt; Pro (+Google Search), then Flash models. Every answer is checked (quality()); a bad one (Arabic
+    letters, unformatted, loop, truncated) moves on to the next model. Busy if all fail on quota/overload."""
     global _gem_model
     txt = pre + build_prompt(ctx[:8000])
-    errs = []
+    errs = []; cands = []
     for m, search in GEM_CASCADE:
+        if len(cands) >= MAX_GOOD_TRIES: break
         body = {"contents": [{"parts": [part, {"text": txt}]}], "generationConfig": {"temperature": 0, "maxOutputTokens": 65536}}
         if search: body["tools"] = [{"google_search": {}}]
         try:
             j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body).json()
             out = "".join(p.get("text", "") for p in j["candidates"][0]["content"]["parts"] if not p.get("thought"))
-            if out.strip():
-                _gem_model = m + (" +search" if search else "")
-                if errs: log("gemini fallbacks:", ", ".join(errs))
-                return out
         except Exception as e:
-            errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}")
-    if all(e[-3:] in ("429", "503", "500", "404") for e in errs) and any(e[-3:] != "404" for e in errs): raise Busy("Gemini: " + ", ".join(errs))
+            errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}"); continue
+        bad = quality(out, span, src_chars) if out.strip() else ["empty"]
+        if bad == ["empty"]: errs.append(f"{m}:empty"); continue
+        name = m + (" +search" if search else "")
+        if not bad:
+            if errs: log("gemini fallbacks:", ", ".join(errs))
+            _gem_model = name; GEM_USED.append(name); return out
+        log("rejected", name, bad); errs.append(f"{m}:{'/'.join(bad)}"); cands.append((bad, name, out))
+    if cands:   # nothing clean: take the least-bad answer (stray Arabic letters are mapped to Hebrew by tr_clean)
+        w = {"arabic": 1, "short": 3, "unformatted": 4, "loop": 5}
+        bad, name, out = min(cands, key=lambda c: sum(w.get(b, 2) for b in c[0]))
+        log("best available", name, bad, "| tried:", ", ".join(errs)); _gem_model = name; GEM_USED.append(name); return out
+    if all(e[-3:] in ("429", "503", "500", "404") or e.endswith(":empty") for e in errs) and any(e[-3:] not in ("404",) for e in errs): raise Busy("Gemini: " + ", ".join(errs))
     raise RuntimeError("Gemini: " + ", ".join(errs))
 class Busy(RuntimeError): pass   # quota/overload: retry on a later run instead of failing
 def gem_upload(key, path):
@@ -167,13 +199,13 @@ def gem_audio(key, path, td, ctx=""):
         cp = os.path.join(td, f"c{i}.mp3")
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", str(off), "-t", str(CHUNK), "-i", path, "-ac", "1", "-b:a", "48k", cp], check=True)
         f = gem_upload(key, cp)
-        try: out += parse_all(gem_generate(key, {"file_data": {"mime_type": f["mimeType"], "file_uri": f["uri"]}}, ctx), off, min(CHUNK, dur - off))
+        try: out += parse_all(gem_generate(key, {"file_data": {"mime_type": f["mimeType"], "file_uri": f["uri"]}}, ctx, span=min(CHUNK, dur - off)), off, min(CHUNK, dur - off))
         finally:
             try: gem_req("DELETE", GEM_API + "/v1beta/" + f["name"], key)
             except Exception: pass
     return out, dur
 def gem_youtube(key, vid, ctx="", dur=0):
-    segs = parse_all(gem_generate(key, {"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}}, ctx), 0, dur or 0)
+    segs = parse_all(gem_generate(key, {"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}}, ctx, span=dur or 0), 0, dur or 0)
     return segs, (segs[-1]["s"] if segs else 0)
 
 # ---- YouTube captions (Hebrew; manual preferred, else auto) -> Gemini text-only formatting ----
@@ -229,7 +261,7 @@ def gem_captions(key, caps, ctx="", pre=None):
     dur = caps[-1][0] + 5; out = []
     for off in range(0, int(dur) + 1, CHUNK):
         lines = [f"{_ts(a)} {b}" for a, b in caps if off <= a < off + CHUNK]
-        if lines: out += parse_all(gem_generate(key, {"text": "\n".join(lines)}, ctx, pre or CAP_PRE), 0, 0)
+        if lines: out += parse_all(gem_generate(key, {"text": "\n".join(lines)}, ctx, pre or CAP_PRE, src_chars=sum(len(re.findall(r"[א-ת]", l)) for l in lines)), 0, 0)
     return out, dur
 
 NO_WHISPER = CI or bool(os.environ.get("NO_WHISPER"))   # whisper on a CPU runner is far too slow (~8x realtime)
@@ -277,7 +309,7 @@ def process(uid, issue=None, mode="fast"):
     if old and not (mode == "accurate" and old.get("mode") != "accurate"): return "already"   # accurate may upgrade a fast/other transcript
     set_status(uid, "working", issue=issue); publish()
     t0 = time.time()
-    used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); src = "Gemini"; raw = None; dur = 0
+    used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); GEM_USED.clear(); src = "Gemini"; raw = None; dur = 0
     ctx = s["title"]
     try:
         d = load(os.path.join(ROOT, "public", "data", "content", fname(uid) + ".json"), {})
@@ -349,7 +381,7 @@ def reformat_pending(limit=2):
         if n >= limit or f == "status.json" or not f.endswith(".json"): continue
         fp = os.path.join(TDIR, f); r = load(fp, {})
         if not r.get("needsFormat") or not r.get("raw"): continue
-        n += 1; s = index().get(r["uid"], {}); EXTRA.clear()
+        n += 1; s = index().get(r["uid"], {}); EXTRA.clear(); GEM_USED.clear()
         try: segs, _ = gem_captions(key, whisper_caps(r["raw"]), s.get("title", ""), WHISPER_PRE)
         except Exception as e: log("reformat later", r["uid"], str(e)[:120]); return
         r.update(segments=clean_segments(segs), sources=EXTRA.get("sources", []), stories=EXTRA.get("stories", []), model=r.get("model", MODEL) + " + " + gem_model(key))

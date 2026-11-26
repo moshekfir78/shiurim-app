@@ -1,4 +1,4 @@
-const V='shiurim-v57', SHELL=['./','index.html','style.css?v=57','app.js?v=57','sources.js?v=57','study.js?v=57','sheet.js?v=57','config.js?v=57','sync.js?v=57','personal.js?v=57','manifest.webmanifest','icons/icon.svg'];
+const V='shiurim-v58', SHELL=['./','index.html','style.css?v=58','app.js?v=58','sources.js?v=58','study.js?v=58','sheet.js?v=58','config.js?v=58','sync.js?v=58','personal.js?v=58','manifest.webmanifest','icons/icon.svg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'reload'})))));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{

@@ -5,7 +5,7 @@ word ("זה זה זה" -> "זה") or of an identical 2-4 word phrase ("זה הט
 Never touches: quote lines ('>'), text inside "..." (quoted sources / reported speech), **bold** tokens,
 whitelisted intentional repetitions (biblical / idiomatic), a single word repeated just twice across a comma
 ("הוא, הוא עושה", "כן, כן?"), or polysyndeton ("ירד וירד"). Idempotent."""
-import re
+import re, unicodedata
 
 KEEP = {  # intentional repetitions that must stay (core words, space separated)
     "לך לך", "קדוש קדוש", "קדוש קדוש קדוש", "צדק צדק", "אברהם אברהם", "משה משה", "יעקב יעקב", "שמואל שמואל",
@@ -37,7 +37,29 @@ def _quoted(toks):
         if end and inq and not (start and len(t) < 2): inq = False
     return m
 
+# ---- stray Arabic letters (Gemini sometimes drifts into Arabic script on Hebrew speech) -> Hebrew letters ----
+AR_ANY = re.compile(r"[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]")
+AR_MAP = {a: h for h, a_s in {"א": "اأإآٱ", "ב": "ب", "ג": "جغگ", "ד": "دذ", "ה": "هة", "ו": "وؤ", "ז": "ز", "ח": "حخ", "ט": "طظ", "י": "يىئی",
+          "כ": "كک", "ל": "ل", "מ": "م", "נ": "ن", "ס": "س", "ע": "ع", "פ": "فپ", "צ": "صضچ", "ק": "ق", "ר": "ر", "ש": "ش", "ת": "تث"}.items() for a in a_s}
+AR_MAP.update({"ء": "", "ـ": "", "،": ",", "؛": ";", "؟": "?", "٪": "%"})
+FINAL = {"כ": "ך", "מ": "ם", "נ": "ן", "פ": "ף", "צ": "ץ"}
+def de_arabic(t):
+    """Map stray Arabic letters to their Hebrew counterparts (و->ו, ب->ב, م->מ...), fix final letters in the words touched,
+    and drop any Arabic mark that is left. Hebrew-only text is returned unchanged."""
+    if not t or not AR_ANY.search(t): return t
+    out = []
+    for tok in re.split(r"(\s+)", t):
+        if not AR_ANY.search(tok): out.append(tok); continue
+        tok = "".join(unicodedata.normalize("NFKC", c) if "\uFB50" <= c <= "\uFEFF" else c for c in tok)
+        tok = re.sub(r"[\u064B-\u065F\u0670\u06D6-\u06ED]", "", tok)
+        tok = "".join(AR_MAP.get(c, c) for c in tok)
+        tok = AR_ANY.sub("", tok)
+        tok = re.sub(r"([כמנפצ])(?=[^א-ת\u0591-\u05C7]*$)", lambda m: FINAL[m.group(1)], tok)
+        out.append(tok)
+    return re.sub(r" {2,}", " ", "".join(out))
+
 def clean_text(t):
+    t = de_arabic(t)
     for _ in range(4):
         c = _clean1(t)
         if c == t: return t
