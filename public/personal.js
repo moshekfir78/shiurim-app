@@ -158,7 +158,7 @@ async function generate(part, ref, onStep, span = 0) {
   }
   if (cands.length) { const W = { arabic: 1, short: 3, unformatted: 4, loop: 5 }, sc = c => c.bad.reduce((a, b) => a + (W[b] || 2), 0);
     return cands.sort((a, b) => sc(a) - sc(b))[0] }   // least-bad answer; stray Arabic letters are mapped to Hebrew by trClean
-  if (errs.every(e => /:(429|503|500|404|empty)$/.test(e))) throw new Busy('כל המודלים החינמיים של Gemini עמוסים או שהמכסה היומית נגמרה. נסו שוב מאוחר יותר.');
+  if (errs.every(e => /:(429|503|500|404|net|empty)$/.test(e))) throw new Busy('כל המודלים החינמיים של Gemini עמוסים או שהמכסה היומית נגמרה. נסו שוב מאוחר יותר.');
   throw new Error('Gemini: ' + errs.join(', '));
 }
 async function upload(blob, mime) {

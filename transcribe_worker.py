@@ -104,7 +104,7 @@ def gem_model(key):
 # Formatting-capable models only, best first. NOT here: gemini-3.5-transcribe (raw speech-to-text: ignores the prompt,
 # no punctuation/paragraphs, drifts into Arabic letters) and the flash-lite models (weak Hebrew, Arabic leaks).
 GEM_CASCADE = [("gemini-3.1-pro-preview", True), ("gemini-3.1-pro-preview", False), ("gemini-pro-latest", False),
-               ("gemini-3.8-flash", False), ("gemini-3-flash-preview", False), ("gemini-3.7-flash", False), ("gemini-3.6-flash", False),
+               ("gemini-3-flash-preview", False), ("gemini-3.8-flash", False), ("gemini-3.7-flash", False), ("gemini-3.6-flash", False),
                ("gemini-3.5-flash", False), ("gemini-flash-latest", False), ("gemini-2.5-flash", False)]
 AR = re.compile(r"[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]")
 def quality(out, span=0, src_chars=0):
@@ -133,10 +133,11 @@ def gem_generate(key, part, ctx="", pre="", span=0, src_chars=0):
         body = {"contents": [{"parts": [part, {"text": txt}]}], "generationConfig": {"temperature": 0, "maxOutputTokens": 65536}}
         if search: body["tools"] = [{"google_search": {}}]
         try:
-            j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body).json()
+            j = gem_req("POST", f"{GEM_API}/v1beta/models/{m}:generateContent", key, json=body, timeout=(30, 600)).json()
             out = "".join(p.get("text", "") for p in j["candidates"][0]["content"]["parts"] if not p.get("thought"))
-        except Exception as e:
-            errs.append(f"{m}{'+s' if search else ''}:{str(e)[7:10]}"); continue
+        except Exception as e:   # Gemini HTTP status, or "net" for timeouts / dropped connections (transient)
+            code = str(e)[7:10] if str(e).startswith("Gemini ") else "net"
+            errs.append(f"{m}{'+s' if search else ''}:{code}"); continue
         bad = quality(out, span, src_chars) if out.strip() else ["empty"]
         if bad == ["empty"]: errs.append(f"{m}:empty"); continue
         name = m + (" +search" if search else "")
@@ -148,7 +149,7 @@ def gem_generate(key, part, ctx="", pre="", span=0, src_chars=0):
         w = {"arabic": 1, "short": 3, "unformatted": 4, "loop": 5}
         bad, name, out = min(cands, key=lambda c: sum(w.get(b, 2) for b in c[0]))
         log("best available", name, bad, "| tried:", ", ".join(errs)); _gem_model = name; GEM_USED.append(name); return out
-    if all(e[-3:] in ("429", "503", "500", "404") or e.endswith(":empty") for e in errs) and any(e[-3:] not in ("404",) for e in errs): raise Busy("Gemini: " + ", ".join(errs))
+    if all(e[-3:] in ("429", "503", "500", "404", "net") or e.endswith(":empty") for e in errs) and any(e[-3:] not in ("404",) for e in errs): raise Busy("Gemini: " + ", ".join(errs))
     raise RuntimeError("Gemini: " + ", ".join(errs))
 class Busy(RuntimeError): pass   # quota/overload: retry on a later run instead of failing
 def gem_upload(key, path):
@@ -306,7 +307,7 @@ def process(uid, issue=None, mode="fast"):
     s = index().get(uid)
     if not s: raise RuntimeError("מזהה שיעור לא קיים באפליקציה")
     old = load(os.path.join(TDIR, fname(uid) + ".json"), None)
-    if old and not (mode == "accurate" and old.get("mode") != "accurate"): return "already"   # accurate may upgrade a fast/other transcript
+    if old and not old.get("redo") and not (mode == "accurate" and old.get("mode") != "accurate"): return "already"   # redo: flagged bad, replace   # accurate may upgrade a fast/other transcript
     set_status(uid, "working", issue=issue); publish()
     t0 = time.time()
     used = MODEL; segs = None; key = gem_key(); EXTRA.clear(); GEM_USED.clear(); src = "Gemini"; raw = None; dur = 0
@@ -361,6 +362,7 @@ def process(uid, issue=None, mode="fast"):
                 segs, dur = gem_youtube(key, s["youtube"], ctx, s.get("dur") or s.get("duration") or 0); used = gem_model(key); src = "Gemini"
         if not segs:
             if isinstance(busy, Busy): raise busy
+            if busy: raise busy
             raise RuntimeError("לא נמצא שמע זמין לתמלול" if not have_audio else "אין מפתח Gemini")
     segs = clean_segments(segs)
     rec = {"uid": uid, "model": used, "date": datetime.date.today().isoformat(), "audioSeconds": round(dur), "source": src,
@@ -435,7 +437,7 @@ def poll_ntfy():
         md = st.get("mode", {}).get(uid, "fast")
         if WORKER_MODE and md != WORKER_MODE: continue             # belongs to the other workflow
         ex = load(os.path.join(TDIR, fname(uid) + ".json"), None)
-        if uid not in idx or (ex and not (md == "accurate" and ex.get("mode") != "accurate")):
+        if uid not in idx or (ex and not ex.get("redo") and not (md == "accurate" and ex.get("mode") != "accurate")):
             st["retry"].pop(uid, None); save(NTFY_STATE, st); continue
         now = time.time(); st["jobs"] = [t for t in st["jobs"] if now - t < 3600]
         if len(st["jobs"]) >= MAX_PER_HOUR: log("rate limit, later:", uid); break
