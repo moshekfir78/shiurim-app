@@ -1,1 +1,1 @@
-{"youtube:OPnzF7pjRhs": {"status": "working", "at": "2026-11-26T03:11:41.068375+00:00", "issue": null}}
+{"youtube:OPnzF7pjRhs": {"status": "done", "at": "2026-11-26T03:17:04.088356+00:00", "issue": null, "seconds": 310, "audioSeconds": 2259, "model": "gemini-3-flash-preview", "source": "Gemini · מהיר", "mode": "fast"}}
